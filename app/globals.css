@@ -28,6 +28,16 @@
   }
 }
 
+body {
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  body {
+    overflow: unset;
+  }
+}
+
 .custom-cursor {
   display: none;
 }
