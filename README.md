@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio
 
-## Getting Started
+A modern, responsive portfolio website built with [Next.js](https://nextjs.org), bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-First, run the development server:
+## 📋 Table of Contents
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- [Features](#features)
+- [Getting Started](#getting-started)
+- [Development](#development)
+- [Project Structure](#project-structure)
+- [Customization](#customization)
+- [Resources](#resources)
+- [Deployment](#deployment)
+
+## ✨ Features
+
+- Built with **Next.js** for optimal performance
+- Responsive design with **Tailwind CSS**
+- Automatic font optimization using **Geist** font family
+- Fast refresh during development
+- Production-ready build system
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ installed
+- npm, yarn, pnpm, or bun package manager
+
+### Installation & Development
+
+Run the development server using one of the following commands:
+
+| Package Manager | Command |
+|-----------------|---------|
+| npm | `npm run dev` |
+| yarn | `yarn dev` |
+| pnpm | `pnpm dev` |
+| bun | `bun dev` |
+
+Then, open [http://localhost:3000](http://localhost:3000) in your browser to view the site.
+
+## 💻 Development
+
+### Project Structure
+
+```
+├── app/
+│   ├── globals.css       # Global styles
+│   ├── layout.tsx        # Root layout component
+│   └── page.tsx          # Home page
+├── public/               # Static assets
+├── package.json
+├── tsconfig.json
+└── next.config.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Editing
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Start editing by modifying `app/page.tsx`
+- Changes auto-update in the browser thanks to Next.js' fast refresh feature
+- Global styles can be updated in `app/globals.css`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🎨 Customization
 
-## Learn More
+### Fonts
 
-To learn more about Next.js, take a look at the following resources:
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) for automatic font optimization and loading. The [Geist](https://vercel.com/font) font family is pre-configured as the default font.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+To change fonts, update the font imports in `app/layout.tsx`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📚 Resources
 
-## Deploy on Vercel
+Learn more and explore additional resources:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **[Next.js Documentation](https://nextjs.org/docs)** - Core features and API reference
+- **[Next.js Tutorial](https://nextjs.org/learn)** - Interactive learning guide
+- **[Next.js GitHub](https://github.com/vercel/next.js)** - Source code and community contributions
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🌐 Deployment
+
+### Vercel (Recommended)
+
+The easiest way to deploy is using the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) - created by the Next.js team.
+
+For detailed deployment instructions, see the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying).
+
+---
+
+**Built with ❤️ using Next.js**
