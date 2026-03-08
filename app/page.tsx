@@ -236,7 +236,7 @@ export default function Home() {
         <div className="relative z-10 px-6 sm:px-10 md:px-20 pb-8 md:pb-14">
           <p
             className="text-xs tracking-widest uppercase mb-2"
-            style={{ color: fgMuted, display: "inline-block" }}
+            style={{ color: fgMuted }}
             onMouseEnter={() => setContentHovered(true)}
             onMouseLeave={() => setContentHovered(false)}
           >
@@ -244,7 +244,6 @@ export default function Home() {
           </p>
           <p
             className="text-base tracking-wide mb-6"
-            style={{ display: "inline-block" }}
             onMouseEnter={() => setContentHovered(true)}
             onMouseLeave={() => setContentHovered(false)}
           >
