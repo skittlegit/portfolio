@@ -11,13 +11,24 @@
   --font-sans: var(--font-playfair);
 }
 
-*, *::before, *::after {
-  cursor: none !important;
+@media (hover: hover) and (pointer: fine) {
+  *, *::before, *::after {
+    cursor: none !important;
+  }
+}
+
+.custom-cursor {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .custom-cursor {
+    display: block;
+  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-playfair), Georgia, serif;
-  overflow: hidden;
 }

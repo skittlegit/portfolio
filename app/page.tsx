@@ -110,6 +110,7 @@ export default function Home() {
     <>
       {/* Custom cursor — solid dot normally, ring on interactive content */}
       <div
+        className="custom-cursor"
         style={{
           position: "fixed",
           left: cursor.x,
@@ -127,7 +128,7 @@ export default function Home() {
       />
 
       <div
-        className="fixed inset-0 flex flex-col overflow-hidden"
+        className="relative min-h-screen flex flex-col overflow-x-hidden"
         style={{
           fontFamily: "var(--font-playfair), Georgia, serif",
           backgroundColor: bg,
@@ -167,10 +168,10 @@ export default function Home() {
         </div>
 
         {/* Main content — vertically centered */}
-        <div className="relative z-10 flex-1 flex flex-col justify-center px-20">
+        <div className="relative z-10 flex-1 flex flex-col justify-center px-6 sm:px-10 md:px-20 py-24 md:py-0">
           <div className="flex flex-col gap-4" style={{ alignItems: "flex-start" }}>
             <p
-              className="text-5xl font-normal leading-snug tracking-tight"
+              className="text-2xl sm:text-3xl md:text-5xl font-normal leading-snug tracking-tight"
               style={{ display: "inline-block" }}
               onMouseEnter={() => setContentHovered(true)}
               onMouseLeave={() => setContentHovered(false)}
@@ -178,7 +179,7 @@ export default function Home() {
               Hey, I am Deepak.
             </p>
             <p
-              className="text-5xl font-normal leading-snug tracking-tight"
+              className="text-2xl sm:text-3xl md:text-5xl font-normal leading-snug tracking-tight"
               style={{ display: "inline-block" }}
               onMouseEnter={() => setContentHovered(true)}
               onMouseLeave={() => setContentHovered(false)}
@@ -213,7 +214,7 @@ export default function Home() {
               things that work.
             </p>
             <p
-              className="text-5xl font-normal leading-snug tracking-tight"
+              className="text-2xl sm:text-3xl md:text-5xl font-normal leading-snug tracking-tight"
               style={{ display: "inline-block" }}
               onMouseEnter={() => setContentHovered(true)}
               onMouseLeave={() => setContentHovered(false)}
@@ -234,10 +235,10 @@ export default function Home() {
         </div>
 
         {/* Bottom contact + socials */}
-        <div className="relative z-10 px-20 pb-14">
+        <div className="relative z-10 px-6 sm:px-10 md:px-20 pb-8 md:pb-14">
           <p
             className="text-xs tracking-widest uppercase mb-2"
-            style={{ color: fgMuted }}
+            style={{ color: fgMuted, display: "inline-block" }}
             onMouseEnter={() => setContentHovered(true)}
             onMouseLeave={() => setContentHovered(false)}
           >
@@ -263,7 +264,7 @@ export default function Home() {
             &nbsp;&nbsp;|&nbsp;&nbsp;+918885015899
           </p>
           <div
-            style={{ display: "flex", gap: 16 }}
+            style={{ display: "flex", gap: 16, width: "fit-content" }}
             onMouseEnter={() => setContentHovered(true)}
             onMouseLeave={() => setContentHovered(false)}
           >
