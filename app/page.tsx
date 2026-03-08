@@ -99,7 +99,7 @@ export default function Home() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  const bg = isDark ? "#0a0a0a" : "#ffffff";
+  const bg = isDark ? "#000000" : "#ffffff";
   const fg = isDark ? "#ffffff" : "#000000";
   const fgMuted = isDark ? "#71717a" : "#a1a1aa";
   const glowColor = isDark
