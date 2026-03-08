@@ -13,6 +13,7 @@ import {
   Instagram,
   Github,
 } from "lucide-react";
+import { useTheme } from "./context/ThemeContext";
 
 type HoverKey = "design" | "build" | "create" | "resume" | null;
 
@@ -82,9 +83,9 @@ const socials = [
 ];
 
 export default function Home() {
+  const { isDark, toggle, bg, fg, fgMuted } = useTheme();
   const [cursor, setCursor] = useState({ x: -100, y: -100 });
   const [hovered, setHovered] = useState<HoverKey>(null);
-  const [isDark, setIsDark] = useState(false);
   const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
   const [buttonHovered, setButtonHovered] = useState(false);
   const [contentHovered, setContentHovered] = useState(false);
@@ -99,9 +100,6 @@ export default function Home() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  const bg = isDark ? "#000000" : "#ffffff";
-  const fg = isDark ? "#ffffff" : "#000000";
-  const fgMuted = isDark ? "#71717a" : "#a1a1aa";
   const glowColor = isDark
     ? `radial-gradient(500px circle at ${cursor.x}px ${cursor.y}px, rgba(255,255,255,0.06), transparent 70%)`
     : `radial-gradient(500px circle at ${cursor.x}px ${cursor.y}px, rgba(0,0,0,0.05), transparent 70%)`;
@@ -150,7 +148,7 @@ export default function Home() {
         {/* Dark mode toggle */}
         <div style={{ position: "absolute", top: 28, right: 36, zIndex: 100 }}>
           <button
-            onClick={() => setIsDark((d) => !d)}
+            onClick={() => toggle()}
             onMouseEnter={() => setButtonHovered(true)}
             onMouseLeave={() => setButtonHovered(false)}
             aria-label="Toggle dark mode"
