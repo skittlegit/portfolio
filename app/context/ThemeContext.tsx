@@ -16,24 +16,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    if (stored === "dark") setIsDark(true);
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setIsDark(prefersDark);
   }, []);
 
-  const toggle = () => {
-    setIsDark((prev) => {
-      const next = !prev;
-      localStorage.setItem("theme", next ? "dark" : "light");
-      return next;
-    });
-  };
+  useEffect(() => {
+    document.documentElement.style.setProperty("--background", isDark ? "#000000" : "#ffffff");
+    document.documentElement.style.setProperty("--foreground", isDark ? "#ffffff" : "#000000");
+    document.documentElement.style.setProperty("--foreground-muted", isDark ? "#71717a" : "#a1a1aa");
+  }, [isDark]);
 
   const bg = isDark ? "#000000" : "#ffffff";
   const fg = isDark ? "#ffffff" : "#000000";
-  const fgMuted = isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)";
+  const fgMuted = isDark ? "#71717a" : "#a1a1aa";
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggle, bg, fg, fgMuted }}>
+    <ThemeContext.Provider value={{ isDark, toggle: () => setIsDark((d) => !d), bg, fg, fgMuted }}>
       {children}
     </ThemeContext.Provider>
   );
