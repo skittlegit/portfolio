@@ -168,7 +168,7 @@ export default function Home() {
         </div>
 
         {/* Main content — vertically centered */}
-        <div className="relative z-10 flex-1 flex flex-col justify-center px-6 sm:px-10 md:px-20 py-14 sm:py-20 md:py-0">
+        <div className="relative z-10 flex-1 flex flex-col justify-center px-6 sm:px-10 md:px-20 py-10 sm:py-16 md:py-0">
           <div className="flex flex-col gap-4" style={{ alignItems: "flex-start" }}>
             <p
               className="text-2xl sm:text-3xl md:text-5xl font-normal leading-snug tracking-tight"
@@ -235,7 +235,10 @@ export default function Home() {
         </div>
 
         {/* Bottom contact + socials */}
-        <div className="relative z-10 px-6 sm:px-10 md:px-20 pb-8 md:pb-14">
+        <div
+          className="relative z-10 px-6 sm:px-10 md:px-20"
+          style={{ paddingBottom: "max(2rem, calc(1.75rem + env(safe-area-inset-bottom, 0px)))" }}
+        >
           <p
             className="text-xs tracking-widest uppercase mb-2"
             style={{ color: fgMuted }}
