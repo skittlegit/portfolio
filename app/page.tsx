@@ -242,8 +242,8 @@ export default function Home() {
           >
             email&nbsp;&nbsp;|&nbsp;&nbsp;contact
           </p>
-          <p
-            className="text-base tracking-wide mb-6"
+          <div
+            className="text-base tracking-wide mb-6 flex flex-wrap items-center gap-x-2 gap-y-1"
             onMouseEnter={() => setContentHovered(true)}
             onMouseLeave={() => setContentHovered(false)}
           >
@@ -258,10 +258,11 @@ export default function Home() {
             >
               deepakrdy7@gmail.com
             </a>
-            &nbsp;&nbsp;|&nbsp;&nbsp;+918885015899
-          </p>
+            <span style={{ color: fgMuted }}>|</span>
+            <span>+918885015899</span>
+          </div>
           <div
-            style={{ display: "flex", gap: 16, width: "fit-content" }}
+            style={{ display: "flex", flexWrap: "wrap", gap: 16 }}
             onMouseEnter={() => setContentHovered(true)}
             onMouseLeave={() => setContentHovered(false)}
           >
