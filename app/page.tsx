@@ -281,22 +281,26 @@ export default function Home() {
                     textDecoration: "none",
                     transition: "color 0.2s",
                     display: "flex",
-                    flexDirection: "column",
                     alignItems: "center",
-                    gap: 4,
+                    justifyContent: "center",
+                    position: "relative",
                     width: 50,
                   }}
                 >
                   <Icon size={18} strokeWidth={1.5} />
                   <span
                     style={{
+                      position: "absolute",
+                      top: "calc(100% + 4px)",
+                      left: "50%",
+                      transform: isHov ? "translateX(-50%) translateY(0px)" : "translateX(-50%) translateY(3px)",
                       fontSize: 9,
                       letterSpacing: "0.1em",
                       textTransform: "uppercase",
                       opacity: isHov ? 1 : 0,
-                      transform: isHov ? "translateY(0px)" : "translateY(3px)",
                       transition: "opacity 0.2s ease, transform 0.2s ease",
                       whiteSpace: "nowrap",
+                      pointerEvents: "none",
                     }}
                   >
                     {label}
