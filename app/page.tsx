@@ -126,12 +126,14 @@ export default function Home() {
       />
 
       <div
-        className="relative min-h-screen flex flex-col overflow-x-hidden"
+        className="relative flex flex-col"
         style={{
           fontFamily: "var(--font-playfair), Georgia, serif",
           backgroundColor: bg,
           color: fg,
           transition: "background-color 0.3s, color 0.3s",
+          minHeight: "100dvh",
+          overflowX: "clip",
         }}
       >
         {/* Interactive background glow */}
@@ -166,7 +168,7 @@ export default function Home() {
         </div>
 
         {/* Main content — vertically centered */}
-        <div className="relative z-10 flex-1 flex flex-col justify-center px-6 sm:px-10 md:px-20 py-24 md:py-0">
+        <div className="relative z-10 flex-1 flex flex-col justify-center px-6 sm:px-10 md:px-20 py-14 sm:py-20 md:py-0">
           <div className="flex flex-col gap-4" style={{ alignItems: "flex-start" }}>
             <p
               className="text-2xl sm:text-3xl md:text-5xl font-normal leading-snug tracking-tight"
