@@ -67,7 +67,12 @@ function Word({
 
   if (href) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>
+      <a href={href} target="_blank" rel="noopener noreferrer" style={{
+        color: "inherit",
+        textDecoration: "underline",
+        textUnderlineOffset: 4,
+        textDecorationThickness: 1,
+      }}>
         {inner}
       </a>
     );

@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Copy, Check, RefreshCw, Lock, Unlock } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import NumberStepper from "../../components/NumberStepper";
 import { useTheme } from "../../context/ThemeContext";
 
 function hslToHex(h: number, s: number, l: number): string {
@@ -212,54 +213,7 @@ export default function PaletteGeneratorPage() {
             <option value="split-complementary">Split Complementary</option>
             <option value="monochromatic">Monochromatic</option>
           </select>
-          <div className="flex items-center gap-2">
-            <span className="text-xs tracking-widest uppercase" style={{ color: fgMuted }}>
-              Colors
-            </span>
-            <div className="flex items-center" style={{
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
-              borderRadius: 8,
-              overflow: "hidden",
-            }}>
-              <button
-                onClick={() => count > 2 && handleCountChange(count - 1)}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: count <= 2 ? (isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)") : fg,
-                  padding: "8px 10px",
-                  fontSize: 15,
-                  fontFamily: "var(--font-playfair), Georgia, serif",
-                  lineHeight: 1,
-                }}
-              >
-                −
-              </button>
-              <span style={{
-                minWidth: 24,
-                textAlign: "center",
-                fontSize: 13,
-                fontFamily: "var(--font-playfair), Georgia, serif",
-                color: fg,
-              }}>
-                {count}
-              </span>
-              <button
-                onClick={() => count < 10 && handleCountChange(count + 1)}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: count >= 10 ? (isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)") : fg,
-                  padding: "8px 10px",
-                  fontSize: 15,
-                  fontFamily: "var(--font-playfair), Georgia, serif",
-                  lineHeight: 1,
-                }}
-              >
-                +
-              </button>
-            </div>
-          </div>
+          <NumberStepper value={count} onChange={handleCountChange} min={2} max={10} label="Colors" />
           <button
             onClick={exportCSS}
             className="text-sm"

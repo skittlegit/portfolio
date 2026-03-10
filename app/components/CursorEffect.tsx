@@ -1,89 +1,112 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { useTheme } from "../context/ThemeContext";
 
-/** Elements that should never trigger the ring cursor */
-const IGNORE_TAGS = new Set(["HTML", "BODY"]);
+const INTERACTIVE =
+  "a, button, input, select, textarea, label, [role='button'], [data-interactive]";
 
-function shouldShowRing(el: EventTarget | null): boolean {
-  if (!(el instanceof HTMLElement)) return false;
-  // Walk up and skip pure layout wrappers
-  let node: HTMLElement | null = el;
-  while (node && !IGNORE_TAGS.has(node.tagName)) {
-    // Interactive elements always trigger ring
+function shouldShowRing(target: EventTarget | null): boolean {
+  if (!target) return false;
+
+  // Handle SVG elements — they are not HTMLElement but do have closest()
+  let el: Element | null = null;
+  if (target instanceof Element) {
+    el = target;
+  } else {
+    return false;
+  }
+
+  // Walk up from the target element
+  while (el && el !== document.documentElement) {
+    // Interactive elements
+    if (el.matches(INTERACTIVE)) return true;
+
+    // SVG / media elements
+    const tag = el.tagName;
     if (
-      node.matches(
-        "a, button, input, select, textarea, label, [role='button'], [data-interactive]"
-      )
+      tag === "svg" ||
+      tag === "IMG" ||
+      tag === "VIDEO" ||
+      tag === "CANVAS" ||
+      el instanceof SVGElement
     )
       return true;
-    // SVG / img / video / canvas
-    if (node instanceof SVGElement || node.matches("img, video, canvas, svg"))
-      return true;
-    // Text content — any element with direct text children
-    if (node.childNodes.length > 0) {
-      for (let i = 0; i < node.childNodes.length; i++) {
-        const child = node.childNodes[i];
-        if (child.nodeType === 3 && child.textContent && child.textContent.trim().length > 0)
-          return true;
-      }
+
+    // Elements with direct text content
+    for (let i = 0; i < el.childNodes.length; i++) {
+      const child = el.childNodes[i];
+      if (
+        child.nodeType === 3 &&
+        child.textContent &&
+        child.textContent.trim().length > 0
+      )
+        return true;
     }
-    node = node.parentElement;
+
+    el = el.parentElement;
   }
   return false;
 }
 
 export default function CursorEffect() {
   const { isDark, fg } = useTheme();
-  const [cursor, setCursor] = useState({ x: -100, y: -100 });
-  const [showRing, setShowRing] = useState(false);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    setCursor({ x: e.clientX, y: e.clientY });
-    setShowRing(shouldShowRing(e.target));
-  }, []);
+  const glowRef = useRef<HTMLDivElement>(null);
+  const dotRef = useRef<HTMLDivElement>(null);
+  const ringState = useRef(false);
 
   useEffect(() => {
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [handleMouseMove]);
+    const glow = glowRef.current;
+    const dot = dotRef.current;
+    if (!glow || !dot) return;
 
-  const glowColor = isDark
-    ? `radial-gradient(500px circle at ${cursor.x}px ${cursor.y}px, rgba(255,255,255,0.06), transparent 70%)`
-    : `radial-gradient(500px circle at ${cursor.x}px ${cursor.y}px, rgba(0,0,0,0.05), transparent 70%)`;
+    const onMove = (e: MouseEvent) => {
+      // Update glow position via CSS custom props — no React re-render
+      glow.style.setProperty("--cx", `${e.clientX}px`);
+      glow.style.setProperty("--cy", `${e.clientY}px`);
+
+      // Update dot position directly
+      dot.style.left = `${e.clientX}px`;
+      dot.style.top = `${e.clientY}px`;
+
+      // Ring detection
+      const ring = shouldShowRing(e.target);
+      if (ring !== ringState.current) {
+        ringState.current = ring;
+        dot.setAttribute("data-ring", ring ? "1" : "0");
+      }
+    };
+
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => window.removeEventListener("mousemove", onMove);
+  }, []);
+
+  // Update colors when theme changes — direct DOM, no re-render loop
+  useEffect(() => {
+    const glow = glowRef.current;
+    const dot = dotRef.current;
+    if (!glow || !dot) return;
+
+    glow.style.setProperty(
+      "--glow",
+      isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"
+    );
+    dot.style.setProperty("--fg", fg);
+  }, [isDark, fg]);
 
   return (
     <>
-      {/* Background glow — sits behind all page content */}
+      {/* Background glow — single div, position via CSS custom props */}
       <div
-        className="custom-cursor"
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: glowColor,
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
+        ref={glowRef}
+        className="custom-cursor cursor-glow"
       />
 
-      {/* Custom cursor dot / ring */}
+      {/* Cursor dot / ring */}
       <div
-        className="custom-cursor"
-        style={{
-          position: "fixed",
-          left: cursor.x,
-          top: cursor.y,
-          width: 28,
-          height: 28,
-          backgroundColor: showRing ? "transparent" : fg,
-          border: showRing ? `1.5px solid ${fg}` : "none",
-          borderRadius: "50%",
-          transform: "translate(-50%, -50%)",
-          pointerEvents: "none",
-          zIndex: 9999,
-          transition: "background-color 0.15s ease, border 0.15s ease",
-        }}
+        ref={dotRef}
+        className="custom-cursor cursor-dot"
+        data-ring="0"
       />
     </>
   );

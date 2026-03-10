@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import NumberStepper from "../../components/NumberStepper";
 import { useTheme } from "../../context/ThemeContext";
 
 const WORDS = [
@@ -49,33 +50,7 @@ export default function LoremGeneratorPage() {
     <ToolLayout title="Lorem Ipsum Generator" description="Generate placeholder text for your designs.">
       <div className="max-w-2xl">
         <div className="flex items-center gap-4 mb-6 flex-wrap">
-          <div className="flex items-center gap-2">
-            <label
-              className="text-xs tracking-widest uppercase"
-              style={{ color: fgMuted }}
-            >
-              Paragraphs
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={20}
-              value={count}
-              onChange={(e) => setCount(Number(e.target.value))}
-              style={{
-                width: 60,
-                padding: "8px 10px",
-                fontSize: 14,
-                fontFamily: "var(--font-playfair), Georgia, serif",
-                color: fg,
-                backgroundColor: "transparent",
-                border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
-                borderRadius: 8,
-                outline: "none",
-                textAlign: "center",
-              }}
-            />
-          </div>
+          <NumberStepper value={count} onChange={setCount} min={1} max={20} label="Paragraphs" />
           <button
             onClick={generate}
             className="text-sm tracking-wide"
