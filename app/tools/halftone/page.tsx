@@ -205,21 +205,25 @@ export default function HalftonePage() {
           <ColorPicker label="Dot Color" value={dotColor} onChange={setDotColor} />
           <ColorPicker label="Background" value={bgColor} onChange={setBgColor} disabled={transparentBg} />
 
-          <div style={{ paddingTop: 22 }}>
-            <label className="tool-transparent-label">
-              <input
-                type="checkbox"
-                checked={transparentBg}
-                onChange={(e) => setTransparentBg(e.target.checked)}
-              />
-              Transparent
-            </label>
+          <div>
+            <label className="tool-label">Transparent BG</label>
+            <button
+              onClick={() => setTransparentBg((v) => !v)}
+              className="tool-toggle"
+              style={{
+                background: transparentBg ? fg : "transparent",
+                color: transparentBg ? (isDark ? "#000" : "#fff") : fg,
+              }}
+            >
+              {transparentBg ? "On" : "Off"}
+            </button>
           </div>
         </div>
 
         {/* Canvas always in DOM so ref is available on first render */}
         <canvas
           ref={outputCanvasRef}
+          className={transparentBg ? (isDark ? "tool-checker-dark" : "tool-checker-light") : undefined}
           style={{
             maxWidth: "100%",
             borderRadius: 10,
@@ -227,12 +231,6 @@ export default function HalftonePage() {
               ? `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
               : "none",
             display: hasImage ? "block" : "none",
-            ...(transparentBg
-              ? {
-                  backgroundImage: `repeating-conic-gradient(${isDark ? "#333" : "#ccc"} 0% 25%, ${isDark ? "#222" : "#fff"} 0% 50%)`,
-                  backgroundSize: "16px 16px",
-                }
-              : {}),
           }}
         />
 

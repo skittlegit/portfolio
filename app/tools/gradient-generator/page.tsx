@@ -264,7 +264,8 @@ export default function GradientGeneratorPage() {
               </div>
               <button
                 onClick={copy}
-                style={{ background: "none", border: "none", color: fgMuted, flexShrink: 0 }}
+                className="tool-icon-btn"
+                style={{ flexShrink: 0 }}
               >
                 {copied ? <Check size={16} /> : <Copy size={16} />}
               </button>
@@ -317,7 +318,7 @@ export default function GradientGeneratorPage() {
                 <label className="tool-label" style={{ marginBottom: 0 }}>Color Stops</label>
                 <button
                   onClick={addStop}
-                  style={{ background: "none", border: "none", color: fgMuted }}
+                  className="tool-icon-btn"
                 >
                   <Plus size={16} />
                 </button>
@@ -343,7 +344,8 @@ export default function GradientGeneratorPage() {
                     {stops.length > 2 && (
                       <button
                         onClick={() => removeStop(i)}
-                        style={{ background: "none", border: "none", color: fgMuted, opacity: 0.5 }}
+                        className="tool-icon-btn"
+                        style={{ opacity: 0.5 }}
                       >
                         <X size={14} />
                       </button>
@@ -429,7 +431,7 @@ export default function GradientGeneratorPage() {
                   >
                     background: {extractGradient};
                   </div>
-                  <button onClick={copy} style={{ background: "none", border: "none", color: fgMuted }}>
+                  <button onClick={copy} className="tool-icon-btn">
                     {copied ? <Check size={16} /> : <Copy size={16} />}
                   </button>
                 </div>

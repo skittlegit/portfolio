@@ -67,7 +67,8 @@ export default function ColorConverterPage() {
   const CopyBtn = ({ text, label }: { text: string; label: string }) => (
     <button
       onClick={() => copy(text, label)}
-      style={{ background: "none", border: "none", color: "var(--foreground-muted)", padding: 4 }}
+      className="tool-icon-btn"
+      style={{ padding: 4 }}
     >
       {copied === label ? <Check size={14} /> : <Copy size={14} />}
     </button>

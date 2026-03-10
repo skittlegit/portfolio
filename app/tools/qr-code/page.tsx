@@ -177,11 +177,10 @@ export default function QrCodePage() {
               <label className="tool-label">Transparent BG</label>
               <button
                 onClick={() => setTransparent((v) => !v)}
-                className="tool-btn"
+                className="tool-toggle"
                 style={{
                   background: transparent ? fg : "transparent",
                   color: transparent ? (isDark ? "#000" : "#fff") : fg,
-                  border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
                 }}
               >
                 {transparent ? "On" : "Off"}

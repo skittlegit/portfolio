@@ -332,7 +332,7 @@ export default function BiomPage() {
                   setColors((prev) => [...prev, hslToHex(Math.random() * 360, 60, 50)]);
                   setLocked((prev) => [...prev, false]);
                 }}
-                style={{ background: "none", border: "none", color: fgMuted }}
+                className="tool-icon-btn"
               >
                 <Plus size={16} />
               </button>
@@ -348,12 +348,10 @@ export default function BiomPage() {
                 <button
                   onClick={() => setLocked((prev) => prev.map((l, idx) => idx === i ? !l : l))}
                   title={locked[i] ? "Unlock color" : "Lock color"}
+                  className="tool-icon-btn"
                   style={{
-                    background: "none",
-                    border: "none",
-                    color: locked[i] ? fg : fgMuted,
+                    color: locked[i] ? fg : undefined,
                     opacity: locked[i] ? 1 : 0.4,
-                    cursor: "pointer",
                   }}
                 >
                   {locked[i] ? <Lock size={12} /> : <Unlock size={12} />}
@@ -364,12 +362,8 @@ export default function BiomPage() {
                       setColors((prev) => prev.filter((_, idx) => idx !== i));
                       setLocked((prev) => prev.filter((_, idx) => idx !== i));
                     }}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: fgMuted,
-                      opacity: 0.5,
-                    }}
+                    className="tool-icon-btn"
+                    style={{ opacity: 0.5 }}
                   >
                     <X size={12} />
                   </button>

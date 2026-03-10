@@ -295,7 +295,7 @@ function generateSvg(
 }
 
 export default function VectorArtPage() {
-  const { fg, fgMuted, isDark } = useTheme();
+  const { fg, isDark } = useTheme();
   const [style, setStyle] = useState<Style>("geometric");
   const [seed, setSeed] = useState(42);
   const [bg, setBg] = useState(isDark ? "#0a0a0a" : "#fafafa");
@@ -378,13 +378,6 @@ export default function VectorArtPage() {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  const checkerStyle = transparentBg
-    ? {
-        backgroundImage: `repeating-conic-gradient(${isDark ? "#333" : "#ccc"} 0% 25%, ${isDark ? "#222" : "#fff"} 0% 50%)`,
-        backgroundSize: "16px 16px",
-      }
-    : {};
-
   return (
     <ToolLayout
       title="Vector Art Generator"
@@ -413,15 +406,18 @@ export default function VectorArtPage() {
             </select>
           </div>
           <ColorPicker label="Background" value={bg} onChange={setBg} disabled={transparentBg} />
-          <div style={{ paddingTop: 22 }}>
-            <label className="tool-transparent-label">
-              <input
-                type="checkbox"
-                checked={transparentBg}
-                onChange={(e) => setTransparentBg(e.target.checked)}
-              />
-              Transparent
-            </label>
+          <div>
+            <label className="tool-label">Transparent BG</label>
+            <button
+              onClick={() => setTransparentBg((v) => !v)}
+              className="tool-toggle"
+              style={{
+                background: transparentBg ? fg : "transparent",
+                color: transparentBg ? (isDark ? "#000" : "#fff") : fg,
+              }}
+            >
+              {transparentBg ? "On" : "Off"}
+            </button>
           </div>
           <div className="flex gap-2">
             <button onClick={randomize} className="tool-btn" style={{ color: fg }}>
@@ -442,7 +438,7 @@ export default function VectorArtPage() {
             {palette.length < 8 && (
               <button
                 onClick={addColor}
-                style={{ background: "none", border: "none", color: fgMuted }}
+                className="tool-icon-btn"
               >
                 <Plus size={16} />
               </button>
@@ -458,12 +454,10 @@ export default function VectorArtPage() {
                 <button
                   onClick={() => toggleLock(i)}
                   title={locked[i] ? "Unlock color" : "Lock color"}
+                  className="tool-icon-btn"
                   style={{
-                    background: "none",
-                    border: "none",
-                    color: locked[i] ? fg : fgMuted,
+                    color: locked[i] ? fg : undefined,
                     opacity: locked[i] ? 1 : 0.4,
-                    cursor: "pointer",
                   }}
                 >
                   {locked[i] ? <Lock size={12} /> : <Unlock size={12} />}
@@ -471,12 +465,8 @@ export default function VectorArtPage() {
                 {palette.length > 2 && (
                   <button
                     onClick={() => removeColor(i)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: fgMuted,
-                      opacity: 0.5,
-                    }}
+                    className="tool-icon-btn"
+                    style={{ opacity: 0.5 }}
                   >
                     <X size={12} />
                   </button>
@@ -489,14 +479,11 @@ export default function VectorArtPage() {
         {/* SVG preview */}
         <div
           ref={svgContainerRef}
+          className={`tool-preview ${transparentBg ? (isDark ? "tool-checker-dark" : "tool-checker-light") : ""}`}
           style={{
             width: "100%",
             aspectRatio: "8 / 5",
-            borderRadius: 14,
-            border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
-            overflow: "hidden",
             marginBottom: 16,
-            ...checkerStyle,
           }}
           dangerouslySetInnerHTML={{ __html: displaySvg }}
         />

@@ -177,17 +177,60 @@ input[type="number"] {
   color: var(--foreground);
 }
 
-.tool-transparent-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* Toggle button for on/off states (e.g. transparent bg) */
+.tool-toggle {
+  padding: 8px 16px;
   font-size: 13px;
   font-family: var(--font-playfair), Georgia, serif;
-  color: var(--foreground);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  transition: background-color 0.2s, color 0.2s;
+  cursor: pointer;
 }
 
-.tool-transparent-label input[type="checkbox"] {
-  accent-color: var(--foreground);
+/* Checker transparency background */
+.tool-checker-light {
+  background-image: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%);
+  background-size: 16px 16px;
+}
+.tool-checker-dark {
+  background-image: repeating-conic-gradient(#333 0% 25%, #222 0% 50%);
+  background-size: 16px 16px;
+}
+
+/* Preview container shared border */
+.tool-preview {
+  border-radius: 14px;
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+/* Icon-only buttons (add, remove, lock) */
+.tool-icon-btn {
+  background: none;
+  border: none;
+  color: var(--foreground-muted);
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Muted helper text (range values, etc.) */
+.tool-muted {
+  color: var(--foreground-muted);
+}
+
+/* Code / pre output block */
+.tool-code {
+  padding: 12px 14px;
+  font-family: monospace;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  overflow: auto;
+  white-space: pre-wrap;
+  color: var(--foreground-muted);
 }
 
 body {

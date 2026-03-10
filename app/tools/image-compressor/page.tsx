@@ -195,10 +195,10 @@ export default function CompressorPage() {
                         {formatSize(f.originalSize)} → {formatSize(f.compressedSize)} ({saved}% saved)
                       </p>
                     </div>
-                    <button onClick={() => downloadFile(f)} style={{ background: "none", border: "none", color: fgMuted }}>
+                    <button onClick={() => downloadFile(f)} className="tool-icon-btn">
                       <Download size={14} />
                     </button>
-                    <button onClick={() => removeFile(i)} style={{ background: "none", border: "none", color: fgMuted }}>
+                    <button onClick={() => removeFile(i)} className="tool-icon-btn">
                       <X size={14} />
                     </button>
                   </div>

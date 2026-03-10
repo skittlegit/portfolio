@@ -227,7 +227,7 @@ export default function AsciiArtPage() {
           <div>
             <div className="flex items-center gap-3 mb-3">
               <label className="tool-label" style={{ marginBottom: 0 }}>Output</label>
-              <button onClick={copy} style={{ background: "none", border: "none", color: fgMuted }}>
+              <button onClick={copy} className="tool-icon-btn">
                 {copied ? <Check size={14} /> : <Copy size={14} />}
               </button>
             </div>

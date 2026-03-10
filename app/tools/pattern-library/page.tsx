@@ -291,11 +291,10 @@ export default function PatternLibraryPage() {
             <label className="tool-label">Transparent BG</label>
             <button
               onClick={() => setTransparentBg((v) => !v)}
-              className="tool-btn"
+              className="tool-toggle"
               style={{
                 background: transparentBg ? fg : "transparent",
                 color: transparentBg ? (isDark ? "#000" : "#fff") : fg,
-                border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
               }}
             >
               {transparentBg ? "On" : "Off"}
@@ -348,28 +347,15 @@ export default function PatternLibraryPage() {
         {/* CSS output */}
         <div className="flex items-start gap-2 mb-4">
           <pre
-            style={{
-              flex: 1,
-              padding: "12px 14px",
-              fontFamily: "monospace",
-              fontSize: 12,
-              borderRadius: 8,
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
-              overflow: "auto",
-              whiteSpace: "pre-wrap",
-              color: fgMuted,
-            }}
+            className="tool-code"
+            style={{ flex: 1 }}
           >
             {cssCode}
           </pre>
           <button
             onClick={copy}
-            style={{
-              background: "none",
-              border: "none",
-              color: fgMuted,
-              marginTop: 12,
-            }}
+            className="tool-icon-btn"
+            style={{ marginTop: 12 }}
           >
             {copied ? <Check size={16} /> : <Copy size={16} />}
           </button>

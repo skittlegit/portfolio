@@ -369,14 +369,14 @@ export default function ShapeMakerPage() {
             {colors.length < 6 && (
               <button
                 onClick={addColor}
-                style={{ background: "none", border: "none", color: fgMuted }}
+                className="tool-icon-btn"
               >
                 <Plus size={16} />
               </button>
             )}
             <button
               onClick={randomizeColors}
-              style={{ background: "none", border: "none", color: fgMuted }}
+              className="tool-icon-btn"
               title="Randomize colors"
             >
               <RefreshCw size={14} />
@@ -392,12 +392,8 @@ export default function ShapeMakerPage() {
                 {colors.length > 1 && (
                   <button
                     onClick={() => removeColor(i)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: fgMuted,
-                      opacity: 0.5,
-                    }}
+                    className="tool-icon-btn"
+                    style={{ opacity: 0.5 }}
                   >
                     <X size={12} />
                   </button>
