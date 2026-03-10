@@ -57,43 +57,6 @@ body:has(.tools-layout) {
   }
 }
 
-/* Cursor glow — subtle color bleed from cursor */
-/* Define theme colors so the glow is visible in both modes */
-:root {
-  /* For Light Mode: A subtle dark or colored glow */
-  --glow-color: rgba(0, 0, 0, 0.15); 
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* For Dark Mode: A subtle light or colored glow */
-    --glow-color: rgba(255, 255, 255, 0.15); 
-  }
-}
-
-.cursor-glow {
-  position: fixed;
-  left: -100px;
-  top: -100px;
-  width: 350px;
-  height: 350px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  
-  /* 1. Use a radial gradient for the base glow */
-  background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
-  
-  /* 2. Apply a blur filter to eliminate the "rings" (color banding) */
-  filter: blur(20px); 
-  
-  /* 3. Optional: Use mix-blend-mode for better contrast */
-  /* mix-blend-mode: difference; */ 
-}
-
 /* Cursor dot / ring — switches via data-ring attribute */
 .cursor-dot {
   position: fixed;
