@@ -12,6 +12,13 @@ import {
   Binary,
   Regex,
   Image,
+  Paintbrush,
+  Layers,
+  ArrowRightLeft,
+  Braces,
+  SquareAsterisk,
+  Eye,
+  Type,
 } from "lucide-react";
 import ToolLayout from "../components/ToolLayout";
 import { useTheme } from "../context/ThemeContext";
@@ -20,14 +27,62 @@ const tools = [
   {
     slug: "qr-code",
     name: "QR Code Generator",
-    description: "Generate QR codes from any text or URL",
+    description: "Generate QR codes with custom size, colors, and format",
     icon: QrCode,
+  },
+  {
+    slug: "palette-generator",
+    name: "Color Palette Generator",
+    description: "Generate color palettes like Coolors.co",
+    icon: Paintbrush,
+  },
+  {
+    slug: "gradient-generator",
+    name: "CSS Gradient Generator",
+    description: "Create linear and radial CSS gradients",
+    icon: Layers,
+  },
+  {
+    slug: "box-shadow",
+    name: "Box Shadow Generator",
+    description: "Design CSS box shadows visually",
+    icon: SquareAsterisk,
+  },
+  {
+    slug: "border-radius",
+    name: "Border Radius Generator",
+    description: "Visually design CSS border-radius values",
+    icon: SquareAsterisk,
+  },
+  {
+    slug: "contrast-checker",
+    name: "Contrast Checker",
+    description: "Check WCAG color contrast for accessibility",
+    icon: Eye,
   },
   {
     slug: "color-converter",
     name: "Color Converter",
     description: "Convert between HEX, RGB, and HSL",
     icon: Palette,
+  },
+  {
+    slug: "font-stack",
+    name: "Font Stack Preview",
+    description: "Preview and copy modern CSS font stacks",
+    icon: Type,
+  },
+  {
+    slug: "unit-converter",
+    name: "CSS Unit Converter",
+    description: "Convert between px, rem, em, vw, and more",
+    icon: ArrowRightLeft,
+  },
+  {
+    slug: "json-formatter",
+    name: "JSON Formatter",
+    description: "Format, validate, and minify JSON data",
+    icon: Braces,
   },
   {
     slug: "word-counter",

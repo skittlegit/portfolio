@@ -149,7 +149,7 @@ export default function Home() {
         />
 
         {/* Top nav */}
-        <div style={{ position: "absolute", top: 28, left: 36, right: 36, zIndex: 100, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div className="absolute top-7 left-0 right-0 z-[100] flex justify-between items-center px-6 sm:px-10 md:px-20">
           <Link
             href="/tools"
             className="text-sm tracking-widest uppercase"

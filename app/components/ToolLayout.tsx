@@ -20,7 +20,7 @@ export default function ToolLayout({
 }) {
   const { isDark, toggle, bg, fg, fgMuted } = useTheme();
   const [cursor, setCursor] = useState({ x: -100, y: -100 });
-  const [interacting, setInteracting] = useState(false);
+  const [contentHovered, setContentHovered] = useState(false);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -29,24 +29,6 @@ export default function ToolLayout({
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
-
-  useEffect(() => {
-    const handler = () => {
-      const el = document.elementFromPoint(cursor.x, cursor.y);
-      if (!el) return;
-      const tag = el.tagName.toLowerCase();
-      const interactive =
-        tag === "a" ||
-        tag === "button" ||
-        tag === "input" ||
-        tag === "textarea" ||
-        tag === "select" ||
-        el.closest("a, button, [role='button']") !== null;
-      setInteracting(interactive);
-    };
-    window.addEventListener("mousemove", handler);
-    return () => window.removeEventListener("mousemove", handler);
-  }, [cursor.x, cursor.y]);
 
   const glowColor = isDark
     ? `radial-gradient(500px circle at ${cursor.x}px ${cursor.y}px, rgba(255,255,255,0.06), transparent 70%)`
@@ -62,13 +44,13 @@ export default function ToolLayout({
           top: cursor.y,
           width: 28,
           height: 28,
-          backgroundColor: interacting ? "transparent" : fg,
-          border: interacting ? `1.5px solid ${fg}` : "none",
+          backgroundColor: contentHovered ? "transparent" : fg,
+          border: contentHovered ? `1.5px solid ${fg}` : "none",
           borderRadius: "50%",
           transform: "translate(-50%, -50%)",
           pointerEvents: "none",
           zIndex: 9999,
-          transition: "background-color 0.15s ease, border-color 0.3s ease",
+          transition: "background-color 0.15s ease, border 0.15s ease",
         }}
       />
 
@@ -96,6 +78,8 @@ export default function ToolLayout({
         {/* Header */}
         <header
           className="relative z-10 flex items-center justify-between px-6 sm:px-10 md:px-20 pt-7 pb-4"
+          onMouseEnter={() => setContentHovered(true)}
+          onMouseLeave={() => setContentHovered(false)}
         >
           <Link
             href={backHref}

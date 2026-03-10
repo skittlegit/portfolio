@@ -11,11 +11,8 @@ export default function RegexTesterPage() {
   const [testStr, setTestStr] = useState(
     "Contact us at hello@example.com or support@test.org for help."
   );
-  const [error, setError] = useState("");
-
-  const matches = useMemo(() => {
-    setError("");
-    if (!pattern) return [];
+  const { matches, error } = useMemo(() => {
+    if (!pattern) return { matches: [], error: "" };
     try {
       const re = new RegExp(pattern, flags);
       const results: { match: string; index: number }[] = [];
@@ -29,10 +26,9 @@ export default function RegexTesterPage() {
         m = re.exec(testStr);
         if (m) results.push({ match: m[0], index: m.index });
       }
-      return results;
+      return { matches: results, error: "" };
     } catch (e) {
-      setError((e as Error).message);
-      return [];
+      return { matches: [], error: (e as Error).message };
     }
   }, [pattern, flags, testStr]);
 
