@@ -13,6 +13,7 @@ import {
   Instagram,
   Github,
 } from "lucide-react";
+import Link from "next/link";
 import { useTheme } from "./context/ThemeContext";
 
 type HoverKey = "design" | "build" | "create" | "resume" | null;
@@ -147,8 +148,22 @@ export default function Home() {
           }}
         />
 
-        {/* Dark mode toggle */}
-        <div style={{ position: "absolute", top: 28, right: 36, zIndex: 100 }}>
+        {/* Top nav */}
+        <div style={{ position: "absolute", top: 28, left: 36, right: 36, zIndex: 100, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Link
+            href="/tools"
+            className="text-sm tracking-widest uppercase"
+            style={{
+              color: fgMuted,
+              textDecoration: "none",
+              transition: "color 0.2s",
+              fontFamily: "var(--font-playfair), Georgia, serif",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = fg; setContentHovered(true); }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; setContentHovered(false); }}
+          >
+            Tools
+          </Link>
           <button
             onClick={() => toggle()}
             onMouseEnter={() => setButtonHovered(true)}
