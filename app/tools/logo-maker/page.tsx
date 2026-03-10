@@ -6,7 +6,7 @@ import ToolLayout from "../../components/ToolLayout";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
 
-type LogoShape = "abstract" | "geometric" | "organic" | "layered" | "split" | "monogram";
+type LogoShape = "abstract" | "geometric" | "organic" | "layered" | "split";
 type ColorMode = "gradient" | "solid";
 
 function seededRandom(seed: number) {
@@ -15,14 +15,6 @@ function seededRandom(seed: number) {
     s = (s * 16807 + 0) % 2147483647;
     return (s - 1) / 2147483646;
   };
-}
-
-function hashString(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash);
 }
 
 function hslToHex(h: number, s: number, l: number): string {
@@ -58,11 +50,10 @@ function generateIcon(
   colors: string[],
   colorMode: ColorMode,
   seed: number,
-  brandName: string
+  shapeCount: number
 ): string {
-  const nameHash = hashString(brandName || "logo");
-  const rng = seededRandom(seed + nameHash);
-  const uid = `${seed}_${nameHash}`;
+  const rng = seededRandom(seed);
+  const uid = `${seed}`;
   let content = "";
   const gradDefs = generateGradientDefs(colors, uid, colorMode);
   const mainFill =
@@ -72,7 +63,6 @@ function generateIcon(
 
   if (shape === "abstract") {
     // Overlapping organic shapes with different colors
-    const shapeCount = 2 + (nameHash % 3);
     for (let i = 0; i < shapeCount; i++) {
       const angle = (i / shapeCount) * Math.PI * 2 + rng() * 0.5;
       const dist = r * 0.25;
@@ -106,11 +96,11 @@ function generateIcon(
     }
   } else if (shape === "geometric") {
     // Clean geometric composition
-    const variation = nameHash % 4;
+    const variation = seed % 4;
     if (variation === 0) {
       // Interlocking circles
-      for (let i = 0; i < colors.length && i < 3; i++) {
-        const angle = (i / Math.min(colors.length, 3)) * Math.PI * 2 - Math.PI / 2;
+      for (let i = 0; i < Math.min(shapeCount, 3); i++) {
+        const angle = (i / Math.min(shapeCount, 3)) * Math.PI * 2 - Math.PI / 2;
         const dist = r * 0.3;
         const color =
           colorMode === "gradient" ? mainFill : colors[i % colors.length];
@@ -118,7 +108,7 @@ function generateIcon(
       }
     } else if (variation === 1) {
       // Nested squares rotated
-      for (let i = 0; i < Math.min(colors.length, 4); i++) {
+      for (let i = 0; i < Math.min(shapeCount, 4); i++) {
         const s = r * (1.2 - i * 0.25);
         const rot = i * 15;
         const color =
@@ -127,9 +117,9 @@ function generateIcon(
       }
     } else if (variation === 2) {
       // Triangle segments
-      for (let i = 0; i < Math.min(colors.length, 4); i++) {
-        const a1 = (i / Math.min(colors.length, 4)) * Math.PI * 2;
-        const a2 = ((i + 1) / Math.min(colors.length, 4)) * Math.PI * 2;
+      for (let i = 0; i < Math.min(shapeCount, 4); i++) {
+        const a1 = (i / Math.min(shapeCount, 4)) * Math.PI * 2;
+        const a2 = ((i + 1) / Math.min(shapeCount, 4)) * Math.PI * 2;
         const color =
           colorMode === "gradient" ? mainFill : colors[i % colors.length];
         content += `<path d="M${cx},${cy} L${(cx + Math.cos(a1) * r).toFixed(1)},${(cy + Math.sin(a1) * r).toFixed(1)} L${(cx + Math.cos(a2) * r).toFixed(1)},${(cy + Math.sin(a2) * r).toFixed(1)} Z" fill="${color}" opacity="0.8"/>`;
@@ -148,7 +138,7 @@ function generateIcon(
     }
   } else if (shape === "organic") {
     // Leaf/petal arrangement
-    const petalCount = 3 + (nameHash % 4);
+    const petalCount = shapeCount;
     for (let i = 0; i < petalCount; i++) {
       const angle = (i / petalCount) * Math.PI * 2 + rng() * 0.2;
       const color =
@@ -167,7 +157,7 @@ function generateIcon(
     content += `<circle cx="${cx}" cy="${cy}" r="${(r * 0.08).toFixed(1)}" fill="${colors[0]}" opacity="0.9"/>`;
   } else if (shape === "layered") {
     // Stacked horizontal layers with curved boundaries
-    const layers = Math.min(colors.length, 5);
+    const layers = Math.min(shapeCount, 5);
     const sliceH = (r * 2) / layers;
     for (let i = 0; i < layers; i++) {
       const topY = cy - r + i * sliceH;
@@ -182,7 +172,7 @@ function generateIcon(
     content = `<clipPath id="clip_${uid}"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath><g clip-path="url(#clip_${uid})">${content}</g>`;
   } else if (shape === "split") {
     // Split circle/shape into segments
-    const segments = Math.max(colors.length, 2);
+    const segments = Math.max(shapeCount, 2);
     for (let i = 0; i < segments; i++) {
       const a1 = (i / segments) * Math.PI * 2 - Math.PI / 2;
       const a2 = ((i + 1) / segments) * Math.PI * 2 - Math.PI / 2;
@@ -198,62 +188,34 @@ function generateIcon(
         colorMode === "gradient" ? mainFill : colors[i % colors.length];
       content += `<path d="M${(cx + gx).toFixed(1)},${(cy + gy).toFixed(1)} L${(x1 + gx).toFixed(1)},${(y1 + gy).toFixed(1)} A${r},${r} 0 ${large} 1 ${(x2 + gx).toFixed(1)},${(y2 + gy).toFixed(1)} Z" fill="${color}"/>`;
     }
-  } else if (shape === "monogram") {
-    // Stylized letter in a shape with color accents
-    const words = (brandName || "L").trim().split(/\s+/).filter(Boolean);
-    const initial = words[0]?.[0]?.toUpperCase() || "L";
-    // Background shape
-    content += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${colorMode === "gradient" ? mainFill : colors[0]}"/>`;
-    // Letter
-    const textColor = colors.length > 1 ? colors[colors.length - 1] : "#ffffff";
-    content += `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" fill="${textColor}" font-family="Georgia, serif" font-size="${r * 1.1}" font-weight="700">${initial}</text>`;
-    // Accent elements
-    if (colors.length > 2) {
-      for (let i = 1; i < colors.length - 1; i++) {
-        const angle = rng() * Math.PI * 2;
-        const dist = r * 0.85;
-        const ar = r * 0.12;
-        content += `<circle cx="${(cx + Math.cos(angle) * dist).toFixed(1)}" cy="${(cy + Math.sin(angle) * dist).toFixed(1)}" r="${ar.toFixed(1)}" fill="${colors[i]}"/>`;
-      }
-    }
   }
 
   return `${gradDefs}${content}`;
 }
 
-function generateLogo(
-  brandName: string,
+function generateShape(
   shape: LogoShape,
-  showName: boolean,
   colors: string[],
   colorMode: ColorMode,
   iconSize: number,
-  seed: number
+  seed: number,
+  shapeCount: number
 ): string {
   const r = iconSize;
   const padding = 20;
-  const nameSpace = showName ? 50 : 0;
   const w = r * 2 + padding * 2;
-  const h = r * 2 + padding * 2 + nameSpace;
+  const h = r * 2 + padding * 2;
   const cx = w / 2;
   const cy = padding + r;
 
-  const icon = generateIcon(shape, cx, cy, r, colors, colorMode, seed, brandName);
+  const icon = generateIcon(shape, cx, cy, r, colors, colorMode, seed, shapeCount);
 
-  let nameSvg = "";
-  if (showName && brandName) {
-    const textColor = colors[0] || "#333";
-    nameSvg = `<text x="${w / 2}" y="${cy + r + 35}" text-anchor="middle" dominant-baseline="central" fill="${textColor}" font-family="'Segoe UI', system-ui, sans-serif" font-size="${Math.max(14, r * 0.28)}" font-weight="600" letter-spacing="0.08em">${brandName}</text>`;
-  }
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${icon}${nameSvg}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${icon}</svg>`;
 }
 
-export default function LogoMakerPage() {
+export default function ShapeMakerPage() {
   const { fg, fgMuted, isDark } = useTheme();
-  const [text, setText] = useState("Brand");
   const [shape, setShape] = useState<LogoShape>("abstract");
-  const [showName, setShowName] = useState(false);
   const [colorMode, setColorMode] = useState<ColorMode>("gradient");
   const [colors, setColors] = useState<string[]>([
     "#6366f1",
@@ -262,16 +224,16 @@ export default function LogoMakerPage() {
   ]);
   const [iconSize, setIconSize] = useState(80);
   const [seed, setSeed] = useState(42);
+  const [shapeCount, setShapeCount] = useState(4);
   const [copied, setCopied] = useState(false);
 
-  const svgString = generateLogo(
-    text,
+  const svgString = generateShape(
     shape,
-    showName,
     colors,
     colorMode,
     iconSize,
-    seed
+    seed,
+    shapeCount
   );
 
   const randomize = () => setSeed(Math.floor(Math.random() * 99999));
@@ -290,10 +252,14 @@ export default function LogoMakerPage() {
     setColors((prev) => prev.filter((_, idx) => idx !== i));
   };
 
+  const randomizeColors = () => {
+    setColors((prev) => prev.map(() => hslToHex(Math.random() * 360, 40 + Math.random() * 40, 35 + Math.random() * 40)));
+  };
+
   const downloadSvg = () => {
     const blob = new Blob([svgString], { type: "image/svg+xml" });
     const a = document.createElement("a");
-    a.download = `logo-${text.toLowerCase().replace(/\s+/g, "-") || "logo"}.svg`;
+    a.download = `shape-${shape}.svg`;
     a.href = URL.createObjectURL(blob);
     a.click();
   };
@@ -307,7 +273,7 @@ export default function LogoMakerPage() {
       const ctx = canvas.getContext("2d")!;
       ctx.drawImage(img, 0, 0, 800, 800);
       const a = document.createElement("a");
-      a.download = `logo-${text.toLowerCase().replace(/\s+/g, "-") || "logo"}.png`;
+      a.download = `shape-${shape}.png`;
       a.href = canvas.toDataURL("image/png");
       a.click();
     };
@@ -322,25 +288,14 @@ export default function LogoMakerPage() {
 
   return (
     <ToolLayout
-      title="Logo Maker"
-      description="Create unique logo icons with blended colors and shapes."
+      title="Shape Maker"
+      description="Create unique shape compositions with blended colors."
     >
       <div className="max-w-3xl">
         {/* Controls Row 1 */}
         <div className="flex flex-wrap gap-4 items-end mb-6">
-          <div className="flex-1" style={{ minWidth: 180 }}>
-            <label className="tool-label">Brand Name</label>
-            <input
-              type="text"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              className="tool-input w-full"
-              placeholder="Enter name..."
-              maxLength={30}
-            />
-          </div>
           <div>
-            <label className="tool-label">Icon Style</label>
+            <label className="tool-label">Style</label>
             <select
               value={shape}
               onChange={(e) => setShape(e.target.value as LogoShape)}
@@ -351,7 +306,6 @@ export default function LogoMakerPage() {
               <option value="organic">Organic</option>
               <option value="layered">Layered</option>
               <option value="split">Split</option>
-              <option value="monogram">Monogram</option>
             </select>
           </div>
           <div>
@@ -370,7 +324,7 @@ export default function LogoMakerPage() {
         {/* Controls Row 2 */}
         <div className="flex flex-wrap gap-4 items-end mb-6">
           <div>
-            <label className="tool-label">Icon Size</label>
+            <label className="tool-label">Size</label>
             <div className="flex items-center gap-2">
               <input
                 type="range"
@@ -386,18 +340,20 @@ export default function LogoMakerPage() {
             </div>
           </div>
           <div>
-            <label className="tool-label">Show Name</label>
-            <button
-              onClick={() => setShowName((v) => !v)}
-              className="tool-btn"
-              style={{
-                background: showName ? fg : "transparent",
-                color: showName ? (isDark ? "#000" : "#fff") : fg,
-                border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
-              }}
-            >
-              {showName ? "On" : "Off"}
-            </button>
+            <label className="tool-label">Shapes</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min={2}
+                max={8}
+                value={shapeCount}
+                onChange={(e) => setShapeCount(Number(e.target.value))}
+                style={{ width: 80, accentColor: fg }}
+              />
+              <span className="text-xs" style={{ color: fgMuted }}>
+                {shapeCount}
+              </span>
+            </div>
           </div>
           <button onClick={randomize} className="tool-btn">
             <RefreshCw size={14} /> Randomize
@@ -418,6 +374,13 @@ export default function LogoMakerPage() {
                 <Plus size={16} />
               </button>
             )}
+            <button
+              onClick={randomizeColors}
+              style={{ background: "none", border: "none", color: fgMuted }}
+              title="Randomize colors"
+            >
+              <RefreshCw size={14} />
+            </button>
           </div>
           <div className="flex flex-wrap gap-3">
             {colors.map((c, i) => (

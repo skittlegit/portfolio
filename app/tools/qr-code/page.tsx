@@ -173,23 +173,19 @@ export default function QrCodePage() {
               disabled={transparent}
               label="Background"
             />
-            <div style={{ paddingTop: 22 }}>
-              <label
-                className="flex items-center gap-2"
+            <div>
+              <label className="tool-label">Transparent BG</label>
+              <button
+                onClick={() => setTransparent((v) => !v)}
+                className="tool-btn"
                 style={{
-                  fontSize: 13,
-                  color: fg,
-                  fontFamily: "var(--font-playfair), Georgia, serif",
+                  background: transparent ? fg : "transparent",
+                  color: transparent ? (isDark ? "#000" : "#fff") : fg,
+                  border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
                 }}
               >
-                <input
-                  type="checkbox"
-                  checked={transparent}
-                  onChange={(e) => setTransparent(e.target.checked)}
-                  style={{ accentColor: fg }}
-                />
-                Transparent
-              </label>
+                {transparent ? "On" : "Off"}
+              </button>
             </div>
           </div>
         </div>

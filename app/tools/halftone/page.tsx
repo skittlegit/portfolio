@@ -203,23 +203,17 @@ export default function HalftonePage() {
           </div>
 
           <ColorPicker label="Dot Color" value={dotColor} onChange={setDotColor} />
-          {!transparentBg && (
-            <ColorPicker label="Background" value={bgColor} onChange={setBgColor} />
-          )}
+          <ColorPicker label="Background" value={bgColor} onChange={setBgColor} disabled={transparentBg} />
 
-          <div>
-            <label className="tool-label">Transparent BG</label>
-            <button
-              onClick={() => setTransparentBg((v) => !v)}
-              className="tool-btn"
-              style={{
-                background: transparentBg ? fg : "transparent",
-                color: transparentBg ? (isDark ? "#000" : "#fff") : fg,
-                border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
-              }}
-            >
-              {transparentBg ? "On" : "Off"}
-            </button>
+          <div style={{ paddingTop: 22 }}>
+            <label className="tool-transparent-label">
+              <input
+                type="checkbox"
+                checked={transparentBg}
+                onChange={(e) => setTransparentBg(e.target.checked)}
+              />
+              Transparent
+            </label>
           </div>
         </div>
 

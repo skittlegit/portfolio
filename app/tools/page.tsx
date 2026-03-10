@@ -88,8 +88,8 @@ const tools = [
   },
   {
     slug: "logo-maker",
-    name: "Logo Maker",
-    description: "Create simple, clean logos with shapes and typography",
+    name: "Shape Maker",
+    description: "Create unique shape compositions with blended colors",
     icon: Stamp,
   },
 ];

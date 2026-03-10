@@ -25,7 +25,7 @@ export default function ImagesToPdfPage() {
   const { fg, fgMuted, isDark } = useTheme();
   const [images, setImages] = useState<ImageItem[]>([]);
   const [pageSize, setPageSize] = useState<PageSize>("fit");
-  const [margin, setMargin] = useState(20);
+  const [margin, setMargin] = useState(0);
   const [quality, setQuality] = useState<"high" | "medium">("high");
   const [generating, setGenerating] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { RefreshCw, Download, Play, Pause } from "lucide-react";
+import { RefreshCw, Download, Play, Pause, Plus, X, Lock, Unlock } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
@@ -51,11 +51,34 @@ function createParticles(count: number, w: number, h: number, seed: number): Par
   return particles;
 }
 
+function hslToHex(h: number, s: number, l: number): string {
+  s /= 100;
+  l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * c).toString(16).padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+function parseColor(hex: string): [number, number, number] {
+  return [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ];
+}
+
 export default function BiomPage() {
   const { fg, fgMuted, isDark } = useTheme();
   const [preset, setPreset] = useState<Preset>("flow");
-  const [color1, setColor1] = useState(isDark ? "#ffffff" : "#000000");
-  const [color2, setColor2] = useState(isDark ? "#4a9eff" : "#2563eb");
+  const [colors, setColors] = useState<string[]>(() => [
+    isDark ? "#ffffff" : "#000000",
+    isDark ? "#4a9eff" : "#2563eb",
+  ]);
+  const [locked, setLocked] = useState<boolean[]>(() => [false, false]);
   const [bgColor, setBgColor] = useState(isDark ? "#000000" : "#ffffff");
   const [particleCount, setParticleCount] = useState(200);
   const [speed, setSpeed] = useState(1);
@@ -64,12 +87,12 @@ export default function BiomPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const particlesRef = useRef<Particle[]>([]);
-  const stateRef = useRef({ preset, color1, color2, bgColor, speed, seed });
+  const stateRef = useRef({ preset, colors, bgColor, speed, seed });
 
   // Keep stateRef in sync
   useEffect(() => {
-    stateRef.current = { preset, color1, color2, bgColor, speed, seed };
-  }, [preset, color1, color2, bgColor, speed, seed]);
+    stateRef.current = { preset, colors, bgColor, speed, seed };
+  }, [preset, colors, bgColor, speed, seed]);
 
   const draw = () => {
     const canvas = canvasRef.current;
@@ -85,21 +108,22 @@ export default function BiomPage() {
     ctx.fillRect(0, 0, w, h);
 
     const particles = particlesRef.current;
-    const r1 = parseInt(st.color1.slice(1, 3), 16);
-    const g1 = parseInt(st.color1.slice(3, 5), 16);
-    const b1 = parseInt(st.color1.slice(5, 7), 16);
-    const r2 = parseInt(st.color2.slice(1, 3), 16);
-    const g2 = parseInt(st.color2.slice(3, 5), 16);
-    const b2 = parseInt(st.color2.slice(5, 7), 16);
+    const parsedColors = st.colors.map(parseColor);
+    const numColors = parsedColors.length;
 
     for (let pi = 0; pi < particles.length; pi++) {
       const p = particles[pi];
       const lifeRatio = p.life / p.maxLife;
       const alpha = Math.sin(lifeRatio * Math.PI) * 0.8;
-      const mixR = lifeRatio;
-      const r = Math.round(r1 + (r2 - r1) * mixR);
-      const g = Math.round(g1 + (g2 - g1) * mixR);
-      const b = Math.round(b1 + (b2 - b1) * mixR);
+      // Interpolate across multiple colors
+      const colorPos = lifeRatio * (numColors - 1);
+      const ci = Math.min(Math.floor(colorPos), numColors - 2);
+      const ct = colorPos - ci;
+      const [cr1, cg1, cb1] = parsedColors[ci];
+      const [cr2, cg2, cb2] = parsedColors[ci + 1];
+      const r = Math.round(cr1 + (cr2 - cr1) * ct);
+      const g = Math.round(cg1 + (cg2 - cg1) * ct);
+      const b = Math.round(cb1 + (cb2 - cb1) * ct);
 
       ctx.fillStyle = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
 
@@ -293,9 +317,66 @@ export default function BiomPage() {
               <span className="text-xs" style={{ color: fgMuted }}>{speed.toFixed(1)}x</span>
             </div>
           </div>
-          <ColorPicker label="Color 1" value={color1} onChange={setColor1} />
-          <ColorPicker label="Color 2" value={color2} onChange={setColor2} />
           <ColorPicker label="Background" value={bgColor} onChange={setBgColor} />
+        </div>
+
+        {/* Color Palette */}
+        <div className="mb-4">
+          <div className="flex items-center gap-3 mb-3">
+            <label className="tool-label" style={{ marginBottom: 0 }}>
+              Colors ({colors.length})
+            </label>
+            {colors.length < 8 && (
+              <button
+                onClick={() => {
+                  setColors((prev) => [...prev, hslToHex(Math.random() * 360, 60, 50)]);
+                  setLocked((prev) => [...prev, false]);
+                }}
+                style={{ background: "none", border: "none", color: fgMuted }}
+              >
+                <Plus size={16} />
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {colors.map((c, i) => (
+              <div key={i} className="flex items-center gap-1">
+                <ColorPicker
+                  value={c}
+                  onChange={(hex) => setColors((prev) => prev.map((cc, idx) => idx === i ? hex : cc))}
+                />
+                <button
+                  onClick={() => setLocked((prev) => prev.map((l, idx) => idx === i ? !l : l))}
+                  title={locked[i] ? "Unlock color" : "Lock color"}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: locked[i] ? fg : fgMuted,
+                    opacity: locked[i] ? 1 : 0.4,
+                    cursor: "pointer",
+                  }}
+                >
+                  {locked[i] ? <Lock size={12} /> : <Unlock size={12} />}
+                </button>
+                {colors.length > 2 && (
+                  <button
+                    onClick={() => {
+                      setColors((prev) => prev.filter((_, idx) => idx !== i));
+                      setLocked((prev) => prev.filter((_, idx) => idx !== i));
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: fgMuted,
+                      opacity: 0.5,
+                    }}
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Action buttons */}

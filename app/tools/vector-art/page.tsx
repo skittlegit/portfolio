@@ -291,7 +291,7 @@ function generateSvg(
     }
   }
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${bgEl}${shapes}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">${bgEl}${shapes}</svg>`;
 }
 
 export default function VectorArtPage() {
@@ -309,6 +309,11 @@ export default function VectorArtPage() {
   const svgContainerRef = useRef<HTMLDivElement>(null);
 
   const svgString = generateSvg(style, 800, 500, seed, palette, bg, transparentBg);
+
+  // For display: responsive SVG
+  const displaySvg = svgString;
+  // For download/copy: fixed-dimension SVG
+  const exportSvg = svgString.replace('width="100%" height="100%"', 'width="800" height="500"');
 
   const randomize = () => {
     const newSeed = Math.floor(Math.random() * 99999);
@@ -340,7 +345,7 @@ export default function VectorArtPage() {
   };
 
   const downloadSvg = () => {
-    const blob = new Blob([svgString], { type: "image/svg+xml" });
+    const blob = new Blob([exportSvg], { type: "image/svg+xml" });
     const a = document.createElement("a");
     a.download = `vector-${style}.svg`;
     a.href = URL.createObjectURL(blob);
@@ -364,11 +369,11 @@ export default function VectorArtPage() {
       a.href = canvas.toDataURL("image/png");
       a.click();
     };
-    img.src = "data:image/svg+xml," + encodeURIComponent(svgString);
+    img.src = "data:image/svg+xml," + encodeURIComponent(exportSvg);
   };
 
   const copySvg = () => {
-    navigator.clipboard.writeText(svgString);
+    navigator.clipboard.writeText(exportSvg);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
@@ -407,22 +412,16 @@ export default function VectorArtPage() {
               <option value="memphis">Memphis</option>
             </select>
           </div>
-          {!transparentBg && (
-            <ColorPicker label="Background" value={bg} onChange={setBg} />
-          )}
-          <div>
-            <label className="tool-label">Transparent BG</label>
-            <button
-              onClick={() => setTransparentBg((v) => !v)}
-              className="tool-btn"
-              style={{
-                background: transparentBg ? fg : "transparent",
-                color: transparentBg ? (isDark ? "#000" : "#fff") : fg,
-                border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
-              }}
-            >
-              {transparentBg ? "On" : "Off"}
-            </button>
+          <ColorPicker label="Background" value={bg} onChange={setBg} disabled={transparentBg} />
+          <div style={{ paddingTop: 22 }}>
+            <label className="tool-transparent-label">
+              <input
+                type="checkbox"
+                checked={transparentBg}
+                onChange={(e) => setTransparentBg(e.target.checked)}
+              />
+              Transparent
+            </label>
           </div>
           <div className="flex gap-2">
             <button onClick={randomize} className="tool-btn" style={{ color: fg }}>
@@ -492,13 +491,14 @@ export default function VectorArtPage() {
           ref={svgContainerRef}
           style={{
             width: "100%",
+            aspectRatio: "8 / 5",
             borderRadius: 14,
             border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
             overflow: "hidden",
             marginBottom: 16,
             ...checkerStyle,
           }}
-          dangerouslySetInnerHTML={{ __html: svgString }}
+          dangerouslySetInnerHTML={{ __html: displaySvg }}
         />
 
         {/* Download */}

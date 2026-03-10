@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, Download, RefreshCw } from "lucide-react";
+import { Copy, Check, Download, RefreshCw, Shuffle } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
@@ -17,6 +17,18 @@ function seededRandom(seed: number) {
     s = (s * 16807 + 0) % 2147483647;
     return (s - 1) / 2147483646;
   };
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  s /= 100;
+  l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * c).toString(16).padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
 }
 
 function bgRect(bg: string, size: number, transpBg: boolean, h?: number): string {
@@ -232,24 +244,27 @@ export default function PatternLibraryPage() {
       <div className="max-w-4xl">
         {/* Pattern grid */}
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-3 mb-8">
-          {PATTERNS.map((p, i) => (
-            <button
-              key={p.name}
-              onClick={() => setSelected(i)}
-              style={{
-                aspectRatio: "1",
-                borderRadius: 10,
-                border: `2px solid ${selected === i ? fg : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
-                backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(p.generate(patternFg, patternBg, tileSize, seed, transparentBg))}")`,
-                backgroundRepeat: "repeat",
-                backgroundSize: `${tileSize}px ${tileSize}px`,
-                cursor: "pointer",
-                transition: "border-color 0.2s",
-                ...(transparentBg ? checkerStyle : {}),
-              }}
-              title={p.name}
-            />
-          ))}
+          {PATTERNS.map((p, i) => {
+            const thumbSvg = `url("data:image/svg+xml,${encodeURIComponent(p.generate(patternFg, patternBg, tileSize, seed, transparentBg))}")`;
+            const checkerBg = `repeating-conic-gradient(${isDark ? "#333" : "#ccc"} 0% 25%, ${isDark ? "#222" : "#fff"} 0% 50%)`;
+            return (
+              <button
+                key={p.name}
+                onClick={() => setSelected(i)}
+                style={{
+                  aspectRatio: "1",
+                  borderRadius: 10,
+                  border: `2px solid ${selected === i ? fg : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+                  backgroundImage: transparentBg ? `${thumbSvg}, ${checkerBg}` : thumbSvg,
+                  backgroundRepeat: "repeat",
+                  backgroundSize: transparentBg ? `${tileSize}px ${tileSize}px, 16px 16px` : `${tileSize}px ${tileSize}px`,
+                  cursor: "pointer",
+                  transition: "border-color 0.2s",
+                }}
+                title={p.name}
+              />
+            );
+          })}
         </div>
 
         {/* Controls */}
@@ -271,9 +286,7 @@ export default function PatternLibraryPage() {
             </div>
           </div>
           <ColorPicker label="Foreground" value={patternFg} onChange={setPatternFg} />
-          {!transparentBg && (
-            <ColorPicker label="Background" value={patternBg} onChange={setPatternBg} />
-          )}
+          <ColorPicker label="Background" value={patternBg} onChange={setPatternBg} disabled={transparentBg} />
           <div>
             <label className="tool-label">Transparent BG</label>
             <button
@@ -286,6 +299,21 @@ export default function PatternLibraryPage() {
               }}
             >
               {transparentBg ? "On" : "Off"}
+            </button>
+          </div>
+          <div>
+            <label className="tool-label">Random</label>
+            <button
+              onClick={() => {
+                setSelected(Math.floor(Math.random() * PATTERNS.length));
+                setPatternFg(hslToHex(Math.random() * 360, 40 + Math.random() * 40, 30 + Math.random() * 40));
+                if (!transparentBg) setPatternBg(hslToHex(Math.random() * 360, 10 + Math.random() * 20, isDark ? 10 + Math.random() * 15 : 85 + Math.random() * 15));
+                setTileSize(15 + Math.floor(Math.random() * 50));
+                setSeed(Math.floor(Math.random() * 99999));
+              }}
+              className="tool-btn"
+            >
+              <Shuffle size={14} /> Randomize
             </button>
           </div>
           {pattern.name === "Confetti" && (
@@ -310,10 +338,9 @@ export default function PatternLibraryPage() {
               height: 250,
               borderRadius: 14,
               border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
-              backgroundImage: encodedSvg,
+              backgroundImage: transparentBg ? `${encodedSvg}, ${checkerStyle.backgroundImage}` : encodedSvg,
               backgroundRepeat: "repeat",
-              backgroundSize: `${tileSize}px ${tileSize}px`,
-              ...(transparentBg ? checkerStyle : {}),
+              backgroundSize: transparentBg ? `${tileSize}px ${tileSize}px, 16px 16px` : `${tileSize}px ${tileSize}px`,
             }}
           />
         </div>
