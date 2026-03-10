@@ -15,18 +15,24 @@ function shouldShowRing(target: EventTarget | null): boolean {
 }
 
 export default function CursorEffect() {
-  const { fg } = useTheme();
+  const { fg, isDark } = useTheme();
   const dotRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
   const ringState = useRef(false);
 
   useEffect(() => {
     const dot = dotRef.current;
-    if (!dot) return;
+    const glow = glowRef.current;
+    if (!dot || !glow) return;
 
     const onMove = (e: MouseEvent) => {
       dot.style.left = `${e.clientX}px`;
       dot.style.top = `${e.clientY}px`;
       dot.style.opacity = "1";
+
+      glow.style.left = `${e.clientX}px`;
+      glow.style.top = `${e.clientY}px`;
+      glow.style.opacity = "1";
 
       const ring = shouldShowRing(e.target);
       if (ring !== ringState.current) {
@@ -37,10 +43,12 @@ export default function CursorEffect() {
 
     const onLeave = () => {
       dot.style.opacity = "0";
+      glow.style.opacity = "0";
     };
 
     const onEnter = () => {
       dot.style.opacity = "1";
+      glow.style.opacity = "1";
     };
 
     const root = document.documentElement;
@@ -60,11 +68,24 @@ export default function CursorEffect() {
     dot.style.setProperty("--fg", fg);
   }, [fg]);
 
+  const glowColor = isDark
+    ? "rgba(255, 255, 255, 0.06)"
+    : "rgba(0, 0, 0, 0.04)";
+
   return (
-    <div
-      ref={dotRef}
-      className="custom-cursor cursor-dot"
-      data-ring="0"
-    />
+    <>
+      <div
+        ref={glowRef}
+        className="custom-cursor cursor-glow"
+        style={{
+          background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`,
+        }}
+      />
+      <div
+        ref={dotRef}
+        className="custom-cursor cursor-dot"
+        data-ring="0"
+      />
+    </>
   );
 }
