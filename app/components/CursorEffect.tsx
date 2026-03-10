@@ -4,39 +4,26 @@ import { useEffect, useRef } from "react";
 import { useTheme } from "../context/ThemeContext";
 
 const RING_SELECTOR =
-  "a,button,input,select,textarea,label,[role='button'],[data-interactive]";
+  "a,button,input,select,textarea,label,[role='button'],[data-interactive]," +
+  "h1,h2,h3,h4,h5,h6,p,span,li,td,th,blockquote,code,pre,kbd," +
+  "img,video,canvas";
 
 function shouldShowRing(target: EventTarget | null): boolean {
   if (!target || !(target instanceof Element)) return false;
-  // Walk up to find a clickable/interactive ancestor
-  let el: Element | null = target;
-  while (el) {
-    if (el instanceof SVGElement) {
-      // Only ring for SVGs inside interactive elements (icons in buttons)
-      if (el.closest(RING_SELECTOR)) return true;
-    }
-    if (el instanceof HTMLElement && el.matches(RING_SELECTOR)) return true;
-    el = el.parentElement;
-  }
-  return false;
+  if (target instanceof SVGElement) return true;
+  return !!target.closest(RING_SELECTOR);
 }
 
 export default function CursorEffect() {
-  const { isDark, fg } = useTheme();
-  const glowRef = useRef<HTMLDivElement>(null);
+  const { fg } = useTheme();
   const dotRef = useRef<HTMLDivElement>(null);
   const ringState = useRef(false);
 
   useEffect(() => {
-    const glow = glowRef.current;
     const dot = dotRef.current;
-    if (!glow || !dot) return;
+    if (!dot) return;
 
     const onMove = (e: MouseEvent) => {
-      glow.style.setProperty("--cx", `${e.clientX}px`);
-      glow.style.setProperty("--cy", `${e.clientY}px`);
-      glow.style.opacity = "1";
-
       dot.style.left = `${e.clientX}px`;
       dot.style.top = `${e.clientY}px`;
       dot.style.opacity = "1";
@@ -49,52 +36,35 @@ export default function CursorEffect() {
     };
 
     const onLeave = () => {
-      glow.style.opacity = "0";
       dot.style.opacity = "0";
     };
 
     const onEnter = () => {
-      glow.style.opacity = "1";
       dot.style.opacity = "1";
     };
 
+    const root = document.documentElement;
     window.addEventListener("mousemove", onMove, { passive: true });
-    document.addEventListener("mouseleave", onLeave);
-    document.addEventListener("mouseenter", onEnter);
+    root.addEventListener("mouseleave", onLeave);
+    root.addEventListener("mouseenter", onEnter);
     return () => {
       window.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseleave", onLeave);
-      document.removeEventListener("mouseenter", onEnter);
+      root.removeEventListener("mouseleave", onLeave);
+      root.removeEventListener("mouseenter", onEnter);
     };
   }, []);
 
-  // Update colors when theme changes — direct DOM, no re-render loop
   useEffect(() => {
-    const glow = glowRef.current;
     const dot = dotRef.current;
-    if (!glow || !dot) return;
-
-    glow.style.setProperty(
-      "--glow",
-      isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"
-    );
+    if (!dot) return;
     dot.style.setProperty("--fg", fg);
-  }, [isDark, fg]);
+  }, [fg]);
 
   return (
-    <>
-      {/* Background glow — single div, position via CSS custom props */}
-      <div
-        ref={glowRef}
-        className="custom-cursor cursor-glow"
-      />
-
-      {/* Cursor dot / ring */}
-      <div
-        ref={dotRef}
-        className="custom-cursor cursor-dot"
-        data-ring="0"
-      />
-    </>
+    <div
+      ref={dotRef}
+      className="custom-cursor cursor-dot"
+      data-ring="0"
+    />
   );
 }

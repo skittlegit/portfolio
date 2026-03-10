@@ -57,19 +57,6 @@ body:has(.tools-layout) {
   }
 }
 
-/* Glow overlay — position driven by CSS custom props, no React re-render */
-.cursor-glow {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  --cx: -100px;
-  --cy: -100px;
-  --glow: rgba(0, 0, 0, 0.04);
-  background: radial-gradient(250px circle at var(--cx) var(--cy), var(--glow) 0%, transparent 100%);
-  transition: opacity 0.15s ease;
-}
-
 /* Cursor dot / ring — switches via data-ring attribute */
 .cursor-dot {
   position: fixed;
