@@ -80,6 +80,21 @@ body:has(.tools-layout) {
   border-color: var(--fg);
 }
 
+/* Cursor glow — subtle color bleed around cursor */
+.cursor-glow {
+  position: fixed;
+  left: -100px;
+  top: -100px;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9998;
+  background: radial-gradient(circle, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.015) 40%, transparent 70%);
+  transition: opacity 0.3s ease;
+}
+
 /* Hide native number input spinners globally */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
