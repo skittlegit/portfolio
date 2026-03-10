@@ -84,7 +84,7 @@ const socials = [
 ];
 
 export default function Home() {
-  const { isDark, toggle, bg, fg, fgMuted } = useTheme();
+  const { isDark, toggle, fg, fgMuted } = useTheme();
   const [hovered, setHovered] = useState<HoverKey>(null);
   const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
 
@@ -94,11 +94,12 @@ export default function Home() {
         className="relative flex flex-col"
         style={{
           fontFamily: "var(--font-playfair), Georgia, serif",
-          backgroundColor: bg,
           color: fg,
-          transition: "background-color 0.3s, color 0.3s",
+          transition: "color 0.3s",
           minHeight: "100dvh",
           overflowX: "clip",
+          position: "relative",
+          zIndex: 2,
         }}
       >
         {/* Top nav */}

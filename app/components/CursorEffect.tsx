@@ -3,12 +3,35 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTheme } from "../context/ThemeContext";
 
-const INTERACTIVE_SELECTORS =
-  "a, button, input, select, textarea, label, [role='button'], [data-interactive]";
+/** Elements that should never trigger the ring cursor */
+const IGNORE_TAGS = new Set(["HTML", "BODY"]);
 
-function isInteractiveElement(el: EventTarget | null): boolean {
+function shouldShowRing(el: EventTarget | null): boolean {
   if (!(el instanceof HTMLElement)) return false;
-  return el.closest(INTERACTIVE_SELECTORS) !== null;
+  // Walk up and skip pure layout wrappers
+  let node: HTMLElement | null = el;
+  while (node && !IGNORE_TAGS.has(node.tagName)) {
+    // Interactive elements always trigger ring
+    if (
+      node.matches(
+        "a, button, input, select, textarea, label, [role='button'], [data-interactive]"
+      )
+    )
+      return true;
+    // SVG / img / video / canvas
+    if (node instanceof SVGElement || node.matches("img, video, canvas, svg"))
+      return true;
+    // Text content — any element with direct text children
+    if (node.childNodes.length > 0) {
+      for (let i = 0; i < node.childNodes.length; i++) {
+        const child = node.childNodes[i];
+        if (child.nodeType === 3 && child.textContent && child.textContent.trim().length > 0)
+          return true;
+      }
+    }
+    node = node.parentElement;
+  }
+  return false;
 }
 
 export default function CursorEffect() {
@@ -18,7 +41,7 @@ export default function CursorEffect() {
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     setCursor({ x: e.clientX, y: e.clientY });
-    setShowRing(isInteractiveElement(e.target));
+    setShowRing(shouldShowRing(e.target));
   }, []);
 
   useEffect(() => {
@@ -32,7 +55,19 @@ export default function CursorEffect() {
 
   return (
     <>
-      {/* Custom cursor — solid dot normally, ring on interactive */}
+      {/* Background glow — sits behind all page content */}
+      <div
+        className="custom-cursor"
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: glowColor,
+          pointerEvents: "none",
+          zIndex: 1,
+        }}
+      />
+
+      {/* Custom cursor dot / ring */}
       <div
         className="custom-cursor"
         style={{
@@ -48,18 +83,6 @@ export default function CursorEffect() {
           pointerEvents: "none",
           zIndex: 9999,
           transition: "background-color 0.15s ease, border 0.15s ease",
-        }}
-      />
-
-      {/* Background glow following cursor */}
-      <div
-        className="custom-cursor"
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: glowColor,
-          pointerEvents: "none",
-          zIndex: 0,
         }}
       />
     </>

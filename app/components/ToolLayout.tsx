@@ -17,7 +17,7 @@ export default function ToolLayout({
   backLabel?: string;
   children: React.ReactNode;
 }) {
-  const { isDark, toggle, bg, fg, fgMuted } = useTheme();
+  const { isDark, toggle, fg, fgMuted } = useTheme();
 
   return (
     <>
@@ -25,11 +25,12 @@ export default function ToolLayout({
         className="tools-layout relative flex flex-col"
         style={{
           fontFamily: "var(--font-playfair), Georgia, serif",
-          backgroundColor: bg,
           color: fg,
-          transition: "background-color 0.3s, color 0.3s",
+          transition: "color 0.3s",
           minHeight: "100dvh",
           overflowX: "clip",
+          position: "relative",
+          zIndex: 2,
         }}
       >
         {/* Header */}
