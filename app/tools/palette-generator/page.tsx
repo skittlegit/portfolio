@@ -286,38 +286,37 @@ export default function PaletteGeneratorPage() {
                   )}
                 </button>
 
-                {/* Color picker */}
+                {/* Edit hex input */}
                 <input
-                  type="color"
+                  type="text"
                   value={color.hex}
-                  onChange={(e) => updateColor(i, e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (/^#[0-9a-fA-F]{0,6}$/.test(val)) {
+                      if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+                        updateColor(i, val.toLowerCase());
+                      }
+                    }
+                  }}
+                  maxLength={7}
                   style={{
-                    width: 28,
-                    height: 28,
-                    border: "none",
+                    position: "absolute",
+                    top: 14,
+                    left: 14,
+                    width: 52,
                     background: "none",
-                    padding: 0,
-                    opacity: 0,
-                    position: "absolute",
-                    top: 14,
-                    left: 14,
-                  }}
-                  title="Pick color"
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 14,
-                    left: 14,
+                    border: "none",
+                    borderBottom: `1px solid ${textColor}`,
                     color: textColor,
-                    opacity: 0.4,
-                    pointerEvents: "none",
-                    fontSize: 11,
-                    letterSpacing: "0.06em",
+                    opacity: 0.5,
+                    fontSize: 10,
+                    fontFamily: "monospace",
+                    padding: "2px 0",
+                    outline: "none",
+                    textAlign: "center",
                   }}
-                >
-                  edit
-                </div>
+                  title="Edit color"
+                />
 
                 {/* HSL info */}
                 <span

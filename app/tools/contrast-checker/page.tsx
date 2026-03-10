@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { Copy, Check } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
 
 function hexToRgb(hex: string) {
@@ -57,15 +58,6 @@ export default function ContrastCheckerPage() {
     navigator.clipboard.writeText(text);
     setCopied(label);
     setTimeout(() => setCopied(null), 1500);
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: 11,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase" as const,
-    color: fgMuted,
-    marginBottom: 6,
-    display: "block",
   };
 
   const passStyle: React.CSSProperties = {
@@ -139,77 +131,70 @@ export default function ContrastCheckerPage() {
         </div>
 
         {/* Color pickers */}
-        <div className="flex gap-4 items-end flex-wrap mb-4">
-          <div>
-            <label style={labelStyle}>Foreground</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={fgColor}
-                onChange={(e) => setFgColor(e.target.value)}
-                style={{ width: 40, height: 40, border: "none", background: "none", padding: 0 }}
-              />
-              <button
-                onClick={() => copy(fgColor, "fg")}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: fgMuted,
-                  fontFamily: "monospace",
-                  fontSize: 13,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                }}
-              >
-                {fgColor}
-                {copied === "fg" ? <Check size={12} /> : <Copy size={12} style={{ opacity: 0.4 }} />}
-              </button>
-            </div>
+        <div className="flex gap-5 items-start flex-wrap mb-4">
+          <ColorPicker
+            value={fgColor}
+            onChange={setFgColor}
+            label="Foreground"
+          />
+
+          <div style={{ paddingTop: 22 }}>
+            <button
+              onClick={swap}
+              style={{
+                background: "none",
+                border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
+                borderRadius: 10,
+                padding: "8px 14px",
+                color: fgMuted,
+                fontSize: 13,
+                fontFamily: "var(--font-playfair), Georgia, serif",
+                transition: "color 0.2s",
+              }}
+            >
+              ↔ Swap
+            </button>
           </div>
 
-          <button
-            onClick={swap}
-            style={{
-              background: "none",
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
-              borderRadius: 8,
-              padding: "8px 14px",
-              color: fgMuted,
-              fontSize: 13,
-              fontFamily: "var(--font-playfair), Georgia, serif",
-              marginBottom: 2,
-            }}
-          >
-            ↔ Swap
-          </button>
+          <ColorPicker
+            value={bgColor}
+            onChange={setBgColor}
+            label="Background"
+          />
 
-          <div>
-            <label style={labelStyle}>Background</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={bgColor}
-                onChange={(e) => setBgColor(e.target.value)}
-                style={{ width: 40, height: 40, border: "none", background: "none", padding: 0 }}
-              />
-              <button
-                onClick={() => copy(bgColor, "bg")}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: fgMuted,
-                  fontFamily: "monospace",
-                  fontSize: 13,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                }}
-              >
-                {bgColor}
-                {copied === "bg" ? <Check size={12} /> : <Copy size={12} style={{ opacity: 0.4 }} />}
-              </button>
-            </div>
+          <div className="flex gap-3" style={{ paddingTop: 22 }}>
+            <button
+              onClick={() => copy(fgColor, "fg")}
+              style={{
+                background: "none",
+                border: "none",
+                color: fgMuted,
+                fontSize: 12,
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                fontFamily: "monospace",
+              }}
+            >
+              {copied === "fg" ? <Check size={12} /> : <Copy size={12} />}
+              FG
+            </button>
+            <button
+              onClick={() => copy(bgColor, "bg")}
+              style={{
+                background: "none",
+                border: "none",
+                color: fgMuted,
+                fontSize: 12,
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                fontFamily: "monospace",
+              }}
+            >
+              {copied === "bg" ? <Check size={12} /> : <Copy size={12} />}
+              BG
+            </button>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Copy, Check } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
 import { useTheme } from "../../context/ThemeContext";
@@ -9,27 +9,24 @@ export default function JsonFormatterPage() {
   const { fg, fgMuted, isDark } = useTheme();
   const [input, setInput] = useState('{"name":"Deepak","skills":["design","code","create"],"portfolio":{"tools":true,"minimal":true}}');
   const [indent, setIndent] = useState(2);
-  const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
 
-  let formatted = "";
-  try {
-    const parsed = JSON.parse(input);
-    formatted = JSON.stringify(parsed, null, indent);
-    if (error) setError("");
-  } catch (e) {
-    if (input.trim()) {
-      formatted = "";
-      const msg = (e as Error).message;
-      if (error !== msg) setError(msg);
+  const { formatted, error } = useMemo(() => {
+    try {
+      const parsed = JSON.parse(input);
+      return { formatted: JSON.stringify(parsed, null, indent), error: "" };
+    } catch (e) {
+      if (input.trim()) {
+        return { formatted: "", error: (e as Error).message };
+      }
+      return { formatted: "", error: "" };
     }
-  }
+  }, [input, indent]);
 
   const minify = () => {
     try {
       const parsed = JSON.parse(input);
       setInput(JSON.stringify(parsed));
-      setError("");
     } catch {
       // keep current
     }
@@ -39,7 +36,6 @@ export default function JsonFormatterPage() {
     try {
       const parsed = JSON.parse(input);
       setInput(JSON.stringify(parsed, null, indent));
-      setError("");
     } catch {
       // keep current
     }
@@ -117,7 +113,6 @@ export default function JsonFormatterPage() {
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
-                setError("");
               }}
               rows={18}
               style={{

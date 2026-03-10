@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Copy, Check, Plus, X } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
 
 type GradientStop = { color: string; position: number };
@@ -160,18 +161,13 @@ export default function GradientGeneratorPage() {
               <Plus size={16} />
             </button>
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {stops.map((stop, i) => (
               <div key={i} className="flex items-center gap-3">
-                <input
-                  type="color"
+                <ColorPicker
                   value={stop.color}
-                  onChange={(e) => updateStop(i, { color: e.target.value })}
-                  style={{ width: 36, height: 36, border: "none", background: "none", padding: 0 }}
+                  onChange={(hex) => updateStop(i, { color: hex })}
                 />
-                <span className="text-xs" style={{ color: fgMuted, fontFamily: "monospace", width: 60 }}>
-                  {stop.color}
-                </span>
                 <input
                   type="range"
                   min={0}

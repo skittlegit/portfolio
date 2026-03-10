@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function BoxShadowPage() {
@@ -92,33 +93,26 @@ export default function BoxShadowPage() {
           {sliderRow("Spread", spread, setSpread, -50, 50)}
           {sliderRow("Opacity", opacity, setOpacity, 0, 100)}
 
-          <div className="flex gap-4 items-end mb-5">
-            <div>
-              <label style={labelStyle}>Color</label>
-              <div className="flex items-center gap-2">
+          <div className="flex gap-5 items-start mb-5 flex-wrap">
+            <ColorPicker
+              value={color}
+              onChange={setColor}
+              label="Color"
+            />
+            <div style={{ paddingTop: 22 }}>
+              <label
+                className="flex items-center gap-2"
+                style={{ fontSize: 13, color: fg, fontFamily: "var(--font-playfair), Georgia, serif" }}
+              >
                 <input
-                  type="color"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  style={{ width: 36, height: 36, border: "none", background: "none", padding: 0 }}
+                  type="checkbox"
+                  checked={inset}
+                  onChange={(e) => setInset(e.target.checked)}
+                  style={{ accentColor: fg }}
                 />
-                <span className="text-xs" style={{ color: fgMuted, fontFamily: "monospace" }}>
-                  {color}
-                </span>
-              </div>
+                Inset
+              </label>
             </div>
-            <label
-              className="flex items-center gap-2 pb-1"
-              style={{ fontSize: 13, color: fg, fontFamily: "var(--font-playfair), Georgia, serif" }}
-            >
-              <input
-                type="checkbox"
-                checked={inset}
-                onChange={(e) => setInset(e.target.checked)}
-                style={{ accentColor: fg }}
-              />
-              Inset
-            </label>
           </div>
 
           {/* CSS output */}
