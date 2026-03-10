@@ -6,18 +6,12 @@ import {
   QrCode,
   Palette,
   Hash,
-  FileText,
   TextCursorInput,
   Lock,
   Binary,
-  Regex,
-  Image,
   Paintbrush,
   Layers,
   ArrowRightLeft,
-  Braces,
-  SquareAsterisk,
-  Eye,
   Type,
 } from "lucide-react";
 import ToolLayout from "../components/ToolLayout";
@@ -43,24 +37,6 @@ const tools = [
     icon: Layers,
   },
   {
-    slug: "box-shadow",
-    name: "Box Shadow Generator",
-    description: "Design CSS box shadows visually",
-    icon: SquareAsterisk,
-  },
-  {
-    slug: "border-radius",
-    name: "Border Radius Generator",
-    description: "Visually design CSS border-radius values",
-    icon: SquareAsterisk,
-  },
-  {
-    slug: "contrast-checker",
-    name: "Contrast Checker",
-    description: "Check WCAG color contrast for accessibility",
-    icon: Eye,
-  },
-  {
     slug: "color-converter",
     name: "Color Converter",
     description: "Convert between HEX, RGB, and HSL",
@@ -79,22 +55,10 @@ const tools = [
     icon: ArrowRightLeft,
   },
   {
-    slug: "json-formatter",
-    name: "JSON Formatter",
-    description: "Format, validate, and minify JSON data",
-    icon: Braces,
-  },
-  {
     slug: "word-counter",
     name: "Word Counter",
     description: "Count words, characters, and sentences",
     icon: Hash,
-  },
-  {
-    slug: "markdown-preview",
-    name: "Markdown Preview",
-    description: "Live preview of Markdown text",
-    icon: FileText,
   },
   {
     slug: "lorem-generator",
@@ -113,18 +77,6 @@ const tools = [
     name: "Base64 Encoder/Decoder",
     description: "Encode or decode Base64 strings",
     icon: Binary,
-  },
-  {
-    slug: "regex-tester",
-    name: "Regex Tester",
-    description: "Test regular expressions with live matching",
-    icon: Regex,
-  },
-  {
-    slug: "placeholder-image",
-    name: "Placeholder Image",
-    description: "Generate placeholder images with custom sizes",
-    icon: Image,
   },
 ];
 

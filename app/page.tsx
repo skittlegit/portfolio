@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Palette,
   Code2,
@@ -85,47 +85,11 @@ const socials = [
 
 export default function Home() {
   const { isDark, toggle, bg, fg, fgMuted } = useTheme();
-  const [cursor, setCursor] = useState({ x: -100, y: -100 });
   const [hovered, setHovered] = useState<HoverKey>(null);
   const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
-  const [buttonHovered, setButtonHovered] = useState(false);
-  const [contentHovered, setContentHovered] = useState(false);
-
-  const showRing = hovered !== null || hoveredSocial !== null || buttonHovered || contentHovered;
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setCursor({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
-
-  const glowColor = isDark
-    ? `radial-gradient(500px circle at ${cursor.x}px ${cursor.y}px, rgba(255,255,255,0.06), transparent 70%)`
-    : `radial-gradient(500px circle at ${cursor.x}px ${cursor.y}px, rgba(0,0,0,0.05), transparent 70%)`;
 
   return (
     <>
-      {/* Custom cursor — solid dot normally, ring on interactive content */}
-      <div
-        className="custom-cursor"
-        style={{
-          position: "fixed",
-          left: cursor.x,
-          top: cursor.y,
-          width: 28,
-          height: 28,
-          backgroundColor: showRing ? "transparent" : fg,
-          border: showRing ? `1.5px solid ${fg}` : "none",
-          borderRadius: "50%",
-          transform: "translate(-50%, -50%)",
-          pointerEvents: "none",
-          zIndex: 9999,
-          transition: "background-color 0.15s ease, border-color 0.3s ease",
-        }}
-      />
-
       <div
         className="relative flex flex-col"
         style={{
@@ -137,17 +101,6 @@ export default function Home() {
           overflowX: "clip",
         }}
       >
-        {/* Interactive background glow */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: glowColor,
-            pointerEvents: "none",
-            zIndex: 0,
-          }}
-        />
-
         {/* Top nav */}
         <div className="absolute top-7 left-0 right-0 z-[100] flex justify-between items-center px-6 sm:px-10 md:px-20">
           <Link
@@ -159,15 +112,13 @@ export default function Home() {
               transition: "color 0.2s",
               fontFamily: "var(--font-playfair), Georgia, serif",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = fg; setContentHovered(true); }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; setContentHovered(false); }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = fg; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; }}
           >
             Tools
           </Link>
           <button
             onClick={() => toggle()}
-            onMouseEnter={() => setButtonHovered(true)}
-            onMouseLeave={() => setButtonHovered(false)}
             aria-label="Toggle dark mode"
             style={{
               background: "transparent",
@@ -188,16 +139,12 @@ export default function Home() {
             <p
               className="text-2xl sm:text-3xl md:text-5xl font-normal leading-snug tracking-tight"
               style={{ display: "inline-block" }}
-              onMouseEnter={() => setContentHovered(true)}
-              onMouseLeave={() => setContentHovered(false)}
             >
               Hey, I am Deepak.
             </p>
             <p
               className="text-2xl sm:text-3xl md:text-5xl font-normal leading-snug tracking-tight"
               style={{ display: "inline-block" }}
-              onMouseEnter={() => setContentHovered(true)}
-              onMouseLeave={() => setContentHovered(false)}
             >
               I like to{" "}
               <Word
@@ -231,8 +178,6 @@ export default function Home() {
             <p
               className="text-2xl sm:text-3xl md:text-5xl font-normal leading-snug tracking-tight"
               style={{ display: "inline-block" }}
-              onMouseEnter={() => setContentHovered(true)}
-              onMouseLeave={() => setContentHovered(false)}
             >
               Here is my{" "}
               <Word
@@ -257,15 +202,11 @@ export default function Home() {
           <p
             className="text-xs tracking-widest uppercase mb-2"
             style={{ color: fgMuted }}
-            onMouseEnter={() => setContentHovered(true)}
-            onMouseLeave={() => setContentHovered(false)}
           >
             email&nbsp;&nbsp;|&nbsp;&nbsp;contact
           </p>
           <div
             className="text-base tracking-wide mb-6 flex flex-wrap items-center gap-x-2 gap-y-1"
-            onMouseEnter={() => setContentHovered(true)}
-            onMouseLeave={() => setContentHovered(false)}
           >
             <a
               href="mailto:deepakrdy7@gmail.com"
@@ -283,8 +224,6 @@ export default function Home() {
           </div>
           <div
             style={{ display: "flex", flexWrap: "wrap", gap: 16 }}
-            onMouseEnter={() => setContentHovered(true)}
-            onMouseLeave={() => setContentHovered(false)}
           >
             {socials.map(({ href, Icon, label }) => {
               const isHov = hoveredSocial === label;

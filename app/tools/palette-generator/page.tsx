@@ -216,14 +216,49 @@ export default function PaletteGeneratorPage() {
             <span className="text-xs tracking-widest uppercase" style={{ color: fgMuted }}>
               Colors
             </span>
-            <input
-              type="number"
-              min={2}
-              max={10}
-              value={count}
-              onChange={(e) => handleCountChange(Math.max(2, Math.min(10, Number(e.target.value))))}
-              style={{ ...inputStyle, width: 56, textAlign: "center" }}
-            />
+            <div className="flex items-center" style={{
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
+              borderRadius: 8,
+              overflow: "hidden",
+            }}>
+              <button
+                onClick={() => count > 2 && handleCountChange(count - 1)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: count <= 2 ? (isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)") : fg,
+                  padding: "8px 10px",
+                  fontSize: 15,
+                  fontFamily: "var(--font-playfair), Georgia, serif",
+                  lineHeight: 1,
+                }}
+              >
+                −
+              </button>
+              <span style={{
+                minWidth: 24,
+                textAlign: "center",
+                fontSize: 13,
+                fontFamily: "var(--font-playfair), Georgia, serif",
+                color: fg,
+              }}>
+                {count}
+              </span>
+              <button
+                onClick={() => count < 10 && handleCountChange(count + 1)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: count >= 10 ? (isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)") : fg,
+                  padding: "8px 10px",
+                  fontSize: 15,
+                  fontFamily: "var(--font-playfair), Georgia, serif",
+                  lineHeight: 1,
+                }}
+              >
+                +
+              </button>
+            </div>
           </div>
           <button
             onClick={exportCSS}

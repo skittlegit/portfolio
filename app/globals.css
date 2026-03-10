@@ -43,60 +43,6 @@ body:has(.tools-layout) {
   overflow: auto !important;
 }
 
-.markdown-preview h1 {
-  font-size: 1.75em;
-  font-weight: 500;
-  margin: 0.5em 0;
-}
-
-.markdown-preview h2 {
-  font-size: 1.4em;
-  font-weight: 500;
-  margin: 0.5em 0;
-}
-
-.markdown-preview h3 {
-  font-size: 1.15em;
-  font-weight: 500;
-  margin: 0.5em 0;
-}
-
-.markdown-preview p {
-  margin: 0.5em 0;
-}
-
-.markdown-preview ul {
-  list-style: disc;
-  padding-left: 1.5em;
-  margin: 0.5em 0;
-}
-
-.markdown-preview blockquote {
-  border-left: 2px solid currentColor;
-  padding-left: 1em;
-  opacity: 0.7;
-  margin: 0.5em 0;
-}
-
-.markdown-preview code {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.9em;
-  background: rgba(128,128,128,0.15);
-}
-
-.markdown-preview hr {
-  border: none;
-  border-top: 1px solid currentColor;
-  opacity: 0.15;
-  margin: 1em 0;
-}
-
-.markdown-preview a {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 .custom-cursor {
   display: none;
 }

@@ -1,16 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { Sun, Moon, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "../context/ThemeContext";
-
-const INTERACTIVE_SELECTORS = "a, button, input, select, textarea, label, [role='button'], [data-interactive]";
-
-function isInteractiveElement(el: EventTarget | null): boolean {
-  if (!(el instanceof HTMLElement)) return false;
-  return el.closest(INTERACTIVE_SELECTORS) !== null;
-}
 
 export default function ToolLayout({
   title,
@@ -26,43 +18,9 @@ export default function ToolLayout({
   children: React.ReactNode;
 }) {
   const { isDark, toggle, bg, fg, fgMuted } = useTheme();
-  const [cursor, setCursor] = useState({ x: -100, y: -100 });
-  const [showRing, setShowRing] = useState(false);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    setCursor({ x: e.clientX, y: e.clientY });
-    setShowRing(isInteractiveElement(e.target));
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [handleMouseMove]);
-
-  const glowColor = isDark
-    ? `radial-gradient(500px circle at ${cursor.x}px ${cursor.y}px, rgba(255,255,255,0.06), transparent 70%)`
-    : `radial-gradient(500px circle at ${cursor.x}px ${cursor.y}px, rgba(0,0,0,0.05), transparent 70%)`;
 
   return (
     <>
-      <div
-        className="custom-cursor"
-        style={{
-          position: "fixed",
-          left: cursor.x,
-          top: cursor.y,
-          width: 28,
-          height: 28,
-          backgroundColor: showRing ? "transparent" : fg,
-          border: showRing ? `1.5px solid ${fg}` : "none",
-          borderRadius: "50%",
-          transform: "translate(-50%, -50%)",
-          pointerEvents: "none",
-          zIndex: 9999,
-          transition: "background-color 0.15s ease, border-color 0.3s ease",
-        }}
-      />
-
       <div
         className="tools-layout relative flex flex-col"
         style={{
@@ -74,16 +32,6 @@ export default function ToolLayout({
           overflowX: "clip",
         }}
       >
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: glowColor,
-            pointerEvents: "none",
-            zIndex: 1,
-          }}
-        />
-
         {/* Header */}
         <header className="relative z-10 flex items-center justify-between px-6 sm:px-10 md:px-20 pt-7 pb-4">
           <Link
