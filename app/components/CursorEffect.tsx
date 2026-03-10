@@ -4,14 +4,21 @@ import { useEffect, useRef } from "react";
 import { useTheme } from "../context/ThemeContext";
 
 const RING_SELECTOR =
-  "a,button,input,select,textarea,label,[role='button'],[data-interactive]," +
-  "h1,h2,h3,h4,h5,h6,p,li,td,th,blockquote,code,pre,kbd," +
-  "img,video,canvas";
+  "a,button,input,select,textarea,label,[role='button'],[data-interactive]";
 
 function shouldShowRing(target: EventTarget | null): boolean {
   if (!target || !(target instanceof Element)) return false;
-  if (target instanceof SVGElement) return true;
-  return !!target.closest(RING_SELECTOR);
+  // Walk up to find a clickable/interactive ancestor
+  let el: Element | null = target;
+  while (el) {
+    if (el instanceof SVGElement) {
+      // Only ring for SVGs inside interactive elements (icons in buttons)
+      if (el.closest(RING_SELECTOR)) return true;
+    }
+    if (el instanceof HTMLElement && el.matches(RING_SELECTOR)) return true;
+    el = el.parentElement;
+  }
+  return false;
 }
 
 export default function CursorEffect() {
@@ -26,15 +33,14 @@ export default function CursorEffect() {
     if (!glow || !dot) return;
 
     const onMove = (e: MouseEvent) => {
-      // Update glow position via CSS custom props — no React re-render
       glow.style.setProperty("--cx", `${e.clientX}px`);
       glow.style.setProperty("--cy", `${e.clientY}px`);
+      glow.style.opacity = "1";
 
-      // Update dot position directly
       dot.style.left = `${e.clientX}px`;
       dot.style.top = `${e.clientY}px`;
+      dot.style.opacity = "1";
 
-      // Ring detection
       const ring = shouldShowRing(e.target);
       if (ring !== ringState.current) {
         ringState.current = ring;
@@ -42,8 +48,24 @@ export default function CursorEffect() {
       }
     };
 
+    const onLeave = () => {
+      glow.style.opacity = "0";
+      dot.style.opacity = "0";
+    };
+
+    const onEnter = () => {
+      glow.style.opacity = "1";
+      dot.style.opacity = "1";
+    };
+
     window.addEventListener("mousemove", onMove, { passive: true });
-    return () => window.removeEventListener("mousemove", onMove);
+    document.addEventListener("mouseleave", onLeave);
+    document.addEventListener("mouseenter", onEnter);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseleave", onLeave);
+      document.removeEventListener("mouseenter", onEnter);
+    };
   }, []);
 
   // Update colors when theme changes — direct DOM, no re-render loop

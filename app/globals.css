@@ -65,8 +65,9 @@ body:has(.tools-layout) {
   z-index: 1;
   --cx: -100px;
   --cy: -100px;
-  --glow: rgba(0, 0, 0, 0.05);
-  background: radial-gradient(600px circle at var(--cx) var(--cy), var(--glow), transparent);
+  --glow: rgba(0, 0, 0, 0.04);
+  background: radial-gradient(250px circle at var(--cx) var(--cy), var(--glow) 0%, transparent 100%);
+  transition: opacity 0.15s ease;
 }
 
 /* Cursor dot / ring — switches via data-ring attribute */
@@ -83,9 +84,11 @@ body:has(.tools-layout) {
   --fg: #000;
   background-color: var(--fg);
   border: 1.5px solid transparent;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.15s ease;
 }
 .cursor-dot[data-ring="1"] {
+  width: 36px;
+  height: 36px;
   background-color: transparent;
   border-color: var(--fg);
 }
