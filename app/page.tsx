@@ -48,7 +48,11 @@ function Word({
       onMouseEnter={() => onEnter(id)}
       onMouseLeave={onLeave}
     >
-      {children}
+      {href ? (
+        <span className="underline decoration-1 underline-offset-4">{children}</span>
+      ) : (
+        children
+      )}
       <span
         style={{
           position: "absolute",
@@ -69,9 +73,7 @@ function Word({
     return (
       <a href={href} target="_blank" rel="noopener noreferrer" style={{
         color: "inherit",
-        textDecoration: "underline",
-        textUnderlineOffset: 4,
-        textDecorationThickness: 1,
+        textDecoration: "none",
       }}>
         {inner}
       </a>

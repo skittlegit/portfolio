@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Copy, Check } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
-import { useTheme } from "../../context/ThemeContext";
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const m = hex.replace("#", "").match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
@@ -34,7 +33,6 @@ function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: n
 }
 
 export default function ColorConverterPage() {
-  const { fg, fgMuted, isDark } = useTheme();
   const [hex, setHex] = useState("#6366f1");
   const [rgb, setRgb] = useState({ r: 99, g: 102, b: 241 });
   const [hsl, setHsl] = useState({ h: 239, s: 84, l: 67 });
@@ -66,31 +64,10 @@ export default function ColorConverterPage() {
     setTimeout(() => setCopied(null), 1500);
   };
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%",
-    padding: "12px 14px",
-    fontSize: 14,
-    fontFamily: "var(--font-playfair), Georgia, serif",
-    color: fg,
-    backgroundColor: "transparent",
-    border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
-    borderRadius: 8,
-    outline: "none",
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: 11,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    color: fgMuted,
-    marginBottom: 6,
-    display: "block",
-  };
-
   const CopyBtn = ({ text, label }: { text: string; label: string }) => (
     <button
       onClick={() => copy(text, label)}
-      style={{ background: "none", border: "none", color: fgMuted, padding: 4 }}
+      style={{ background: "none", border: "none", color: "var(--foreground-muted)", padding: 4 }}
     >
       {copied === label ? <Check size={14} /> : <Copy size={14} />}
     </button>
@@ -106,20 +83,20 @@ export default function ColorConverterPage() {
             height: 80,
             borderRadius: 10,
             backgroundColor: hex,
-            border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+            border: `1px solid var(--border-subtle)`,
             marginBottom: 28,
           }}
         />
 
         {/* HEX */}
         <div className="mb-5">
-          <label style={labelStyle}>HEX</label>
+          <label className="tool-label">HEX</label>
           <div className="flex items-center gap-2">
             <input
               type="text"
               value={hex}
               onChange={(e) => updateFromHex(e.target.value)}
-              style={inputStyle}
+              className="tool-input w-full"
             />
             <CopyBtn text={hex} label="hex" />
           </div>
@@ -127,7 +104,7 @@ export default function ColorConverterPage() {
 
         {/* RGB */}
         <div className="mb-5">
-          <label style={labelStyle}>RGB</label>
+          <label className="tool-label">RGB</label>
           <div className="flex gap-2 items-center">
             {(["r", "g", "b"] as const).map((ch) => (
               <input
@@ -143,7 +120,7 @@ export default function ColorConverterPage() {
                     ch === "b" ? Number(e.target.value) : rgb.b
                   )
                 }
-                style={{ ...inputStyle, textAlign: "center" }}
+                className="tool-input w-full text-center"
               />
             ))}
             <CopyBtn text={`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`} label="rgb" />
@@ -152,13 +129,14 @@ export default function ColorConverterPage() {
 
         {/* HSL */}
         <div className="mb-5">
-          <label style={labelStyle}>HSL</label>
+          <label className="tool-label">HSL</label>
           <div className="flex items-center gap-2">
             <input
               type="text"
               readOnly
               value={`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`}
-              style={{ ...inputStyle, opacity: 0.7 }}
+              className="tool-input w-full"
+              style={{ opacity: 0.7 }}
             />
             <CopyBtn text={`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`} label="hsl" />
           </div>

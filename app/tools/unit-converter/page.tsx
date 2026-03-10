@@ -58,27 +58,6 @@ export default function UnitConverterPage() {
       };
     });
 
-  const inputStyle: React.CSSProperties = {
-    padding: "10px 12px",
-    fontSize: 14,
-    fontFamily: "var(--font-playfair), Georgia, serif",
-    color: fg,
-    backgroundColor: "transparent",
-    border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
-    borderRadius: 8,
-    outline: "none",
-  };
-
-  const selectStyle: React.CSSProperties = {
-    ...inputStyle,
-    WebkitAppearance: "none",
-    appearance: "none" as const,
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${isDark ? "%23ffffff" : "%23000000"}' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 10px center",
-    paddingRight: 32,
-  };
-
   return (
     <ToolLayout title="CSS Unit Converter" description="Convert between CSS units instantly.">
       <div className="max-w-lg">
@@ -91,11 +70,10 @@ export default function UnitConverterPage() {
                 setCategory(c);
                 setFromUnit(categories[c].units[0]);
               }}
+              className="tool-btn"
               style={{
-                ...inputStyle,
-                fontSize: 13,
                 background: category === c ? (isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)") : "transparent",
-                color: category === c ? fg : fgMuted,
+                color: category === c ? fg : undefined,
               }}
             >
               {c}
@@ -109,12 +87,12 @@ export default function UnitConverterPage() {
             type="number"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            style={{ ...inputStyle, flex: 1 }}
+            className="tool-input flex-1"
           />
           <select
             value={fromUnit}
             onChange={(e) => setFromUnit(e.target.value)}
-            style={selectStyle}
+            className="tool-select"
           >
             {cat.units.map((u) => (
               <option key={u} value={u}>

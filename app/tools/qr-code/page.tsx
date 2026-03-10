@@ -80,39 +80,7 @@ export default function QrCodePage() {
     a.click();
   };
 
-  const border = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)";
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-
-  const inputStyle: React.CSSProperties = {
-    padding: "10px 14px",
-    fontSize: 14,
-    fontFamily: "var(--font-playfair), Georgia, serif",
-    color: fg,
-    backgroundColor: "transparent",
-    border: `1px solid ${border}`,
-    borderRadius: 10,
-    outline: "none",
-    width: "100%",
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: 11,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase" as const,
-    color: fgMuted,
-    marginBottom: 8,
-    display: "block",
-  };
-
-  const selectStyle: React.CSSProperties = {
-    ...inputStyle,
-    WebkitAppearance: "none",
-    appearance: "none" as const,
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${isDark ? "%23ffffff" : "%23000000"}' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 12px center",
-    paddingRight: 34,
-  };
 
   return (
     <ToolLayout title="QR Code Generator" description="Generate QR codes from any text or URL.">
@@ -121,13 +89,13 @@ export default function QrCodePage() {
         <div className="flex-1 max-w-lg flex flex-col gap-6">
           {/* Content input */}
           <div>
-            <label style={labelStyle}>Content</label>
+            <label className="tool-label">Content</label>
             <input
               type="text"
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Enter text or URL..."
-              style={inputStyle}
+              className="tool-input w-full"
             />
           </div>
 
@@ -135,7 +103,7 @@ export default function QrCodePage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <div className="flex justify-between mb-1">
-                <label style={labelStyle}>Size</label>
+                <label className="tool-label">Size</label>
                 <span className="text-xs" style={{ color: fgMuted }}>{size}px</span>
               </div>
               <input
@@ -150,7 +118,7 @@ export default function QrCodePage() {
             </div>
             <div>
               <div className="flex justify-between mb-1">
-                <label style={labelStyle}>Margin</label>
+                <label className="tool-label">Margin</label>
                 <span className="text-xs" style={{ color: fgMuted }}>{margin}</span>
               </div>
               <input
@@ -167,11 +135,11 @@ export default function QrCodePage() {
           {/* Error Correction & Format */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label style={labelStyle}>Error Correction</label>
+              <label className="tool-label">Error Correction</label>
               <select
                 value={errorLevel}
                 onChange={(e) => setErrorLevel(e.target.value as ErrorLevel)}
-                style={selectStyle}
+                className="tool-select w-full"
               >
                 <option value="L">Low (7%)</option>
                 <option value="M">Medium (15%)</option>
@@ -180,11 +148,11 @@ export default function QrCodePage() {
               </select>
             </div>
             <div>
-              <label style={labelStyle}>Format</label>
+              <label className="tool-label">Format</label>
               <select
                 value={format}
                 onChange={(e) => setFormat(e.target.value as ImageFormat)}
-                style={selectStyle}
+                className="tool-select w-full"
               >
                 <option value="png">PNG</option>
                 <option value="svg">SVG</option>
@@ -258,24 +226,7 @@ export default function QrCodePage() {
           </div>
           <button
             onClick={download}
-            className="flex items-center gap-2 text-sm tracking-wide"
-            style={{
-              color: fgMuted,
-              background: "transparent",
-              border: `1px solid ${border}`,
-              borderRadius: 10,
-              padding: "8px 16px",
-              fontFamily: "var(--font-playfair), Georgia, serif",
-              transition: "color 0.2s, border-color 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = fg;
-              e.currentTarget.style.borderColor = isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = fgMuted;
-              e.currentTarget.style.borderColor = border;
-            }}
+            className="tool-btn"
           >
             <Download size={14} strokeWidth={1.5} />
             Download {format.toUpperCase()}

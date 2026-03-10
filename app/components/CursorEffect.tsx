@@ -3,50 +3,15 @@
 import { useEffect, useRef } from "react";
 import { useTheme } from "../context/ThemeContext";
 
-const INTERACTIVE =
-  "a, button, input, select, textarea, label, [role='button'], [data-interactive]";
+const RING_SELECTOR =
+  "a,button,input,select,textarea,label,[role='button'],[data-interactive]," +
+  "h1,h2,h3,h4,h5,h6,p,li,td,th,blockquote,code,pre,kbd," +
+  "img,video,canvas";
 
 function shouldShowRing(target: EventTarget | null): boolean {
-  if (!target) return false;
-
-  // Handle SVG elements — they are not HTMLElement but do have closest()
-  let el: Element | null = null;
-  if (target instanceof Element) {
-    el = target;
-  } else {
-    return false;
-  }
-
-  // Walk up from the target element
-  while (el && el !== document.documentElement) {
-    // Interactive elements
-    if (el.matches(INTERACTIVE)) return true;
-
-    // SVG / media elements
-    const tag = el.tagName;
-    if (
-      tag === "svg" ||
-      tag === "IMG" ||
-      tag === "VIDEO" ||
-      tag === "CANVAS" ||
-      el instanceof SVGElement
-    )
-      return true;
-
-    // Elements with direct text content
-    for (let i = 0; i < el.childNodes.length; i++) {
-      const child = el.childNodes[i];
-      if (
-        child.nodeType === 3 &&
-        child.textContent &&
-        child.textContent.trim().length > 0
-      )
-        return true;
-    }
-
-    el = el.parentElement;
-  }
-  return false;
+  if (!target || !(target instanceof Element)) return false;
+  if (target instanceof SVGElement) return true;
+  return !!target.closest(RING_SELECTOR);
 }
 
 export default function CursorEffect() {

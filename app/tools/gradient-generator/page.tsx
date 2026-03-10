@@ -49,26 +49,6 @@ export default function GradientGeneratorPage() {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  const inputStyle: React.CSSProperties = {
-    padding: "8px 12px",
-    fontSize: 13,
-    fontFamily: "var(--font-playfair), Georgia, serif",
-    color: fg,
-    backgroundColor: "transparent",
-    border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
-    borderRadius: 8,
-    outline: "none",
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: 11,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase" as const,
-    color: fgMuted,
-    marginBottom: 6,
-    display: "block",
-  };
-
   return (
     <ToolLayout title="CSS Gradient Generator" description="Create beautiful CSS gradients with live preview.">
       <div className="max-w-3xl">
@@ -79,7 +59,7 @@ export default function GradientGeneratorPage() {
             height: 200,
             borderRadius: 14,
             background: cssGradient,
-            border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+            border: "1px solid var(--border-subtle)",
             marginBottom: 24,
           }}
         />
@@ -93,7 +73,7 @@ export default function GradientGeneratorPage() {
               fontFamily: "monospace",
               fontSize: 13,
               borderRadius: 8,
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+              border: "1px solid var(--border-subtle)",
               overflow: "auto",
               whiteSpace: "nowrap",
               color: fgMuted,
@@ -112,16 +92,16 @@ export default function GradientGeneratorPage() {
         {/* Controls */}
         <div className="flex flex-wrap gap-4 mb-6">
           <div>
-            <label style={labelStyle}>Type</label>
+            <label className="tool-label">Type</label>
             <div className="flex gap-2">
               {(["linear", "radial"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setType(t)}
+                  className="tool-btn"
                   style={{
-                    ...inputStyle,
                     background: type === t ? (isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)") : "transparent",
-                    color: type === t ? fg : fgMuted,
+                    color: type === t ? fg : undefined,
                     textTransform: "capitalize",
                   }}
                 >
@@ -132,7 +112,7 @@ export default function GradientGeneratorPage() {
           </div>
           {type === "linear" && (
             <div>
-              <label style={labelStyle}>Angle</label>
+              <label className="tool-label">Angle</label>
               <div className="flex items-center gap-2">
                 <input
                   type="range"
@@ -153,7 +133,7 @@ export default function GradientGeneratorPage() {
         {/* Color stops */}
         <div>
           <div className="flex items-center gap-3 mb-3">
-            <label style={{ ...labelStyle, marginBottom: 0 }}>Color Stops</label>
+            <label className="tool-label" style={{ marginBottom: 0 }}>Color Stops</label>
             <button
               onClick={addStop}
               style={{ background: "none", border: "none", color: fgMuted }}

@@ -22,9 +22,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    document.documentElement.style.setProperty("--background", isDark ? "#000000" : "#ffffff");
-    document.documentElement.style.setProperty("--foreground", isDark ? "#ffffff" : "#000000");
-    document.documentElement.style.setProperty("--foreground-muted", isDark ? "#71717a" : "#a1a1aa");
+    const root = document.documentElement;
+    root.setAttribute("data-theme", isDark ? "dark" : "light");
+    root.style.setProperty("--background", isDark ? "#000000" : "#ffffff");
+    root.style.setProperty("--foreground", isDark ? "#ffffff" : "#000000");
+    root.style.setProperty("--foreground-muted", isDark ? "#71717a" : "#a1a1aa");
+    root.style.setProperty("--border", isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)");
+    root.style.setProperty("--border-subtle", isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)");
     localStorage.setItem("theme", isDark ? "dark" : "light");
   }, [isDark]);
 

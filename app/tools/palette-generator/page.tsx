@@ -164,27 +164,6 @@ export default function PaletteGeneratorPage() {
     });
   };
 
-  const inputStyle: React.CSSProperties = {
-    padding: "8px 12px",
-    fontSize: 13,
-    fontFamily: "var(--font-playfair), Georgia, serif",
-    color: fg,
-    backgroundColor: "transparent",
-    border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
-    borderRadius: 8,
-    outline: "none",
-  };
-
-  const selectStyle: React.CSSProperties = {
-    ...inputStyle,
-    WebkitAppearance: "none",
-    appearance: "none" as const,
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${isDark ? "%23ffffff" : "%23000000"}' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 10px center",
-    paddingRight: 32,
-  };
-
   return (
     <ToolLayout title="Color Palette Generator" description="Generate beautiful color palettes. Press spacebar or click generate.">
       <div className="max-w-4xl">
@@ -192,11 +171,7 @@ export default function PaletteGeneratorPage() {
         <div className="flex flex-wrap gap-3 mb-8 items-center">
           <button
             onClick={regenerate}
-            className="flex items-center gap-2 text-sm"
-            style={{
-              ...inputStyle,
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)"}`,
-            }}
+            className="tool-btn"
           >
             <RefreshCw size={14} strokeWidth={1.5} />
             Generate
@@ -204,7 +179,7 @@ export default function PaletteGeneratorPage() {
           <select
             value={harmony}
             onChange={(e) => setHarmony(e.target.value)}
-            style={selectStyle}
+            className="tool-select"
           >
             <option value="random">Random</option>
             <option value="analogous">Analogous</option>
@@ -216,12 +191,8 @@ export default function PaletteGeneratorPage() {
           <NumberStepper value={count} onChange={handleCountChange} min={2} max={10} label="Colors" />
           <button
             onClick={exportCSS}
-            className="text-sm"
-            style={{
-              ...inputStyle,
-              color: copied === -1 ? fg : fgMuted,
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-            }}
+            className="tool-btn"
+            style={copied === -1 ? { color: fg } : undefined}
           >
             {copied === -1 ? "Copied CSS!" : "Export CSS"}
           </button>
