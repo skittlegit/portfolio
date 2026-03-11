@@ -133,11 +133,7 @@ drop policy if exists "Users can view reactions in own conversations" on message
 create policy "Users can view reactions in own conversations"
   on message_reactions for select
   using (
-    message_id in (
-      select m.id from messages m
-      join conversation_participants cp on cp.conversation_id = m.conversation_id
-      where cp.user_id = auth.uid()
-    )
+    message_id in (select id from messages where is_conversation_participant(conversation_id))
   );
 
 drop policy if exists "Users can add reactions" on message_reactions;

@@ -90,7 +90,7 @@ const socials = [
 ];
 
 export default function Home() {
-  const { isDark, fg, fgMuted } = useTheme();
+  const { fg, fgMuted } = useTheme();
   const [hovered, setHovered] = useState<HoverKey>(null);
   const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
 
