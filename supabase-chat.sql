@@ -1,8 +1,9 @@
 -- Chat system tables for /165
--- Run this in Supabase SQL Editor
+-- Safe to run multiple times (idempotent)
 
--- Conversations (DMs and group chats)
-create table conversations (
+-- ── Tables ──────────────────────────────────────────────────────────────────
+
+create table if not exists conversations (
   id uuid default gen_random_uuid() primary key,
   is_group boolean default false not null,
   group_name text,
@@ -10,16 +11,18 @@ create table conversations (
   updated_at timestamptz default now() not null
 );
 
--- Conversation participants (who is in each conversation)
-create table conversation_participants (
+-- Add group columns if missing (safe on fresh installs too)
+alter table conversations add column if not exists is_group boolean default false not null;
+alter table conversations add column if not exists group_name text;
+
+create table if not exists conversation_participants (
   conversation_id uuid references conversations(id) on delete cascade not null,
   user_id uuid references auth.users(id) on delete cascade not null,
   joined_at timestamptz default now() not null,
   primary key (conversation_id, user_id)
 );
 
--- Messages
-create table messages (
+create table if not exists messages (
   id uuid default gen_random_uuid() primary key,
   conversation_id uuid references conversations(id) on delete cascade not null,
   sender_id uuid references auth.users(id) on delete cascade not null,
@@ -31,8 +34,7 @@ create table messages (
   deleted_at timestamptz
 );
 
--- Message reactions (emoji reactions)
-create table message_reactions (
+create table if not exists message_reactions (
   id uuid default gen_random_uuid() primary key,
   message_id uuid references messages(id) on delete cascade not null,
   user_id uuid references auth.users(id) on delete cascade not null,
@@ -41,91 +43,86 @@ create table message_reactions (
   unique(message_id, user_id, emoji)
 );
 
--- Read receipts
-create table read_receipts (
+create table if not exists read_receipts (
   conversation_id uuid references conversations(id) on delete cascade not null,
   user_id uuid references auth.users(id) on delete cascade not null,
   last_read_at timestamptz default now() not null,
   primary key (conversation_id, user_id)
 );
 
--- Indexes
-create index messages_conversation_idx on messages(conversation_id, created_at desc);
-create index messages_sender_idx on messages(sender_id);
-create index conversation_participants_user_idx on conversation_participants(user_id);
-create index message_reactions_message_idx on message_reactions(message_id);
+-- ── Indexes ──────────────────────────────────────────────────────────────────
 
--- Enable RLS
+create index if not exists messages_conversation_idx on messages(conversation_id, created_at desc);
+create index if not exists messages_sender_idx on messages(sender_id);
+create index if not exists conversation_participants_user_idx on conversation_participants(user_id);
+create index if not exists message_reactions_message_idx on message_reactions(message_id);
+
+-- ── RLS ──────────────────────────────────────────────────────────────────────
+
 alter table conversations enable row level security;
 alter table conversation_participants enable row level security;
 alter table messages enable row level security;
 alter table message_reactions enable row level security;
 alter table read_receipts enable row level security;
 
--- RLS Policies
+-- ── Policies (drop first so re-runs don't error) ─────────────────────────────
 
--- Conversations: can see if you're a participant
+-- Conversations
+drop policy if exists "Users can view own conversations" on conversations;
 create policy "Users can view own conversations"
   on conversations for select
   using (
-    id in (
-      select conversation_id from conversation_participants
-      where user_id = auth.uid()
-    )
+    id in (select conversation_id from conversation_participants where user_id = auth.uid())
   );
 
+drop policy if exists "Authenticated users can create conversations" on conversations;
 create policy "Authenticated users can create conversations"
   on conversations for insert
   with check (auth.uid() is not null);
 
+drop policy if exists "Participants can update conversation" on conversations;
 create policy "Participants can update conversation"
   on conversations for update
   using (
-    id in (
-      select conversation_id from conversation_participants
-      where user_id = auth.uid()
-    )
+    id in (select conversation_id from conversation_participants where user_id = auth.uid())
   );
 
--- Participants: can see co-participants in own conversations
+-- Participants
+drop policy if exists "Users can view participants in own conversations" on conversation_participants;
 create policy "Users can view participants in own conversations"
   on conversation_participants for select
   using (
-    conversation_id in (
-      select conversation_id from conversation_participants
-      where user_id = auth.uid()
-    )
+    conversation_id in (select conversation_id from conversation_participants where user_id = auth.uid())
   );
 
+drop policy if exists "Authenticated users can add participants" on conversation_participants;
 create policy "Authenticated users can add participants"
   on conversation_participants for insert
   with check (auth.uid() is not null);
 
--- Messages: can see messages in own conversations
+-- Messages
+drop policy if exists "Users can view messages in own conversations" on messages;
 create policy "Users can view messages in own conversations"
   on messages for select
   using (
-    conversation_id in (
-      select conversation_id from conversation_participants
-      where user_id = auth.uid()
-    )
+    conversation_id in (select conversation_id from conversation_participants where user_id = auth.uid())
   );
 
+drop policy if exists "Users can send messages to own conversations" on messages;
 create policy "Users can send messages to own conversations"
   on messages for insert
   with check (
     sender_id = auth.uid() and
-    conversation_id in (
-      select conversation_id from conversation_participants
-      where user_id = auth.uid()
-    )
+    conversation_id in (select conversation_id from conversation_participants where user_id = auth.uid())
   );
 
+drop policy if exists "Users can edit own messages" on messages;
 create policy "Users can edit own messages"
   on messages for update
   using (sender_id = auth.uid());
 
 -- Reactions
+drop policy if exists "Users can view reactions in own conversations" on message_reactions;
 create policy "Users can view reactions in own conversations"
   on message_reactions for select
   using (
@@ -136,32 +133,49 @@ create policy "Users can view reactions in own conversations"
     )
   );
 
+drop policy if exists "Users can add reactions" on message_reactions;
 create policy "Users can add reactions"
   on message_reactions for insert
   with check (user_id = auth.uid());
 
+drop policy if exists "Users can remove own reactions" on message_reactions;
 create policy "Users can remove own reactions"
   on message_reactions for delete
   using (user_id = auth.uid());
 
 -- Read receipts
+drop policy if exists "Users can view read receipts in own conversations" on read_receipts;
 create policy "Users can view read receipts in own conversations"
   on read_receipts for select
   using (
-    conversation_id in (
-      select conversation_id from conversation_participants
-      where user_id = auth.uid()
-    )
+    conversation_id in (select conversation_id from conversation_participants where user_id = auth.uid())
   );
 
+drop policy if exists "Users can update own read receipts" on read_receipts;
 create policy "Users can update own read receipts"
   on read_receipts for insert
   with check (user_id = auth.uid());
 
+drop policy if exists "Users can upsert own read receipts" on read_receipts;
 create policy "Users can upsert own read receipts"
   on read_receipts for update
   using (user_id = auth.uid());
 
--- Enable realtime for messages and reactions
-alter publication supabase_realtime add table messages;
-alter publication supabase_realtime add table message_reactions;
+-- ── Realtime ─────────────────────────────────────────────────────────────────
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'messages'
+  ) then
+    alter publication supabase_realtime add table messages;
+  end if;
+
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'message_reactions'
+  ) then
+    alter publication supabase_realtime add table message_reactions;
+  end if;
+end $$;
