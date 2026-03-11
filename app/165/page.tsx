@@ -97,11 +97,15 @@ export default function Page165() {
   const loadConversations = useCallback(async () => {
     if (!authorized) return;
     try {
-      // Ensure the default group chat exists with all whitelisted users
-      const users = await getWhitelistedUsers();
-      const otherIds = users.filter((u) => u.id !== user?.id).map((u) => u.id);
-      if (otherIds.length > 0) {
-        await getOrCreateGroupChat("165 Group", otherIds);
+      // Try to create group chat but don't let it block conversation loading
+      try {
+        const users = await getWhitelistedUsers();
+        const otherIds = users.filter((u) => u.id !== user?.id).map((u) => u.id);
+        if (otherIds.length > 0) {
+          await getOrCreateGroupChat("165 Group", otherIds);
+        }
+      } catch {
+        // Group chat columns may not exist yet — skip silently
       }
       const convs = await getConversations();
       setConversations(convs);

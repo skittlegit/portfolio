@@ -35,7 +35,7 @@ export default function ToolLayout({
         }}
       >
         {/* Header */}
-        <header className="relative z-10 flex items-center justify-between px-6 sm:px-10 md:px-20 pt-7 pb-4">
+        <header className="relative z-[100] flex items-center justify-between px-6 sm:px-10 md:px-20 pt-7 pb-4">
           <Link
             href={backHref}
             className="flex items-center gap-2 text-sm tracking-wide"

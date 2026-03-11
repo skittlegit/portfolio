@@ -190,7 +190,7 @@ export async function getOrCreateConversation(otherUserId: string): Promise<stri
       for (const s of shared) {
         const { data: conv } = await supabase
           .from("conversations")
-          .select("id, is_group")
+          .select("*")
           .eq("id", s.conversation_id)
           .maybeSingle();
         if (conv && !conv.is_group) {

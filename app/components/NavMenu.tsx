@@ -9,7 +9,7 @@ import { isWhitelisted } from "@/lib/whitelist";
 
 export default function NavMenu() {
   const { isDark, toggle, fg, fgMuted } = useTheme();
-  const { user, profile, loading, signOut } = useAuth();
+  const { user, profile, loading } = useAuth();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -124,38 +124,33 @@ export default function NavMenu() {
         )}
       </button>
 
-      {/* Dropdown panel — rendered via portal-like fixed positioning */}
+      {/* Dropdown panel — only rendered when open */}
       {open && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 999,
-          }}
-          onClick={() => setOpen(false)}
-        />
-      )}
-      <div
-        style={{
-          position: "fixed",
-          top: 56,
-          right: 24,
-          minWidth: 170,
-          backgroundColor: isDark ? "#0a0a0a" : "#ffffff",
-          border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
-          borderRadius: 12,
-          padding: "8px 20px 12px",
-          boxShadow: isDark
-            ? "0 12px 40px rgba(0,0,0,0.7)"
-            : "0 12px 40px rgba(0,0,0,0.12)",
-          zIndex: 1000,
-          transformOrigin: "top right",
-          transform: open ? "scale(1)" : "scale(0.95)",
-          opacity: open ? 1 : 0,
-          pointerEvents: open ? "auto" : "none",
-          transition: "opacity 0.15s ease, transform 0.15s ease",
-        }}
-      >
+        <>
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 10001,
+            }}
+            onClick={() => setOpen(false)}
+          />
+          <div
+            style={{
+              position: "fixed",
+              top: 56,
+              right: 24,
+              minWidth: 170,
+              backgroundColor: isDark ? "#0a0a0a" : "#ffffff",
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+              borderRadius: 12,
+              padding: "8px 20px 12px",
+              boxShadow: isDark
+                ? "0 12px 40px rgba(0,0,0,0.7)"
+                : "0 12px 40px rgba(0,0,0,0.12)",
+              zIndex: 10002,
+            }}
+          >
         <Link
           href="/"
           style={itemStyle}
@@ -200,29 +195,20 @@ export default function NavMenu() {
           </>
         )}
 
-        {!loading && (
-          user ? (
-            <button
-              onClick={() => { signOut(); setOpen(false); }}
-              style={lastItemStyle}
-              onMouseEnter={(e) => (e.currentTarget.style.color = fg)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = fgMuted)}
-            >
-              Logout
-            </button>
-          ) : (
-            <Link
-              href="/login"
-              style={lastItemStyle}
-              onClick={() => setOpen(false)}
-              onMouseEnter={(e) => (e.currentTarget.style.color = fg)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = fgMuted)}
-            >
-              Login
-            </Link>
-          )
+        {!loading && !user && (
+          <Link
+            href="/login"
+            style={lastItemStyle}
+            onClick={() => setOpen(false)}
+            onMouseEnter={(e) => (e.currentTarget.style.color = fg)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = fgMuted)}
+          >
+            Login
+          </Link>
         )}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
