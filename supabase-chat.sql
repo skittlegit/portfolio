@@ -1,6 +1,21 @@
 -- Chat system tables for /165
 -- Safe to run multiple times (idempotent)
 
+-- ── Helper function (SECURITY DEFINER avoids self-referential RLS issues) ────
+
+create or replace function is_conversation_participant(conv_id uuid)
+returns boolean
+language sql
+security definer
+stable
+as $$
+  select exists (
+    select 1 from conversation_participants
+    where conversation_id = conv_id
+      and user_id = auth.uid()
+  );
+$$;
+
 -- ── Tables ──────────────────────────────────────────────────────────────────
 
 create table if not exists conversations (
@@ -71,9 +86,7 @@ alter table read_receipts enable row level security;
 drop policy if exists "Users can view own conversations" on conversations;
 create policy "Users can view own conversations"
   on conversations for select
-  using (
-    id in (select conversation_id from conversation_participants where user_id = auth.uid())
-  );
+  using (is_conversation_participant(id));
 
 drop policy if exists "Authenticated users can create conversations" on conversations;
 create policy "Authenticated users can create conversations"
@@ -83,17 +96,13 @@ create policy "Authenticated users can create conversations"
 drop policy if exists "Participants can update conversation" on conversations;
 create policy "Participants can update conversation"
   on conversations for update
-  using (
-    id in (select conversation_id from conversation_participants where user_id = auth.uid())
-  );
+  using (is_conversation_participant(id));
 
 -- Participants
 drop policy if exists "Users can view participants in own conversations" on conversation_participants;
 create policy "Users can view participants in own conversations"
   on conversation_participants for select
-  using (
-    conversation_id in (select conversation_id from conversation_participants where user_id = auth.uid())
-  );
+  using (is_conversation_participant(conversation_id));
 
 drop policy if exists "Authenticated users can add participants" on conversation_participants;
 create policy "Authenticated users can add participants"
@@ -104,16 +113,14 @@ create policy "Authenticated users can add participants"
 drop policy if exists "Users can view messages in own conversations" on messages;
 create policy "Users can view messages in own conversations"
   on messages for select
-  using (
-    conversation_id in (select conversation_id from conversation_participants where user_id = auth.uid())
-  );
+  using (is_conversation_participant(conversation_id));
 
 drop policy if exists "Users can send messages to own conversations" on messages;
 create policy "Users can send messages to own conversations"
   on messages for insert
   with check (
     sender_id = auth.uid() and
-    conversation_id in (select conversation_id from conversation_participants where user_id = auth.uid())
+    is_conversation_participant(conversation_id)
   );
 
 drop policy if exists "Users can edit own messages" on messages;
@@ -147,9 +154,7 @@ create policy "Users can remove own reactions"
 drop policy if exists "Users can view read receipts in own conversations" on read_receipts;
 create policy "Users can view read receipts in own conversations"
   on read_receipts for select
-  using (
-    conversation_id in (select conversation_id from conversation_participants where user_id = auth.uid())
-  );
+  using (is_conversation_participant(conversation_id));
 
 drop policy if exists "Users can update own read receipts" on read_receipts;
 create policy "Users can update own read receipts"

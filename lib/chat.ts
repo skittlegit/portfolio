@@ -205,7 +205,7 @@ export async function getOrCreateConversation(otherUserId: string): Promise<stri
   const newId = crypto.randomUUID();
   const { error: convError } = await supabase
     .from("conversations")
-    .insert({ id: newId, is_group: false });
+    .insert({ id: newId });
 
   if (convError) throw new Error(convError.message);
 
@@ -289,26 +289,22 @@ export async function sendMessage(conversationId: string, content: string, reply
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not logged in");
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("messages")
     .insert({
       conversation_id: conversationId,
       sender_id: userData.user.id,
       content,
       reply_to: replyTo || null,
-    })
-    .select()
-    .single();
+    });
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 
   // Update conversation timestamp
   await supabase
     .from("conversations")
     .update({ updated_at: new Date().toISOString() })
     .eq("id", conversationId);
-
-  return data;
 }
 
 export async function editMessage(messageId: string, content: string) {
