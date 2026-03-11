@@ -6,17 +6,14 @@ import {
   Code2,
   Wrench,
   FileText,
-  Sun,
-  Moon,
   Linkedin,
   Twitter,
   Instagram,
   Github,
-  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "./context/ThemeContext";
-import { useAuth } from "./context/AuthContext";
+import NavMenu from "./components/NavMenu";
 
 type HoverKey = "design" | "build" | "create" | "resume" | null;
 
@@ -93,8 +90,7 @@ const socials = [
 ];
 
 export default function Home() {
-  const { isDark, toggle, fg, fgMuted } = useTheme();
-  const { user, loading, signOut } = useAuth();
+  const { isDark, fg, fgMuted } = useTheme();
   const [hovered, setHovered] = useState<HoverKey>(null);
   const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
 
@@ -115,7 +111,7 @@ export default function Home() {
         {/* Top nav */}
         <div className="absolute top-7 left-0 right-0 z-[100] flex justify-between items-center px-6 sm:px-10 md:px-20">
           <Link
-            href="/tools"
+            href="/"
             className="text-sm tracking-widest uppercase"
             style={{
               color: fgMuted,
@@ -126,95 +122,9 @@ export default function Home() {
             onMouseEnter={(e) => { e.currentTarget.style.color = fg; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; }}
           >
-            Tools
+            Deepak
           </Link>
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            {!loading && user && (
-              <>
-                <Link
-                  href="/saved"
-                  className="text-sm tracking-widest uppercase"
-                  style={{
-                    color: fgMuted,
-                    textDecoration: "none",
-                    transition: "color 0.2s",
-                    fontFamily: "var(--font-playfair), Georgia, serif",
-                    padding: "12px",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = fg; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; }}
-                >
-                  Saved
-                </Link>
-                <Link
-                  href="/profile"
-                  className="text-sm tracking-widest uppercase"
-                  style={{
-                    color: fgMuted,
-                    textDecoration: "none",
-                    transition: "color 0.2s",
-                    fontFamily: "var(--font-playfair), Georgia, serif",
-                    padding: "12px",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = fg; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; }}
-                >
-                  Profile
-                </Link>
-              </>
-            )}
-            {!loading && (
-              user ? (
-                <button
-                  onClick={() => signOut()}
-                  aria-label="Sign out"
-                  className="text-sm tracking-widest uppercase"
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: fgMuted,
-                    padding: "12px",
-                    transition: "color 0.2s",
-                    fontFamily: "var(--font-playfair), Georgia, serif",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = fg; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; }}
-                >
-                  Logout
-                </button>
-              ) : (
-                <Link
-                  href="/login"
-                  className="text-sm tracking-widest uppercase"
-                  style={{
-                    color: fgMuted,
-                    textDecoration: "none",
-                    transition: "color 0.2s",
-                    fontFamily: "var(--font-playfair), Georgia, serif",
-                    padding: "12px",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = fg; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; }}
-                >
-                  Login
-                </Link>
-              )
-            )}
-            <button
-              onClick={() => toggle()}
-              aria-label="Toggle dark mode"
-              style={{
-                background: "transparent",
-                border: "none",
-                color: fg,
-                padding: "12px",
-                lineHeight: 0,
-                transition: "color 0.3s",
-              }}
-            >
-              {isDark ? <Sun size={18} strokeWidth={1.5} /> : <Moon size={18} strokeWidth={1.5} />}
-            </button>
-          </div>
+          <NavMenu />
         </div>
 
         {/* Main content — vertically centered */}

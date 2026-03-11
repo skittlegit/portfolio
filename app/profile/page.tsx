@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { User, Mail, Calendar, Shield, LogOut, Pencil, Check, X, Camera, Loader2, Link2 } from "lucide-react";
+import { User, Mail, Calendar, Shield, Pencil, Check, X, Camera, Loader2, LogOut } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import ToolLayout from "../components/ToolLayout";
 import { useTheme } from "../context/ThemeContext";
@@ -31,14 +32,21 @@ export default function ProfilePage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
-    if (authLoading || !user) {
-      setLoadingItems(false);
-      return;
-    }
-    getSavedItems()
-      .then(setItems)
-      .catch(() => {})
-      .finally(() => setLoadingItems(false));
+    if (authLoading) return;
+    let cancelled = false;
+    const fetchItems = async () => {
+      if (!user) {
+        if (!cancelled) setLoadingItems(false);
+        return;
+      }
+      try {
+        const data = await getSavedItems();
+        if (!cancelled) setItems(data);
+      } catch {}
+      if (!cancelled) setLoadingItems(false);
+    };
+    fetchItems();
+    return () => { cancelled = true; };
   }, [user, authLoading]);
 
   const stats = useMemo(() => {
@@ -182,12 +190,12 @@ export default function ProfilePage() {
           <div className="flex items-center gap-5 mb-8">
             <div style={{ position: "relative" }}>
               {displayAvatar ? (
-                <img
+                <Image
                   src={displayAvatar}
                   alt="Avatar"
+                  width={72}
+                  height={72}
                   style={{
-                    width: 72,
-                    height: 72,
                     borderRadius: "50%",
                     border: `2px solid ${borderSubtle}`,
                     objectFit: "cover",

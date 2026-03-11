@@ -67,14 +67,20 @@ export default function SavedPage() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    getSavedItems()
-      .then(setItems)
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    let cancelled = false;
+    const fetchItems = async () => {
+      if (!user) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+      try {
+        const data = await getSavedItems();
+        if (!cancelled) setItems(data);
+      } catch {}
+      if (!cancelled) setLoading(false);
+    };
+    fetchItems();
+    return () => { cancelled = true; };
   }, [user, authLoading]);
 
   const handleDelete = async (id: string) => {
