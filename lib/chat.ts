@@ -187,16 +187,14 @@ export async function getOrCreateConversation(otherUserId: string): Promise<stri
 
     // Filter to only non-group conversations
     if (shared?.length) {
-      for (const s of shared) {
-        const { data: conv } = await supabase
-          .from("conversations")
-          .select("*")
-          .eq("id", s.conversation_id)
-          .maybeSingle();
-        if (conv && !conv.is_group) {
-          return conv.id;
-        }
-      }
+      const sharedIds = shared.map((s) => s.conversation_id);
+      const { data: dmConvs } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("is_group", false)
+        .in("id", sharedIds)
+        .limit(1);
+      if (dmConvs?.[0]) return dmConvs[0].id;
     }
   }
 
@@ -228,23 +226,16 @@ export async function getOrCreateGroupChat(
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not logged in");
 
-  // Look for existing group with this name
-  const { data: myConvs } = await supabase
-    .from("conversation_participants")
-    .select("conversation_id")
-    .eq("user_id", userData.user.id);
+  // Look for existing group with this name — search directly so
+  // duplicates don't cause maybeSingle() to throw
+  const { data: existingGroups } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("is_group", true)
+    .eq("group_name", groupName)
+    .limit(1);
 
-  if (myConvs?.length) {
-    const { data: existingGroup } = await supabase
-      .from("conversations")
-      .select("id")
-      .eq("is_group", true)
-      .eq("group_name", groupName)
-      .in("id", myConvs.map((c) => c.conversation_id))
-      .maybeSingle();
-
-    if (existingGroup) return existingGroup.id;
-  }
+  if (existingGroups?.[0]) return existingGroups[0].id;
 
   // Create new group conversation — use client-generated UUID to avoid
   // RLS blocking the RETURNING clause

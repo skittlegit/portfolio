@@ -180,3 +180,34 @@ begin
     alter publication supabase_realtime add table message_reactions;
   end if;
 end $$;
+
+-- ── Dedup existing data (safe to run multiple times) ─────────────────────────
+
+-- Remove duplicate group chats — keep the oldest per group_name
+delete from conversations
+where is_group = true
+  and group_name is not null
+  and id not in (
+    select distinct on (group_name) id
+    from conversations
+    where is_group = true and group_name is not null
+    order by group_name, created_at asc
+  );
+
+-- Remove duplicate DMs between the same pair of users — keep the oldest
+delete from conversations
+where is_group = false
+  and id not in (
+    select distinct on (least(p1.user_id::text, p2.user_id::text) || ',' || greatest(p1.user_id::text, p2.user_id::text)) c.id
+    from conversations c
+    join conversation_participants p1 on p1.conversation_id = c.id
+    join conversation_participants p2 on p2.conversation_id = c.id and p2.user_id <> p1.user_id
+    where c.is_group = false
+    order by least(p1.user_id::text, p2.user_id::text) || ',' || greatest(p1.user_id::text, p2.user_id::text), c.created_at asc
+  );
+
+-- Unique constraint so group names can never duplicate again
+drop index if exists conversations_group_name_unique_idx;
+create unique index conversations_group_name_unique_idx
+  on conversations (group_name)
+  where is_group = true and group_name is not null;
