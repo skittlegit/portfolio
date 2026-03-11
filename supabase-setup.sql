@@ -3,7 +3,7 @@
 create table saved_items (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users(id) on delete cascade not null,
-  type text not null,        -- 'qr-code', 'palette', 'gradient'
+  type text not null,        -- 'qr-code', 'palette', 'gradient', 'pattern', 'vector-art', 'shape'
   name text not null,
   data jsonb not null,
   preview text,              -- CSS gradient string or data URL for visual preview

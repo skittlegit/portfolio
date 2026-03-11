@@ -10,6 +10,20 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // After OAuth login, check if user needs to pick a username
+      if (next !== "/reset-password") {
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData.user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("username")
+            .eq("id", userData.user.id)
+            .maybeSingle();
+          if (!profile?.username) {
+            return NextResponse.redirect(`${origin}/choose-username`);
+          }
+        }
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

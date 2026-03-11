@@ -5,6 +5,7 @@ import { Copy, Check, Plus, X, Upload, Download, Bookmark } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { saveItem } from "@/lib/saved-items";
 
@@ -20,6 +21,7 @@ function rgbToHex(r: number, g: number, b: number): string {
 export default function GradientGeneratorPage() {
   const { fg, fgMuted, isDark } = useTheme();
   const { user } = useAuth();
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>("create");
   const [gradSaved, setGradSaved] = useState(false);
 
@@ -360,28 +362,27 @@ export default function GradientGeneratorPage() {
             </div>
 
             {/* Save button — create mode */}
-            {user && (
-              <div className="mt-6">
-                <button
-                  onClick={async () => {
-                    const name = stops.map((s) => s.color.slice(1, 4)).join("-");
-                    await saveItem(
-                      "gradient",
-                      name,
-                      { type, angle, stops },
-                      cssGradient
-                    );
-                    setGradSaved(true);
-                    setTimeout(() => setGradSaved(false), 2000);
-                  }}
-                  className="tool-btn"
-                  style={gradSaved ? { color: fg } : undefined}
-                >
-                  {gradSaved ? <Check size={14} strokeWidth={1.5} /> : <Bookmark size={14} strokeWidth={1.5} />}
-                  {gradSaved ? "Saved!" : "Save"}
-                </button>
-              </div>
-            )}
+            <div className="mt-6">
+              <button
+                onClick={async () => {
+                  if (!user) { router.push("/login?next=/tools/gradient-generator"); return; }
+                  const name = stops.map((s) => s.color.slice(1, 4)).join("-");
+                  await saveItem(
+                    "gradient",
+                    name,
+                    { type, angle, stops },
+                    cssGradient
+                  );
+                  setGradSaved(true);
+                  setTimeout(() => setGradSaved(false), 2000);
+                }}
+                className="tool-btn"
+                style={gradSaved ? { color: fg } : undefined}
+              >
+                {gradSaved ? <Check size={14} strokeWidth={1.5} /> : <Bookmark size={14} strokeWidth={1.5} />}
+                {gradSaved ? "Saved!" : "Save"}
+              </button>
+            </div>
           </>
         ) : (
           <>
@@ -468,26 +469,25 @@ export default function GradientGeneratorPage() {
                   <button onClick={downloadGradient} className="tool-btn" style={{ color: fg }}>
                     <Download size={14} /> Download PNG
                   </button>
-                  {user && (
-                    <button
-                      onClick={async () => {
-                        const name = extractColors.map((c) => c.slice(1, 4)).join("-");
-                        await saveItem(
-                          "gradient",
-                          name,
-                          { extractColors, direction, steps },
-                          extractGradient
-                        );
-                        setGradSaved(true);
-                        setTimeout(() => setGradSaved(false), 2000);
-                      }}
-                      className="tool-btn"
-                      style={gradSaved ? { color: fg } : undefined}
-                    >
-                      {gradSaved ? <Check size={14} strokeWidth={1.5} /> : <Bookmark size={14} strokeWidth={1.5} />}
-                      {gradSaved ? "Saved!" : "Save"}
-                    </button>
-                  )}
+                  <button
+                    onClick={async () => {
+                      if (!user) { router.push("/login?next=/tools/gradient-generator"); return; }
+                      const name = extractColors.map((c) => c.slice(1, 4)).join("-");
+                      await saveItem(
+                        "gradient",
+                        name,
+                        { extractColors, direction, steps },
+                        extractGradient
+                      );
+                      setGradSaved(true);
+                      setTimeout(() => setGradSaved(false), 2000);
+                    }}
+                    className="tool-btn"
+                    style={gradSaved ? { color: fg } : undefined}
+                  >
+                    {gradSaved ? <Check size={14} strokeWidth={1.5} /> : <Bookmark size={14} strokeWidth={1.5} />}
+                    {gradSaved ? "Saved!" : "Save"}
+                  </button>
                 </div>
               </>
             ) : !hasImage ? (

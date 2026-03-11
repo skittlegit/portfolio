@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trash2, QrCode, Paintbrush, Layers, ExternalLink } from "lucide-react";
+import { Trash2, QrCode, Paintbrush, Layers, ExternalLink, Grid3X3, Hexagon, Shapes } from "lucide-react";
 import Link from "next/link";
 import ToolLayout from "../components/ToolLayout";
 import { useTheme } from "../context/ThemeContext";
@@ -12,18 +12,27 @@ const typeIcons: Record<string, typeof QrCode> = {
   "qr-code": QrCode,
   palette: Paintbrush,
   gradient: Layers,
+  pattern: Grid3X3,
+  "vector-art": Hexagon,
+  shape: Shapes,
 };
 
 const typeLabels: Record<string, string> = {
   "qr-code": "QR Code",
   palette: "Palette",
   gradient: "Gradient",
+  pattern: "Pattern",
+  "vector-art": "Vector Art",
+  shape: "Shape",
 };
 
 const typeLinks: Record<string, string> = {
   "qr-code": "/tools/qr-code",
   palette: "/tools/palette-generator",
   gradient: "/tools/gradient-generator",
+  pattern: "/tools/pattern-library",
+  "vector-art": "/tools/vector-art",
+  shape: "/tools/logo-maker",
 };
 
 function PalettePreview({ colors }: { colors: string[] }) {
@@ -109,7 +118,7 @@ export default function SavedPage() {
         <>
           {/* Filters */}
           <div className="flex flex-wrap gap-2 mb-8">
-            {["all", "qr-code", "palette", "gradient"].map((t) => (
+            {["all", "qr-code", "palette", "gradient", "pattern", "vector-art", "shape"].map((t) => (
               <button
                 key={t}
                 onClick={() => setFilter(t)}
@@ -178,6 +187,33 @@ export default function SavedPage() {
                       >
                         <QrCode size={28} strokeWidth={1} style={{ color: fgMuted }} />
                       </div>
+                    )}
+                    {item.type === "pattern" && item.preview && (
+                      <div
+                        style={{
+                          height: 48,
+                          borderRadius: 8,
+                          backgroundImage: item.preview.match(/background-image:\s*(.+);/)?.[1],
+                          backgroundRepeat: "repeat",
+                          backgroundSize: `${(data.tileSize as number) || 30}px`,
+                        }}
+                      />
+                    )}
+                    {(item.type === "vector-art" || item.type === "shape") && item.preview && (
+                      <div
+                        style={{
+                          height: 48,
+                          borderRadius: 8,
+                          overflow: "hidden",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+                        }}
+                        dangerouslySetInnerHTML={{
+                          __html: item.preview.replace(/width="\d+"/, 'width="100%"').replace(/height="\d+"/, 'height="48"'),
+                        }}
+                      />
                     )}
 
                     {/* Info */}

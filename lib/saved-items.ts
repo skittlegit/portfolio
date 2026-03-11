@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 
-export type SavedItemType = "qr-code" | "palette" | "gradient";
+export type SavedItemType = "qr-code" | "palette" | "gradient" | "pattern" | "vector-art" | "shape";
 
 export type SavedItem = {
   id: string;

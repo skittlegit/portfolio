@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Download, RefreshCw, Copy, Check, Plus, X } from "lucide-react";
+import { Download, RefreshCw, Copy, Check, Plus, X, Bookmark } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../context/AuthContext";
+import { saveItem } from "@/lib/saved-items";
 
 type LogoShape = "abstract" | "geometric" | "organic" | "layered" | "split";
 type ColorMode = "gradient" | "solid";
@@ -215,7 +218,10 @@ function generateShape(
 
 export default function ShapeMakerPage() {
   const { fg, fgMuted, isDark } = useTheme();
+  const { user } = useAuth();
+  const router = useRouter();
   const [shape, setShape] = useState<LogoShape>("abstract");
+  const [saved, setSaved] = useState(false);
   const [colorMode, setColorMode] = useState<ColorMode>("gradient");
   const [colors, setColors] = useState<string[]>([
     "#6366f1",
@@ -438,6 +444,24 @@ export default function ShapeMakerPage() {
           </button>
           <button onClick={copySvg} className="tool-btn">
             {copied ? <Check size={14} /> : <Copy size={14} />} Copy SVG
+          </button>
+          <button
+            onClick={async () => {
+              if (!user) { router.push("/login?next=/tools/logo-maker"); return; }
+              await saveItem(
+                "shape",
+                `${shape.charAt(0).toUpperCase() + shape.slice(1)} Shape`,
+                { shape, colorMode, colors, iconSize, seed, shapeCount },
+                svgString
+              );
+              setSaved(true);
+              setTimeout(() => setSaved(false), 2000);
+            }}
+            className="tool-btn"
+            style={saved ? { color: fg } : undefined}
+          >
+            {saved ? <Check size={14} strokeWidth={1.5} /> : <Bookmark size={14} strokeWidth={1.5} />}
+            {saved ? "Saved!" : "Save"}
           </button>
         </div>
       </div>

@@ -1,20 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Sun, Moon } from "lucide-react";
+import { useState, Suspense } from "react";
+import { ArrowLeft, Sun, Moon, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "../context/ThemeContext";
 import { createClient } from "@/lib/supabase/client";
 
-export default function LoginPage() {
+function LoginContent() {
   const { isDark, toggle, fg, fgMuted } = useTheme();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("next") || "/";
   const supabase = createClient();
 
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -25,7 +28,16 @@ export default function LoginPage() {
     setMessage(null);
     setSubmitting(true);
 
-    if (mode === "login") {
+    if (mode === "forgot") {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+      });
+      if (error) {
+        setError(error.message);
+      } else {
+        setMessage("Check your email for a password reset link.");
+      }
+    } else if (mode === "login") {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -33,7 +45,7 @@ export default function LoginPage() {
       if (error) {
         setError(error.message);
       } else {
-        router.push("/");
+        router.push(redirectTo);
         router.refresh();
       }
     } else {
@@ -55,7 +67,7 @@ export default function LoginPage() {
     await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
       },
     });
   };
@@ -113,19 +125,21 @@ export default function LoginPage() {
       <div className="relative z-10 flex-1 flex items-center justify-center px-6 sm:px-10 md:px-20 pb-20">
         <div style={{ width: "100%", maxWidth: 380 }}>
           <h1 className="text-3xl sm:text-4xl font-normal tracking-tight mb-2">
-            {mode === "login" ? "Welcome back" : "Create account"}
+            {mode === "forgot" ? "Reset password" : mode === "login" ? "Welcome back" : "Create account"}
           </h1>
           <p
             className="text-sm tracking-wide mb-10"
             style={{ color: fgMuted }}
           >
-            {mode === "login"
+            {mode === "forgot"
+              ? "Enter your email to receive a reset link"
+              : mode === "login"
               ? "Sign in to your account"
               : "Sign up with your email"}
           </p>
 
           {/* OAuth buttons */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+          {mode !== "forgot" && <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
             <button
               type="button"
               onClick={() => handleOAuth("github")}
@@ -163,9 +177,10 @@ export default function LoginPage() {
               </svg>
               Continue with Google
             </button>
-          </div>
+          </div>}
 
           {/* Divider */}
+          {mode !== "forgot" &&
           <div
             style={{
               display: "flex",
@@ -177,7 +192,7 @@ export default function LoginPage() {
             <div style={{ flex: 1, height: 1, backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }} />
             <span style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: fgMuted }}>or</span>
             <div style={{ flex: 1, height: 1, backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }} />
-          </div>
+          </div>}
 
           {/* Email/Password form */}
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -193,19 +208,62 @@ export default function LoginPage() {
                 autoComplete="email"
               />
             </div>
-            <div>
-              <label className="tool-label">Password</label>
-              <input
-                type="password"
-                className="tool-input"
-                style={{ width: "100%" }}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                autoComplete={mode === "login" ? "current-password" : "new-password"}
-              />
-            </div>
+            {mode !== "forgot" && (
+              <div>
+                <label className="tool-label">Password</label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="tool-input"
+                    style={{ width: "100%", paddingRight: 44 }}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    autoComplete={mode === "login" ? "current-password" : "new-password"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    style={{
+                      position: "absolute",
+                      right: 10,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "none",
+                      border: "none",
+                      color: fgMuted,
+                      padding: 4,
+                      cursor: "pointer",
+                      lineHeight: 0,
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={16} strokeWidth={1.5} /> : <Eye size={16} strokeWidth={1.5} />}
+                  </button>
+                </div>
+                {mode === "login" && (
+                  <button
+                    type="button"
+                    onClick={() => { setMode("forgot"); setError(null); setMessage(null); }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: fgMuted,
+                      fontSize: 12,
+                      fontFamily: "inherit",
+                      padding: 0,
+                      marginTop: 8,
+                      cursor: "pointer",
+                      textDecoration: "underline",
+                      textUnderlineOffset: 3,
+                    }}
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
+            )}
 
             {error && (
               <p style={{ color: "#ef4444", fontSize: 13 }}>{error}</p>
@@ -234,6 +292,8 @@ export default function LoginPage() {
             >
               {submitting
                 ? "..."
+                : mode === "forgot"
+                ? "Send reset link"
                 : mode === "login"
                 ? "Sign in"
                 : "Create account"}
@@ -245,13 +305,15 @@ export default function LoginPage() {
             className="text-sm mt-8 text-center"
             style={{ color: fgMuted }}
           >
-            {mode === "login"
+            {mode === "forgot"
+              ? "Remember your password? "
+              : mode === "login"
               ? "Don\u2019t have an account? "
               : "Already have an account? "}
             <button
               type="button"
               onClick={() => {
-                setMode(mode === "login" ? "signup" : "login");
+                setMode(mode === "forgot" ? "login" : mode === "login" ? "signup" : "login");
                 setError(null);
                 setMessage(null);
               }}
@@ -266,11 +328,19 @@ export default function LoginPage() {
                 padding: 0,
               }}
             >
-              {mode === "login" ? "Sign up" : "Sign in"}
+              {mode === "forgot" ? "Sign in" : mode === "login" ? "Sign up" : "Sign in"}
             </button>
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   );
 }

@@ -5,6 +5,7 @@ import { Copy, Check, RefreshCw, Lock, Unlock, Bookmark } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
 import NumberStepper from "../../components/NumberStepper";
 import { useTheme } from "../../context/ThemeContext";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { saveItem } from "@/lib/saved-items";
 
@@ -110,6 +111,7 @@ function generateHarmony(
 export default function PaletteGeneratorPage() {
   const { fg, fgMuted, isDark } = useTheme();
   const { user } = useAuth();
+  const router = useRouter();
   const [count, setCount] = useState(5);
   const [colors, setColors] = useState<PaletteColor[]>(() =>
     Array.from({ length: 5 }, () => ({ hex: randomColor(), locked: false }))
@@ -200,25 +202,24 @@ export default function PaletteGeneratorPage() {
           >
             {copied === -1 ? "Copied CSS!" : "Export CSS"}
           </button>
-          {user && (
-            <button
-              onClick={async () => {
-                const name = colors.map((c) => c.hex.slice(1, 4)).join("-");
-                await saveItem(
-                  "palette",
-                  name,
-                  { colors, harmony, count },
-                );
-                setPaletteSaved(true);
-                setTimeout(() => setPaletteSaved(false), 2000);
-              }}
-              className="tool-btn"
-              style={paletteSaved ? { color: fg } : undefined}
-            >
-              {paletteSaved ? <Check size={14} strokeWidth={1.5} /> : <Bookmark size={14} strokeWidth={1.5} />}
-              {paletteSaved ? "Saved!" : "Save"}
-            </button>
-          )}
+          <button
+            onClick={async () => {
+              if (!user) { router.push("/login?next=/tools/palette-generator"); return; }
+              const name = colors.map((c) => c.hex.slice(1, 4)).join("-");
+              await saveItem(
+                "palette",
+                name,
+                { colors, harmony, count },
+              );
+              setPaletteSaved(true);
+              setTimeout(() => setPaletteSaved(false), 2000);
+            }}
+            className="tool-btn"
+            style={paletteSaved ? { color: fg } : undefined}
+          >
+            {paletteSaved ? <Check size={14} strokeWidth={1.5} /> : <Bookmark size={14} strokeWidth={1.5} />}
+            {paletteSaved ? "Saved!" : "Save"}
+          </button>
         </div>
 
         {/* Palette display */}

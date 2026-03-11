@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, Download, RefreshCw, Shuffle } from "lucide-react";
+import { Copy, Check, Download, RefreshCw, Shuffle, Bookmark } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../context/AuthContext";
+import { saveItem } from "@/lib/saved-items";
 
 type PatternDef = {
   name: string;
@@ -193,7 +196,10 @@ const PATTERNS: PatternDef[] = [
 
 export default function PatternLibraryPage() {
   const { fg, fgMuted, isDark } = useTheme();
+  const { user } = useAuth();
+  const router = useRouter();
   const [selected, setSelected] = useState(0);
+  const [saved, setSaved] = useState(false);
   const [patternFg, setPatternFg] = useState(isDark ? "#ffffff" : "#000000");
   const [patternBg, setPatternBg] = useState(isDark ? "#000000" : "#ffffff");
   const [transparentBg, setTransparentBg] = useState(false);
@@ -361,9 +367,29 @@ export default function PatternLibraryPage() {
           </button>
         </div>
 
-        <button onClick={downloadSvg} className="tool-btn" style={{ color: fg }}>
-          <Download size={14} /> Download SVG
-        </button>
+        <div className="flex gap-2">
+          <button onClick={downloadSvg} className="tool-btn" style={{ color: fg }}>
+            <Download size={14} /> Download SVG
+          </button>
+          <button
+            onClick={async () => {
+              if (!user) { router.push("/login?next=/tools/pattern-library"); return; }
+              await saveItem(
+                "pattern",
+                `${pattern.name} Pattern`,
+                { patternName: pattern.name, selected, patternFg, patternBg, transparentBg, tileSize, seed },
+                cssCode
+              );
+              setSaved(true);
+              setTimeout(() => setSaved(false), 2000);
+            }}
+            className="tool-btn"
+            style={saved ? { color: fg } : undefined}
+          >
+            {saved ? <Check size={14} strokeWidth={1.5} /> : <Bookmark size={14} strokeWidth={1.5} />}
+            {saved ? "Saved!" : "Save"}
+          </button>
+        </div>
       </div>
     </ToolLayout>
   );
