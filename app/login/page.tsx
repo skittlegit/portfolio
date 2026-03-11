@@ -53,6 +53,9 @@ function LoginContent() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
+        },
       });
       if (error) {
         setError(error.message);
@@ -65,12 +68,15 @@ function LoginContent() {
   };
 
   const handleOAuth = async (provider: "github" | "google") => {
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
       },
     });
+    if (error) {
+      setError(error.message);
+    }
   };
 
   return (

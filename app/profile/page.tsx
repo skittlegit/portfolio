@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [linkingProvider, setLinkingProvider] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -91,10 +92,11 @@ export default function ProfilePage() {
   const saveChanges = async () => {
     // Validate username if changed
     const usernameChanged = usernameValue !== (profile?.username || "");
-    if (usernameChanged && usernameValue.length >= 3 && !usernameAvailable) return;
+    if (usernameChanged && usernameValue.length >= 3 && usernameAvailable === false) return;
     if (usernameChanged && usernameValue.length > 0 && usernameValue.length < 3) return;
 
     setSaving(true);
+    setSaveError(null);
     try {
       const updates: { display_name?: string; username?: string } = {};
       const nameChanged = nameValue.trim() !== (displayName || "");
@@ -105,7 +107,11 @@ export default function ProfilePage() {
         await updateProfile(updates);
         await refreshProfile();
       }
-    } catch {}
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save changes");
+      setSaving(false);
+      return;
+    }
     setEditing(false);
     setSaving(false);
   };
@@ -285,10 +291,13 @@ export default function ProfilePage() {
                       <p className="text-xs mt-1" style={{ color: "#ef4444" }}>This username is taken.</p>
                     )}
                   </div>
+                  {saveError && (
+                    <p className="text-xs mt-1" style={{ color: "#ef4444" }}>{saveError}</p>
+                  )}
                   <div className="flex gap-2 mt-3">
                     <button
                       onClick={saveChanges}
-                      disabled={saving || (usernameValue !== (profile?.username || "") && usernameValue.length >= 3 && !usernameAvailable)}
+                      disabled={saving || (usernameValue !== (profile?.username || "") && usernameValue.length >= 3 && usernameAvailable === false)}
                       style={{
                         padding: "6px 16px",
                         fontSize: 13,

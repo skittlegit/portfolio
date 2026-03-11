@@ -12,9 +12,11 @@
 
 export const WHITELIST = {
   emails: [
+    "deepakrdy7@gmail.com",
     // Add whitelisted emails here
   ] as string[],
   usernames: [
+    "skittle",
     // Add whitelisted usernames here
   ] as string[],
 };
