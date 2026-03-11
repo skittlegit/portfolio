@@ -1,9 +1,11 @@
 -- Chat system tables for /165
 -- Run this in Supabase SQL Editor
 
--- Conversations (DMs between two users)
+-- Conversations (DMs and group chats)
 create table conversations (
   id uuid default gen_random_uuid() primary key,
+  is_group boolean default false not null,
+  group_name text,
   created_at timestamptz default now() not null,
   updated_at timestamptz default now() not null
 );

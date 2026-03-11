@@ -24,6 +24,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   getConversations,
   getOrCreateConversation,
+  getOrCreateGroupChat,
   getMessages,
   sendMessage,
   editMessage,
@@ -67,6 +68,7 @@ export default function Page165() {
   const [allUsers, setAllUsers] = useState<ChatUser[]>([]);
   const [userSearch, setUserSearch] = useState("");
   const [mobileShowChat, setMobileShowChat] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const supabase = useMemo(() => createClient(), []);
@@ -91,12 +93,22 @@ export default function Page165() {
     }
   }, [loading, user, profile, router]);
 
-  // Load conversations
+  // Load conversations + ensure the group chat exists
   const loadConversations = useCallback(async () => {
     if (!authorized) return;
-    const convs = await getConversations();
-    setConversations(convs);
-  }, [authorized]);
+    try {
+      // Ensure the default group chat exists with all whitelisted users
+      const users = await getWhitelistedUsers();
+      const otherIds = users.filter((u) => u.id !== user?.id).map((u) => u.id);
+      if (otherIds.length > 0) {
+        await getOrCreateGroupChat("165 Group", otherIds);
+      }
+      const convs = await getConversations();
+      setConversations(convs);
+    } catch (err) {
+      setChatError(err instanceof Error ? err.message : "Failed to load conversations");
+    }
+  }, [authorized, user?.id]);
 
   useEffect(() => {
     loadConversations();
@@ -172,15 +184,20 @@ export default function Page165() {
     const text = inputValue.trim();
     if (!text || !activeConvId) return;
 
-    if (editingMsg) {
-      await editMessage(editingMsg.id, text);
-      setEditingMsg(null);
-    } else {
-      await sendMessage(activeConvId, text, replyTo?.id);
-      setReplyTo(null);
+    setChatError(null);
+    try {
+      if (editingMsg) {
+        await editMessage(editingMsg.id, text);
+        setEditingMsg(null);
+      } else {
+        await sendMessage(activeConvId, text, replyTo?.id);
+        setReplyTo(null);
+      }
+      setInputValue("");
+      inputRef.current?.focus();
+    } catch (err) {
+      setChatError(err instanceof Error ? err.message : "Failed to send message");
     }
-    setInputValue("");
-    inputRef.current?.focus();
   };
 
   const handleReaction = async (messageId: string, emoji: string) => {
@@ -207,11 +224,16 @@ export default function Page165() {
   };
 
   const startNewChat = async (otherUserId: string) => {
-    const convId = await getOrCreateConversation(otherUserId);
-    await loadConversations();
-    setActiveConvId(convId);
-    setShowNewChat(false);
-    setMobileShowChat(true);
+    setChatError(null);
+    try {
+      const convId = await getOrCreateConversation(otherUserId);
+      await loadConversations();
+      setActiveConvId(convId);
+      setShowNewChat(false);
+      setMobileShowChat(true);
+    } catch (err) {
+      setChatError(err instanceof Error ? err.message : "Failed to start conversation");
+    }
   };
 
   const loadUsers = async () => {
@@ -235,6 +257,10 @@ export default function Page165() {
   const getUserName = (userId: string) => {
     if (userId === user?.id)
       return profile?.display_name || profile?.username || "You";
+    // Check participants list (works for both DMs and groups)
+    const participants = activeConv?.participants || [];
+    const found = participants.find((p) => p.id === userId);
+    if (found) return found.display_name || found.username || "User";
     const other = activeConv?.otherUser;
     if (other && other.id === userId)
       return other.display_name || other.username || "User";
@@ -262,6 +288,29 @@ export default function Page165() {
 
   return (
     <ToolLayout title="165" description="" backHref="/" backLabel="Home">
+      {chatError && (
+        <div
+          style={{
+            padding: "8px 14px",
+            marginBottom: 12,
+            borderRadius: 8,
+            backgroundColor: isDark ? "rgba(239,68,68,0.1)" : "rgba(239,68,68,0.08)",
+            color: "#ef4444",
+            fontSize: 13,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>{chatError}</span>
+          <button
+            onClick={() => setChatError(null)}
+            style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 4, lineHeight: 0 }}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
       <div
         style={{
           display: "flex",
@@ -319,7 +368,12 @@ export default function Page165() {
                 No conversations yet. Start one!
               </p>
             ) : (
-              conversations.map((c) => (
+              conversations.map((c) => {
+                const isGroup = c.conversation.is_group;
+                const convName = isGroup
+                  ? c.conversation.group_name || "Group"
+                  : c.otherUser.display_name || c.otherUser.username || "User";
+                return (
                 <button
                   key={c.conversation.id}
                   onClick={() => {
@@ -342,7 +396,23 @@ export default function Page165() {
                   }}
                 >
                   {/* Avatar */}
-                  {c.otherUser.avatar_url ? (
+                  {isGroup ? (
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "50%",
+                        backgroundColor: bgSubtle,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        fontSize: 16,
+                      }}
+                    >
+                      👥
+                    </div>
+                  ) : c.otherUser.avatar_url ? (
                     <img
                       src={c.otherUser.avatar_url}
                       alt=""
@@ -379,7 +449,7 @@ export default function Page165() {
                           color: fg,
                         }}
                       >
-                        {c.otherUser.display_name || c.otherUser.username || "User"}
+                        {convName}
                       </span>
                       {c.lastMessage && (
                         <span className="text-xs" style={{ color: fgMuted }}>
@@ -417,7 +487,8 @@ export default function Page165() {
                     </div>
                   </div>
                 </button>
-              ))
+                );
+              })
             )}
           </div>
         </div>
@@ -471,7 +542,22 @@ export default function Page165() {
                 >
                   <ArrowLeft size={18} />
                 </button>
-                {activeConv?.otherUser.avatar_url ? (
+                {activeConv?.conversation.is_group ? (
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: "50%",
+                      backgroundColor: bgSubtle,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 14,
+                    }}
+                  >
+                    👥
+                  </div>
+                ) : activeConv?.otherUser.avatar_url ? (
                   <img
                     src={activeConv.otherUser.avatar_url}
                     alt=""
@@ -498,9 +584,11 @@ export default function Page165() {
                   </div>
                 )}
                 <span className="text-sm font-medium">
-                  {activeConv?.otherUser.display_name ||
-                    activeConv?.otherUser.username ||
-                    "User"}
+                  {activeConv?.conversation.is_group
+                    ? activeConv.conversation.group_name || "Group"
+                    : activeConv?.otherUser.display_name ||
+                      activeConv?.otherUser.username ||
+                      "User"}
                 </span>
               </div>
 
@@ -578,6 +666,15 @@ export default function Page165() {
                             maxWidth: "75%",
                           }}
                         >
+                          {/* Sender name in group chats */}
+                          {activeConv?.conversation.is_group && !isMine && (
+                            <p
+                              className="text-xs mb-1 ml-2"
+                              style={{ color: fgMuted, fontWeight: 500 }}
+                            >
+                              {getUserName(msg.sender_id)}
+                            </p>
+                          )}
                           <div
                             style={{
                               backgroundColor: isMine ? myBubble : theirBubble,

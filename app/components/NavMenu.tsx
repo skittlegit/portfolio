@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X, Sun, Moon, User } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
@@ -48,15 +48,12 @@ export default function NavMenu() {
     textDecoration: "none",
     fontFamily: "var(--font-playfair), Georgia, serif",
     transition: "color 0.15s",
-    borderBottom: `1px solid ${border}`,
     cursor: "pointer",
     background: "none",
     width: "100%",
     textAlign: "left",
     border: "none",
-    borderBottomWidth: 1,
-    borderBottomStyle: "solid",
-    borderBottomColor: border,
+    borderBottom: `1px solid ${border}`,
   };
 
   const lastItemStyle: React.CSSProperties = {
@@ -70,6 +67,24 @@ export default function NavMenu() {
       ref={menuRef}
       style={{ position: "relative", display: "flex", alignItems: "center", gap: 0 }}
     >
+      {/* Profile icon — separate from menu */}
+      {!loading && user && (
+        <Link
+          href="/profile"
+          aria-label="Profile"
+          style={{
+            color: fgMuted,
+            padding: "12px",
+            lineHeight: 0,
+            transition: "color 0.2s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = fg)}
+          onMouseLeave={(e) => (e.currentTarget.style.color = fgMuted)}
+        >
+          <User size={18} strokeWidth={1.5} />
+        </Link>
+      )}
+
       {/* Dark mode toggle */}
       <button
         onClick={toggle}
@@ -109,12 +124,22 @@ export default function NavMenu() {
         )}
       </button>
 
-      {/* Dropdown panel */}
+      {/* Dropdown panel — rendered via portal-like fixed positioning */}
+      {open && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 999,
+          }}
+          onClick={() => setOpen(false)}
+        />
+      )}
       <div
         style={{
-          position: "absolute",
-          top: "calc(100% + 6px)",
-          right: 0,
+          position: "fixed",
+          top: 56,
+          right: 24,
           minWidth: 170,
           backgroundColor: isDark ? "#0a0a0a" : "#ffffff",
           border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
@@ -123,7 +148,7 @@ export default function NavMenu() {
           boxShadow: isDark
             ? "0 12px 40px rgba(0,0,0,0.7)"
             : "0 12px 40px rgba(0,0,0,0.12)",
-          zIndex: 300,
+          zIndex: 1000,
           transformOrigin: "top right",
           transform: open ? "scale(1)" : "scale(0.95)",
           opacity: open ? 1 : 0,
@@ -160,15 +185,6 @@ export default function NavMenu() {
               onMouseLeave={(e) => (e.currentTarget.style.color = fgMuted)}
             >
               Saved
-            </Link>
-            <Link
-              href="/profile"
-              style={itemStyle}
-              onClick={() => setOpen(false)}
-              onMouseEnter={(e) => (e.currentTarget.style.color = fg)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = fgMuted)}
-            >
-              Profile
             </Link>
             {whitelisted && (
               <Link

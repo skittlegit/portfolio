@@ -17,6 +17,9 @@ export const WHITELIST = {
   ] as string[],
   usernames: [
     "skittle",
+    "srmt",
+    "pranav",
+    "swagboysugas",
     // Add whitelisted usernames here
   ] as string[],
 };

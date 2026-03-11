@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/client";
 
 export type Conversation = {
   id: string;
+  is_group: boolean;
+  group_name: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -34,6 +36,12 @@ export type ConversationWithParticipant = {
     display_name: string | null;
     avatar_url: string | null;
   };
+  participants: {
+    id: string;
+    username: string | null;
+    display_name: string | null;
+    avatar_url: string | null;
+  }[];
   lastMessage: Message | null;
   unreadCount: number;
 };
@@ -62,30 +70,46 @@ export async function getConversations(): Promise<ConversationWithParticipant[]>
 
   if (!conversations?.length) return [];
 
-  // Get other participants
+  // Get all participants for these conversations
   const { data: allParticipants } = await supabase
     .from("conversation_participants")
     .select("conversation_id, user_id")
-    .in("conversation_id", convIds)
-    .neq("user_id", userData.user.id);
+    .in("conversation_id", convIds);
 
-  // Get profiles for other participants
-  const otherUserIds = [...new Set(allParticipants?.map((p) => p.user_id) || [])];
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, username, display_name, avatar_url")
-    .in("id", otherUserIds);
+  // Get profiles for all participants (excluding self)
+  const otherUserIds = [...new Set(
+    (allParticipants || [])
+      .filter((p) => p.user_id !== userData.user!.id)
+      .map((p) => p.user_id)
+  )];
+  const { data: profiles } = otherUserIds.length
+    ? await supabase
+        .from("profiles")
+        .select("id, username, display_name, avatar_url")
+        .in("id", otherUserIds)
+    : { data: [] };
 
-  const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
-  const participantMap = new Map(
-    allParticipants?.map((p) => [p.conversation_id, p.user_id]) || []
-  );
+  const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
 
-  // Get last message for each conversation
+  // Build participant lists per conversation
+  const convParticipantsMap = new Map<string, typeof profiles>();
+  for (const p of allParticipants || []) {
+    if (p.user_id === userData.user.id) continue;
+    const list = convParticipantsMap.get(p.conversation_id) || [];
+    const prof = profileMap.get(p.user_id);
+    if (prof) list.push(prof);
+    convParticipantsMap.set(p.conversation_id, list);
+  }
+
   const results: ConversationWithParticipant[] = [];
   for (const conv of conversations) {
-    const otherUserId = participantMap.get(conv.id);
-    const otherProfile = otherUserId ? profileMap.get(otherUserId) : null;
+    const participants = convParticipantsMap.get(conv.id) || [];
+    const firstOther = participants[0] || {
+      id: "",
+      username: null,
+      display_name: null,
+      avatar_url: null,
+    };
 
     const { data: lastMessages } = await supabase
       .from("messages")
@@ -125,13 +149,13 @@ export async function getConversations(): Promise<ConversationWithParticipant[]>
     }
 
     results.push({
-      conversation: conv,
-      otherUser: otherProfile || {
-        id: otherUserId || "",
-        username: null,
-        display_name: null,
-        avatar_url: null,
+      conversation: {
+        ...conv,
+        is_group: conv.is_group ?? false,
+        group_name: conv.group_name ?? null,
       },
+      otherUser: firstOther,
+      participants,
       lastMessage: lastMessages?.[0] || null,
       unreadCount,
     });
@@ -145,7 +169,7 @@ export async function getOrCreateConversation(otherUserId: string): Promise<stri
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not logged in");
 
-  // Check if conversation already exists
+  // Check if a DM conversation already exists between these two users
   const { data: myConvs } = await supabase
     .from("conversation_participants")
     .select("conversation_id")
@@ -161,25 +185,83 @@ export async function getOrCreateConversation(otherUserId: string): Promise<stri
         myConvs.map((c) => c.conversation_id)
       );
 
+    // Filter to only non-group conversations
     if (shared?.length) {
-      return shared[0].conversation_id;
+      for (const s of shared) {
+        const { data: conv } = await supabase
+          .from("conversations")
+          .select("id, is_group")
+          .eq("id", s.conversation_id)
+          .maybeSingle();
+        if (conv && !conv.is_group) {
+          return conv.id;
+        }
+      }
     }
   }
 
-  // Create new conversation
+  // Create new DM conversation
   const { data: conv, error: convError } = await supabase
     .from("conversations")
-    .insert({})
+    .insert({ is_group: false })
     .select("id")
     .single();
 
   if (convError || !conv) throw convError || new Error("Failed to create conversation");
 
   // Add participants
-  await supabase.from("conversation_participants").insert([
+  const { error: partError } = await supabase.from("conversation_participants").insert([
     { conversation_id: conv.id, user_id: userData.user.id },
     { conversation_id: conv.id, user_id: otherUserId },
   ]);
+
+  if (partError) throw partError;
+
+  return conv.id;
+}
+
+export async function getOrCreateGroupChat(
+  groupName: string,
+  memberIds: string[]
+): Promise<string> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not logged in");
+
+  // Look for existing group with this name
+  const { data: myConvs } = await supabase
+    .from("conversation_participants")
+    .select("conversation_id")
+    .eq("user_id", userData.user.id);
+
+  if (myConvs?.length) {
+    const { data: existingGroup } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("is_group", true)
+      .eq("group_name", groupName)
+      .in("id", myConvs.map((c) => c.conversation_id))
+      .maybeSingle();
+
+    if (existingGroup) return existingGroup.id;
+  }
+
+  // Create new group conversation
+  const { data: conv, error: convError } = await supabase
+    .from("conversations")
+    .insert({ is_group: true, group_name: groupName })
+    .select("id")
+    .single();
+
+  if (convError || !conv) throw convError || new Error("Failed to create group");
+
+  // Add all members + self
+  const allMembers = [...new Set([userData.user.id, ...memberIds])];
+  const { error: partError } = await supabase
+    .from("conversation_participants")
+    .insert(allMembers.map((uid) => ({ conversation_id: conv.id, user_id: uid })));
+
+  if (partError) throw partError;
 
   return conv.id;
 }
