@@ -9,9 +9,8 @@ export type Profile = {
   updated_at: string;
 };
 
-const supabase = createClient();
-
 export async function getProfile(): Promise<Profile | null> {
+  const supabase = createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return null;
 
@@ -30,21 +29,23 @@ export async function updateProfile(updates: {
   display_name?: string;
   avatar_url?: string;
 }) {
+  const supabase = createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not logged in");
 
   const { error } = await supabase
     .from("profiles")
-    .upsert({
-      id: userData.user.id,
+    .update({
       ...updates,
       updated_at: new Date().toISOString(),
-    });
+    })
+    .eq("id", userData.user.id);
 
   if (error) throw error;
 }
 
 export async function checkUsernameAvailable(username: string): Promise<boolean> {
+  const supabase = createClient();
   const { data: userData } = await supabase.auth.getUser();
 
   const { data, error } = await supabase
@@ -59,6 +60,7 @@ export async function checkUsernameAvailable(username: string): Promise<boolean>
 }
 
 export async function uploadAvatar(file: File): Promise<string> {
+  const supabase = createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not logged in");
 
