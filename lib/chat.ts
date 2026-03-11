@@ -203,7 +203,7 @@ export async function getOrCreateConversation(otherUserId: string): Promise<stri
   // Create new DM conversation
   const { data: conv, error: convError } = await supabase
     .from("conversations")
-    .insert({ is_group: false })
+    .insert({})
     .select("id")
     .single();
 

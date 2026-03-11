@@ -141,13 +141,10 @@ export default function NavMenu() {
               top: 56,
               right: 24,
               minWidth: 170,
-              backgroundColor: isDark ? "#0a0a0a" : "#ffffff",
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+              backgroundColor: isDark ? "#000000" : "#ffffff",
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
               borderRadius: 12,
               padding: "8px 20px 12px",
-              boxShadow: isDark
-                ? "0 12px 40px rgba(0,0,0,0.7)"
-                : "0 12px 40px rgba(0,0,0,0.12)",
               zIndex: 10002,
             }}
           >

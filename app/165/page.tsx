@@ -110,7 +110,13 @@ export default function Page165() {
       const convs = await getConversations();
       setConversations(convs);
     } catch (err) {
-      setChatError(err instanceof Error ? err.message : "Failed to load conversations");
+      console.error("Chat load error:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("relation") && msg.includes("does not exist")) {
+        setChatError("Chat tables not found. Please run the SQL setup in Supabase.");
+      } else {
+        setChatError(msg || "Failed to load conversations");
+      }
     }
   }, [authorized, user?.id]);
 
