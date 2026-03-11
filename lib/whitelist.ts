@@ -1,11 +1,21 @@
-// Whitelisted users who can access the /165 section.
-// Add emails or usernames (without @) to grant access.
+// ============================================================
+// WHITELIST — Users who can access the /165 section
+// ============================================================
+// Add emails or usernames (without @) below to grant access.
+// This list is checked client-side — the page redirects away
+// for anyone not on the list.
+//
+// Example:
+//   emails: ["alice@gmail.com", "bob@outlook.com"],
+//   usernames: ["alice", "bob-dev"],
+// ============================================================
+
 export const WHITELIST = {
   emails: [
-    // "user@example.com",
+    // Add whitelisted emails here
   ] as string[],
   usernames: [
-    // "someuser",
+    // Add whitelisted usernames here
   ] as string[],
 };
 

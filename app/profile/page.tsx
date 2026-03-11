@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import { getSavedItems, type SavedItem } from "@/lib/saved-items";
 import { updateProfile, checkUsernameAvailable, uploadAvatar } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/client";
+import { getSiteUrl } from "@/lib/site-url";
 
 export default function ProfilePage() {
   const { fg, fgMuted, isDark } = useTheme();
@@ -128,7 +129,7 @@ export default function ProfilePage() {
     const { error } = await supabase.auth.linkIdentity({
       provider: providerName,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/profile`,
+        redirectTo: `${getSiteUrl()}/auth/callback?next=/profile`,
       },
     });
     if (error) {

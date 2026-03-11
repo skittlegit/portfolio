@@ -35,11 +35,11 @@ export async function updateProfile(updates: {
 
   const { error } = await supabase
     .from("profiles")
-    .update({
+    .upsert({
+      id: userData.user.id,
       ...updates,
       updated_at: new Date().toISOString(),
-    })
-    .eq("id", userData.user.id);
+    });
 
   if (error) throw error;
 }

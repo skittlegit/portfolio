@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "../context/ThemeContext";
 import { createClient } from "@/lib/supabase/client";
+import { getSiteUrl } from "@/lib/site-url";
 
 function LoginContent() {
   const { isDark, toggle, fg, fgMuted } = useTheme();
@@ -30,7 +31,7 @@ function LoginContent() {
 
     if (mode === "forgot") {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+        redirectTo: `${getSiteUrl()}/auth/callback?next=/reset-password`,
       });
       if (error) {
         setError(error.message);
@@ -67,7 +68,7 @@ function LoginContent() {
     await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
+        redirectTo: `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
       },
     });
   };
