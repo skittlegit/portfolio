@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Copy, Check, Plus, X, Upload, Download } from "lucide-react";
+import { Copy, Check, Plus, X, Upload, Download, Bookmark } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
+import { saveItem } from "@/lib/saved-items";
 
 type GradientStop = { color: string; position: number };
 type GradientType = "linear" | "radial";
@@ -17,7 +19,9 @@ function rgbToHex(r: number, g: number, b: number): string {
 
 export default function GradientGeneratorPage() {
   const { fg, fgMuted, isDark } = useTheme();
+  const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("create");
+  const [gradSaved, setGradSaved] = useState(false);
 
   // Create mode state
   const [type, setType] = useState<GradientType>("linear");
@@ -354,6 +358,30 @@ export default function GradientGeneratorPage() {
                 ))}
               </div>
             </div>
+
+            {/* Save button — create mode */}
+            {user && (
+              <div className="mt-6">
+                <button
+                  onClick={async () => {
+                    const name = stops.map((s) => s.color.slice(1, 4)).join("-");
+                    await saveItem(
+                      "gradient",
+                      name,
+                      { type, angle, stops },
+                      cssGradient
+                    );
+                    setGradSaved(true);
+                    setTimeout(() => setGradSaved(false), 2000);
+                  }}
+                  className="tool-btn"
+                  style={gradSaved ? { color: fg } : undefined}
+                >
+                  {gradSaved ? <Check size={14} strokeWidth={1.5} /> : <Bookmark size={14} strokeWidth={1.5} />}
+                  {gradSaved ? "Saved!" : "Save"}
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <>
@@ -440,6 +468,26 @@ export default function GradientGeneratorPage() {
                   <button onClick={downloadGradient} className="tool-btn" style={{ color: fg }}>
                     <Download size={14} /> Download PNG
                   </button>
+                  {user && (
+                    <button
+                      onClick={async () => {
+                        const name = extractColors.map((c) => c.slice(1, 4)).join("-");
+                        await saveItem(
+                          "gradient",
+                          name,
+                          { extractColors, direction, steps },
+                          extractGradient
+                        );
+                        setGradSaved(true);
+                        setTimeout(() => setGradSaved(false), 2000);
+                      }}
+                      className="tool-btn"
+                      style={gradSaved ? { color: fg } : undefined}
+                    >
+                      {gradSaved ? <Check size={14} strokeWidth={1.5} /> : <Bookmark size={14} strokeWidth={1.5} />}
+                      {gradSaved ? "Saved!" : "Save"}
+                    </button>
+                  )}
                 </div>
               </>
             ) : !hasImage ? (

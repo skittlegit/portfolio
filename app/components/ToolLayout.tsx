@@ -52,6 +52,23 @@ export default function ToolLayout({
             {backLabel}
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {!loading && user && (
+              <Link
+                href="/saved"
+                className="text-sm tracking-widest uppercase"
+                style={{
+                  color: fgMuted,
+                  textDecoration: "none",
+                  transition: "color 0.2s",
+                  fontFamily: "var(--font-playfair), Georgia, serif",
+                  padding: "12px",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = fg; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; }}
+              >
+                Saved
+              </Link>
+            )}
             {!loading && (
               user ? (
                 <button
