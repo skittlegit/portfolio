@@ -200,24 +200,24 @@ export async function getOrCreateConversation(otherUserId: string): Promise<stri
     }
   }
 
-  // Create new DM conversation
-  const { data: conv, error: convError } = await supabase
+  // Create new DM conversation — use client-generated UUID to avoid
+  // RLS blocking the RETURNING clause (not a participant yet at insert time)
+  const newId = crypto.randomUUID();
+  const { error: convError } = await supabase
     .from("conversations")
-    .insert({})
-    .select("id")
-    .single();
+    .insert({ id: newId, is_group: false });
 
-  if (convError || !conv) throw convError || new Error("Failed to create conversation");
+  if (convError) throw new Error(convError.message);
 
   // Add participants
   const { error: partError } = await supabase.from("conversation_participants").insert([
-    { conversation_id: conv.id, user_id: userData.user.id },
-    { conversation_id: conv.id, user_id: otherUserId },
+    { conversation_id: newId, user_id: userData.user.id },
+    { conversation_id: newId, user_id: otherUserId },
   ]);
 
-  if (partError) throw partError;
+  if (partError) throw new Error(partError.message);
 
-  return conv.id;
+  return newId;
 }
 
 export async function getOrCreateGroupChat(
@@ -246,24 +246,24 @@ export async function getOrCreateGroupChat(
     if (existingGroup) return existingGroup.id;
   }
 
-  // Create new group conversation
-  const { data: conv, error: convError } = await supabase
+  // Create new group conversation — use client-generated UUID to avoid
+  // RLS blocking the RETURNING clause
+  const newId = crypto.randomUUID();
+  const { error: convError } = await supabase
     .from("conversations")
-    .insert({ is_group: true, group_name: groupName })
-    .select("id")
-    .single();
+    .insert({ id: newId, is_group: true, group_name: groupName });
 
-  if (convError || !conv) throw convError || new Error("Failed to create group");
+  if (convError) throw new Error(convError.message);
 
   // Add all members + self
   const allMembers = [...new Set([userData.user.id, ...memberIds])];
   const { error: partError } = await supabase
     .from("conversation_participants")
-    .insert(allMembers.map((uid) => ({ conversation_id: conv.id, user_id: uid })));
+    .insert(allMembers.map((uid) => ({ conversation_id: newId, user_id: uid })));
 
-  if (partError) throw partError;
+  if (partError) throw new Error(partError.message);
 
-  return conv.id;
+  return newId;
 }
 
 export async function getMessages(conversationId: string, limit = 50, before?: string) {
