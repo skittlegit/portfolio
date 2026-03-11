@@ -3,6 +3,7 @@ import { Playfair_Display } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "./context/ThemeContext";
+import { AuthProvider } from "./context/AuthContext";
 import CursorEffect from "./components/CursorEffect";
 import "./globals.css";
 
@@ -26,8 +27,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${playfair.variable} antialiased`}>
         <ThemeProvider>
-          <CursorEffect />
-          {children}
+          <AuthProvider>
+            <CursorEffect />
+            {children}
+          </AuthProvider>
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />

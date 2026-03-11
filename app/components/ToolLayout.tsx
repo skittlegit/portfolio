@@ -1,8 +1,9 @@
 "use client";
 
-import { Sun, Moon, ArrowLeft } from "lucide-react";
+import { Sun, Moon, ArrowLeft, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function ToolLayout({
   title,
@@ -18,6 +19,7 @@ export default function ToolLayout({
   children: React.ReactNode;
 }) {
   const { isDark, toggle, fg, fgMuted } = useTheme();
+  const { user, loading, signOut } = useAuth();
 
   return (
     <>
@@ -49,20 +51,59 @@ export default function ToolLayout({
             <ArrowLeft size={16} strokeWidth={1.5} />
             {backLabel}
           </Link>
-          <button
-            onClick={() => toggle()}
-            aria-label="Toggle dark mode"
-            style={{
-              background: "transparent",
-              border: "none",
-              color: fg,
-              padding: "12px",
-              lineHeight: 0,
-              transition: "color 0.3s",
-            }}
-          >
-            {isDark ? <Sun size={18} strokeWidth={1.5} /> : <Moon size={18} strokeWidth={1.5} />}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {!loading && (
+              user ? (
+                <button
+                  onClick={() => signOut()}
+                  aria-label="Sign out"
+                  className="text-sm tracking-widest uppercase"
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: fgMuted,
+                    padding: "12px",
+                    transition: "color 0.2s",
+                    fontFamily: "var(--font-playfair), Georgia, serif",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = fg; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; }}
+                >
+                  Logout
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  className="text-sm tracking-widest uppercase"
+                  style={{
+                    color: fgMuted,
+                    textDecoration: "none",
+                    transition: "color 0.2s",
+                    fontFamily: "var(--font-playfair), Georgia, serif",
+                    padding: "12px",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = fg; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; }}
+                >
+                  Login
+                </Link>
+              )
+            )}
+            <button
+              onClick={() => toggle()}
+              aria-label="Toggle dark mode"
+              style={{
+                background: "transparent",
+                border: "none",
+                color: fg,
+                padding: "12px",
+                lineHeight: 0,
+                transition: "color 0.3s",
+              }}
+            >
+              {isDark ? <Sun size={18} strokeWidth={1.5} /> : <Moon size={18} strokeWidth={1.5} />}
+            </button>
+          </div>
         </header>
 
         {/* Page title */}

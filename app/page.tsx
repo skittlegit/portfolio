@@ -12,9 +12,11 @@ import {
   Twitter,
   Instagram,
   Github,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "./context/ThemeContext";
+import { useAuth } from "./context/AuthContext";
 
 type HoverKey = "design" | "build" | "create" | "resume" | null;
 
@@ -92,6 +94,7 @@ const socials = [
 
 export default function Home() {
   const { isDark, toggle, fg, fgMuted } = useTheme();
+  const { user, loading, signOut } = useAuth();
   const [hovered, setHovered] = useState<HoverKey>(null);
   const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
 
@@ -125,20 +128,59 @@ export default function Home() {
           >
             Tools
           </Link>
-          <button
-            onClick={() => toggle()}
-            aria-label="Toggle dark mode"
-            style={{
-              background: "transparent",
-              border: "none",
-              color: fg,
-              padding: "12px",
-              lineHeight: 0,
-              transition: "color 0.3s",
-            }}
-          >
-            {isDark ? <Sun size={18} strokeWidth={1.5} /> : <Moon size={18} strokeWidth={1.5} />}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {!loading && (
+              user ? (
+                <button
+                  onClick={() => signOut()}
+                  aria-label="Sign out"
+                  className="text-sm tracking-widest uppercase"
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: fgMuted,
+                    padding: "12px",
+                    transition: "color 0.2s",
+                    fontFamily: "var(--font-playfair), Georgia, serif",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = fg; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; }}
+                >
+                  Logout
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  className="text-sm tracking-widest uppercase"
+                  style={{
+                    color: fgMuted,
+                    textDecoration: "none",
+                    transition: "color 0.2s",
+                    fontFamily: "var(--font-playfair), Georgia, serif",
+                    padding: "12px",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = fg; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; }}
+                >
+                  Login
+                </Link>
+              )
+            )}
+            <button
+              onClick={() => toggle()}
+              aria-label="Toggle dark mode"
+              style={{
+                background: "transparent",
+                border: "none",
+                color: fg,
+                padding: "12px",
+                lineHeight: 0,
+                transition: "color 0.3s",
+              }}
+            >
+              {isDark ? <Sun size={18} strokeWidth={1.5} /> : <Moon size={18} strokeWidth={1.5} />}
+            </button>
+          </div>
         </div>
 
         {/* Main content — vertically centered */}
