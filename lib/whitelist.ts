@@ -20,6 +20,7 @@ export const WHITELIST = {
     "srmt",
     "pranav",
     "swagboysugas",
+    "pilidium",
     // Add whitelisted usernames here
   ] as string[],
 };

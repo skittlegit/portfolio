@@ -211,3 +211,25 @@ drop index if exists conversations_group_name_unique_idx;
 create unique index conversations_group_name_unique_idx
   on conversations (group_name)
   where is_group = true and group_name is not null;
+
+-- ── Storage: chat-media bucket ───────────────────────────────────────────────
+-- Run once in Supabase Dashboard > Storage, or via this SQL:
+
+insert into storage.buckets (id, name, public)
+  values ('chat-media', 'chat-media', true)
+  on conflict (id) do nothing;
+
+drop policy if exists "Whitelisted users can upload chat media" on storage.objects;
+create policy "Whitelisted users can upload chat media"
+  on storage.objects for insert
+  with check (bucket_id = 'chat-media' and auth.uid() is not null);
+
+drop policy if exists "Anyone can view chat media" on storage.objects;
+create policy "Anyone can view chat media"
+  on storage.objects for select
+  using (bucket_id = 'chat-media');
+
+drop policy if exists "Users can delete own chat media" on storage.objects;
+create policy "Users can delete own chat media"
+  on storage.objects for delete
+  using (bucket_id = 'chat-media' and (storage.foldername(name))[1] = auth.uid()::text);

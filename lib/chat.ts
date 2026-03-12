@@ -275,7 +275,12 @@ export async function getMessages(conversationId: string, limit = 50, before?: s
   return (data || []).reverse();
 }
 
-export async function sendMessage(conversationId: string, content: string, replyTo?: string) {
+export async function sendMessage(
+  conversationId: string,
+  content: string,
+  replyTo?: string,
+  imageUrl?: string
+) {
   const supabase = createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not logged in");
@@ -287,6 +292,7 @@ export async function sendMessage(conversationId: string, content: string, reply
       sender_id: userData.user.id,
       content,
       reply_to: replyTo || null,
+      image_url: imageUrl || null,
     });
 
   if (error) throw new Error(error.message);
@@ -377,4 +383,34 @@ export async function getWhitelistedUsers() {
     .select("id, username, display_name, avatar_url");
 
   return data || [];
+}
+
+export async function uploadChatFile(file: File): Promise<string> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not logged in");
+
+  const MAX_IMAGE = 5 * 1024 * 1024;   // 5 MB
+  const MAX_VIDEO = 20 * 1024 * 1024;  // 20 MB
+  const isVideo = file.type.startsWith("video/");
+  const isImage = file.type.startsWith("image/");
+
+  if (!isImage && !isVideo) throw new Error("Only images and videos are supported");
+  if (isImage && file.size > MAX_IMAGE) throw new Error("Image must be under 5 MB");
+  if (isVideo && file.size > MAX_VIDEO) throw new Error("Video must be under 20 MB");
+
+  const ext = file.name.split(".").pop() || "bin";
+  const path = `${userData.user.id}/${Date.now()}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from("chat-media")
+    .upload(path, file, { upsert: false });
+
+  if (error) throw new Error(error.message);
+
+  const { data: urlData } = supabase.storage
+    .from("chat-media")
+    .getPublicUrl(path);
+
+  return urlData.publicUrl;
 }
