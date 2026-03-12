@@ -87,14 +87,14 @@ export async function transferCurrency(
 export async function playCoinFlip(
   betAmount: number,
   choice: "heads" | "tails"
-): Promise<{ result: string; won: boolean; bet: number; new_balance: number }> {
+): Promise<{ result: string; won: boolean; bet: number; payout?: number; new_balance: number }> {
   const supabase = createClient();
   const { data, error } = await supabase.rpc("play_coinflip", {
     bet_amount: betAmount,
     player_choice: choice,
   });
   if (error) throw new Error(error.message);
-  return data as { result: string; won: boolean; bet: number; new_balance: number };
+  return data as { result: string; won: boolean; bet: number; payout?: number; new_balance: number };
 }
 
 export async function getMyTransactions(limit = 30): Promise<CurrencyTransaction[]> {
@@ -384,21 +384,66 @@ export async function deleteCustomFamilyMember(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-/* ── Dice roll game (client-side RNG, uses same currency table) ── */
+const FAIR_DICE_MULTIPLIERS: Record<number, number> = {
+  3: 1.04,
+  5: 1.31,
+  7: 2.28,
+  9: 5.7,
+  10: 11.4,
+};
+
+function secureRandomInt(min: number, max: number): number {
+  const range = max - min + 1;
+  if (range <= 0) return min;
+
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const maxUint = 0xffffffff;
+    const cutoff = maxUint - (maxUint % range);
+    const buf = new Uint32Array(1);
+    let value = 0;
+
+    do {
+      crypto.getRandomValues(buf);
+      value = buf[0];
+    } while (value >= cutoff);
+
+    return min + (value % range);
+  }
+
+  return min + Math.floor(Math.random() * range);
+}
+
+/* ── Dice roll game ── */
 
 export async function playDiceRoll(
   betAmount: number,
   targetOver: number
-): Promise<{ roll: number; won: boolean; bet: number; new_balance: number }> {
+): Promise<{ roll: number; won: boolean; bet: number; payout?: number; multiplier?: number; new_balance: number }> {
   const supabase = createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not logged in");
 
-  // Validate
   if (betAmount <= 0) throw new Error("Bet must be positive");
-  if (targetOver < 2 || targetOver > 11) throw new Error("Target must be 2-11");
+  if (!(targetOver in FAIR_DICE_MULTIPLIERS)) throw new Error("Target must be one of 3, 5, 7, 9, 10");
 
-  // Check balance
+  const { data: rpcData, error: rpcError } = await supabase.rpc("play_dice_roll", {
+    bet_amount: betAmount,
+    target_over: targetOver,
+  });
+
+  if (!rpcError && rpcData) {
+    return rpcData as { roll: number; won: boolean; bet: number; payout?: number; multiplier?: number; new_balance: number };
+  }
+
+  const missingRpc =
+    !!rpcError &&
+    (rpcError.code === "PGRST202" ||
+      /play_dice_roll/i.test(rpcError.message));
+
+  if (rpcError && !missingRpc) {
+    throw new Error(rpcError.message);
+  }
+
   const { data: balData } = await supabase
     .from("user_currency")
     .select("balance")
@@ -407,40 +452,29 @@ export async function playDiceRoll(
   const balance = balData?.balance ?? 0;
   if (betAmount > balance) throw new Error("Insufficient balance");
 
-  // Roll two dice
-  const die1 = Math.floor(Math.random() * 6) + 1;
-  const die2 = Math.floor(Math.random() * 6) + 1;
+  const die1 = secureRandomInt(1, 6);
+  const die2 = secureRandomInt(1, 6);
   const roll = die1 + die2;
   const won = roll > targetOver;
-
-  // Payout: higher target = higher multiplier
-  // Probability of rolling > N with 2d6:
-  // Reduced multipliers — house edge ~30-50%
-  const payoutMultipliers: Record<number, number> = {
-    2: 0.5, 3: 0.6, 4: 0.7, 5: 0.8, 6: 1.0, 7: 1.2,
-    8: 1.5, 9: 2.0, 10: 3.0, 11: 6.0,
-  };
-  const multiplier = payoutMultipliers[targetOver] || 2;
+  const multiplier = FAIR_DICE_MULTIPLIERS[targetOver];
   const payout = won ? Math.floor(betAmount * multiplier) : 0;
   const delta = won ? payout - betAmount : -betAmount;
   const newBalance = balance + delta;
 
-  // Update balance
   await supabase
     .from("user_currency")
     .update({ balance: newBalance, updated_at: new Date().toISOString() })
     .eq("user_id", userData.user.id);
 
-  // Record transaction
   await supabase.from("currency_transactions").insert({
     from_user_id: won ? null : userData.user.id,
     to_user_id: won ? userData.user.id : null,
     amount: won ? payout : betAmount,
     type: won ? "game_win" : "game_loss",
-    note: `Dice: rolled ${roll} (target > ${targetOver})`,
+    note: `Dice: rolled ${roll} (target > ${targetOver}, x${multiplier})`,
   });
 
-  return { roll, won, bet: betAmount, new_balance: newBalance };
+  return { roll, won, bet: betAmount, payout, multiplier, new_balance: newBalance };
 }
 
 /* ── Number Guess game ── */
@@ -448,13 +482,31 @@ export async function playDiceRoll(
 export async function playNumberGuess(
   betAmount: number,
   guess: number
-): Promise<{ number: number; won: boolean; bet: number; new_balance: number }> {
+): Promise<{ number: number; won: boolean; bet: number; payout?: number; new_balance: number }> {
   const supabase = createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not logged in");
 
   if (betAmount <= 0) throw new Error("Bet must be positive");
   if (guess < 1 || guess > 20) throw new Error("Guess must be 1-20");
+
+  const { data: rpcData, error: rpcError } = await supabase.rpc("play_number_guess", {
+    bet_amount: betAmount,
+    guessed_number: guess,
+  });
+
+  if (!rpcError && rpcData) {
+    return rpcData as { number: number; won: boolean; bet: number; payout?: number; new_balance: number };
+  }
+
+  const missingRpc =
+    !!rpcError &&
+    (rpcError.code === "PGRST202" ||
+      /play_number_guess/i.test(rpcError.message));
+
+  if (rpcError && !missingRpc) {
+    throw new Error(rpcError.message);
+  }
 
   const { data: balData } = await supabase
     .from("user_currency")
@@ -464,9 +516,9 @@ export async function playNumberGuess(
   const balance = balData?.balance ?? 0;
   if (betAmount > balance) throw new Error("Insufficient balance");
 
-  const number = Math.floor(Math.random() * 20) + 1;
+  const number = secureRandomInt(1, 20);
   const won = number === guess;
-  const payout = won ? betAmount * 10 : 0; // 10x payout for 1/20 chance (expected -50%)
+  const payout = won ? Math.floor(betAmount * 19) : 0;
   const delta = won ? payout - betAmount : -betAmount;
   const newBalance = balance + delta;
 
@@ -480,10 +532,10 @@ export async function playNumberGuess(
     to_user_id: won ? userData.user.id : null,
     amount: won ? payout : betAmount,
     type: won ? "game_win" : "game_loss",
-    note: `Number guess: picked ${guess}, was ${number}`,
+    note: `Number guess: picked ${guess}, was ${number} (x19 payout)`,
   });
 
-  return { number, won, bet: betAmount, new_balance: newBalance };
+  return { number, won, bet: betAmount, payout, new_balance: newBalance };
 }
 
 /* ── Custom Bets ── */

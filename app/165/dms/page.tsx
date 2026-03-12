@@ -40,45 +40,34 @@ export default function DmsPage() {
   const [presence, setPresence] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [deletingConvId, setDeletingConvId] = useState<string | null>(null);
+  const [deletingConversationId, setDeletingConversationId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const loadConvs = async () => {
+  const loadConvs = useCallback(async () => {
     try {
       const all = await getConversations();
       const dmConvs = all.filter((c) => !c.conversation.is_group);
       setConversations(dmConvs);
+      setActiveConvId((prev) => {
+        if (prev && dmConvs.some((c) => c.conversation.id === prev)) return prev;
+        return dmConvs[0]?.conversation.id ?? null;
+      });
 
       const userIds = dmConvs.map((c) => c.otherUser.id).filter(Boolean);
       if (userIds.length) {
         const pres = await getUserPresence(userIds);
         setPresence(pres);
+      } else {
+        setPresence({});
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load");
     }
-  };
+  }, []);
 
   useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const all = await getConversations();
-        if (!active) return;
-        const dmConvs = all.filter((c) => !c.conversation.is_group);
-        setConversations(dmConvs);
-        const userIds = dmConvs.map((c) => c.otherUser.id).filter(Boolean);
-        if (userIds.length) {
-          const pres = await getUserPresence(userIds);
-          if (!active) return;
-          setPresence(pres);
-        }
-      } catch (err) {
-        if (!active) return;
-        setError(err instanceof Error ? err.message : "Failed to load");
-      }
-    })();
-    return () => { active = false; };
-  }, []);
+    loadConvs();
+  }, [loadConvs]);
 
   const activeConv = conversations.find((c) => c.conversation.id === activeConvId);
 
@@ -95,7 +84,9 @@ export default function DmsPage() {
   };
 
   const handleDeleteConversation = async (convId: string) => {
+    if (deletingConversationId) return;
     if (!confirm("Delete this conversation? All messages will be permanently removed.")) return;
+    setDeletingConversationId(convId);
     try {
       await deleteConversation(convId);
       if (activeConvId === convId) {
@@ -105,8 +96,10 @@ export default function DmsPage() {
       await loadConvs();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete conversation");
+    } finally {
+      setDeletingConversationId(null);
+      setDeletingConvId(null);
     }
-    setDeletingConvId(null);
   };
 
   const loadUsers = async () => {
@@ -117,6 +110,14 @@ export default function DmsPage() {
   const filteredUsers = allUsers.filter((u) => {
     const q = userSearch.toLowerCase();
     return (u.username?.toLowerCase().includes(q) ?? false) || (u.display_name?.toLowerCase().includes(q) ?? false);
+  });
+
+  const filteredConversations = conversations.filter((c) => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+    const name = (c.otherUser.display_name || c.otherUser.username || "").toLowerCase();
+    const message = (c.lastMessage?.content || "").toLowerCase();
+    return name.includes(q) || message.includes(q);
   });
 
   const formatTime = (ts: string) => {
@@ -159,15 +160,30 @@ export default function DmsPage() {
         {error && (
           <div className="text-xs p-3" style={{ color: "#ef4444", borderBottom: `1px solid rgba(239,68,68,0.2)` }}>{error}</div>
         )}
+        <div style={{ padding: "10px 12px", borderBottom: `1px solid ${borderSubtle}` }}>
+          <div style={{ position: "relative" }}>
+            <Search size={13} style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", color: fgMuted }} />
+            <input
+              type="text"
+              className="tool-input"
+              style={{ width: "100%", paddingLeft: 30, fontSize: 13 }}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search conversations"
+            />
+          </div>
+        </div>
         <div style={{ flex: 1, overflowY: "auto" }} className="s165-scroll">
-          {conversations.length === 0 ? (
+          {filteredConversations.length === 0 ? (
             <p className="text-sm p-4" style={{ color: fgMuted }}>No direct messages yet.</p>
           ) : (
-            conversations.map((c) => {
+            filteredConversations.map((c) => {
               const other = c.otherUser;
               const online = isUserOnline(other.id);
               const isActive = activeConvId === c.conversation.id;
               const lastContent = c.lastMessage?.image_url && !c.lastMessage.content.trim() ? "📎 Media" : c.lastMessage?.content || "No messages yet";
+              const showDelete = deletingConvId === c.conversation.id || isActive;
+              const deletingThisConversation = deletingConversationId === c.conversation.id;
               return (
                 <div
                   key={c.conversation.id}
@@ -176,8 +192,9 @@ export default function DmsPage() {
                   onMouseLeave={() => setDeletingConvId(null)}
                 >
                 <button
+                  disabled={deletingThisConversation}
                   onClick={() => { setActiveConvId(c.conversation.id); setMobileShowChat(true); }}
-                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: isActive ? bgHover : "transparent", border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", borderBottom: `1px solid ${borderSubtle}`, transition: "background-color 0.2s", borderLeft: isActive ? `2px solid ${fg}` : "2px solid transparent" }}
+                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: isActive ? bgHover : "transparent", border: "none", cursor: deletingThisConversation ? "wait" : "pointer", textAlign: "left", fontFamily: "inherit", borderBottom: `1px solid ${borderSubtle}`, transition: "background-color 0.2s", borderLeft: isActive ? `2px solid ${fg}` : "2px solid transparent", opacity: deletingThisConversation ? 0.55 : 1 }}
                 >
                   <div style={{ position: "relative", flexShrink: 0 }}>
                     {other.avatar_url
@@ -199,10 +216,11 @@ export default function DmsPage() {
                     </div>
                   </div>
                 </button>
-                {deletingConvId === c.conversation.id && (
+                {showDelete && (
                   <button
+                    disabled={deletingThisConversation}
                     onClick={(e) => { e.stopPropagation(); handleDeleteConversation(c.conversation.id); }}
-                    style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.06)", border: "none", cursor: "pointer", padding: 6, borderRadius: 8, lineHeight: 0, color: "#ef4444", transition: "background 0.15s" }}
+                    style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.06)", border: "none", cursor: deletingThisConversation ? "wait" : "pointer", padding: 6, borderRadius: 8, lineHeight: 0, color: "#ef4444", transition: "background 0.15s", opacity: deletingThisConversation ? 0.7 : 1 }}
                     title="Delete conversation"
                   >
                     <Trash2 size={14} />
@@ -263,7 +281,8 @@ export default function DmsPage() {
               {activeConvId && (
                 <button
                   onClick={() => handleDeleteConversation(activeConvId)}
-                  style={{ background: "none", border: "none", cursor: "pointer", padding: 6, lineHeight: 0, color: fgMuted, borderRadius: 8, transition: "color 0.15s" }}
+                  disabled={deletingConversationId === activeConvId}
+                  style={{ background: "none", border: "none", cursor: deletingConversationId === activeConvId ? "wait" : "pointer", padding: 6, lineHeight: 0, color: fgMuted, borderRadius: 8, transition: "color 0.15s", opacity: deletingConversationId === activeConvId ? 0.6 : 1 }}
                   title="Delete conversation"
                   onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
                   onMouseLeave={(e) => (e.currentTarget.style.color = fgMuted)}

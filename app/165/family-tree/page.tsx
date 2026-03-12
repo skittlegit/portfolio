@@ -45,22 +45,35 @@ const SIBLING_GAP = 170;
 
 const RELATION_TYPES = [
   { value: "child", label: "Child", emoji: "👶" },
+  { value: "son", label: "Son", emoji: "👦" },
+  { value: "daughter", label: "Daughter", emoji: "👧" },
   { value: "parent", label: "Parent", emoji: "👨‍👩‍👦" },
+  { value: "mother", label: "Mother", emoji: "👩" },
+  { value: "father", label: "Father", emoji: "👨" },
   { value: "sibling", label: "Sibling", emoji: "👫" },
+  { value: "brother", label: "Brother", emoji: "🧑" },
+  { value: "sister", label: "Sister", emoji: "👩" },
   { value: "spouse", label: "Spouse", emoji: "💍" },
+  { value: "fiance", label: "Fiance", emoji: "💎" },
   { value: "grandparent", label: "Grandparent", emoji: "👴" },
+  { value: "grandmother", label: "Grandmother", emoji: "👵" },
+  { value: "grandfather", label: "Grandfather", emoji: "👴" },
   { value: "grandchild", label: "Grandchild", emoji: "🧒" },
   { value: "uncle_aunt", label: "Uncle/Aunt", emoji: "🧑" },
   { value: "niece_nephew", label: "Niece/Nephew", emoji: "👦" },
   { value: "cousin", label: "Cousin", emoji: "🤙" },
+  { value: "guardian", label: "Guardian", emoji: "🛡️" },
+  { value: "ward", label: "Ward", emoji: "🫶" },
   { value: "godparent", label: "Godparent", emoji: "🌟" },
   { value: "godchild", label: "Godchild", emoji: "✝️" },
   { value: "in_law", label: "In-Law", emoji: "🤵" },
   { value: "step", label: "Step-family", emoji: "🔗" },
   { value: "friend", label: "Friend", emoji: "🤝" },
   { value: "best_friend", label: "Best Friend", emoji: "💛" },
+  { value: "close_friend", label: "Close Friend", emoji: "💫" },
   { value: "pet", label: "Pet", emoji: "🐾" },
   { value: "mentor", label: "Mentor", emoji: "🎓" },
+  { value: "student", label: "Student", emoji: "📘" },
   { value: "rival", label: "Rival", emoji: "⚔️" },
   { value: "partner", label: "Partner", emoji: "💕" },
   { value: "ex", label: "Ex", emoji: "💔" },
@@ -215,10 +228,11 @@ export default function FamilyTreePage() {
     setSaveError(null);
     try {
       const targetId = editTargetUserId || user?.id || "";
+      const safeParent = profiles.some((p) => p.id === editParent) ? editParent : "";
       if (userIsAdmin && targetId !== user?.id) {
-        await adminUpsertFamilyNode(targetId, editTitle.trim() || "Member", editParent || null, editRelationType);
+        await adminUpsertFamilyNode(targetId, editTitle.trim() || "Member", safeParent || null, editRelationType);
       } else {
-        await upsertFamilyNode(editTitle.trim() || "Member", editParent || null, editRelationType);
+        await upsertFamilyNode(editTitle.trim() || "Member", safeParent || null, editRelationType);
       }
       await load();
       setEditing(false);
@@ -429,8 +443,8 @@ export default function FamilyTreePage() {
                 onChange={(e) => setEditParent(e.target.value)}
               >
                 <option value="">— none (root) —</option>
-                {parentOptions.filter((p) => p.id !== editTargetUserId && p.id !== user?.id).map((p) => (
-                  <option key={p.id} value={p.id}>{p.label}</option>
+                {profiles.filter((p) => p.id !== editTargetUserId).map((p) => (
+                  <option key={p.id} value={p.id}>{p.display_name || p.username || "User"}</option>
                 ))}
               </select>
             </div>

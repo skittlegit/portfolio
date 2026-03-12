@@ -6,7 +6,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import {
   getOrCreateGroupChat,
-  getConversations,
+  getConversationParticipants,
   getOrCreateConversation,
   getWhitelistedUsers,
   syncGroupMembers,
@@ -43,15 +43,16 @@ export default function GroupChatPage() {
       // Sync: add any new whitelisted users to the group
       await syncGroupMembers(id);
 
-      const convs = await getConversations();
-      const conv = convs.find((c) => c.conversation.id === id);
-      if (conv) setParticipants(conv.participants);
+      const members = await getConversationParticipants(id);
+      setParticipants(members);
 
       // Load presence
-      const pIds = (conv?.participants || []).map((p) => p.id);
+      const pIds = members.map((p) => p.id);
       if (pIds.length) {
         const pres = await getUserPresence(pIds);
         setPresence(pres);
+      } else {
+        setPresence({});
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load group chat");

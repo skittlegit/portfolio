@@ -747,3 +747,28 @@ div:hover > div > .s165-msg-actions { opacity: 1 !important; }
 }
 [data-theme="dark"] .s165-tab.active { background-color: rgba(255,255,255,0.06); }
 [data-theme="light"] .s165-tab.active { background-color: rgba(0,0,0,0.04); }
+
+/* Responsive game cards */
+.s165-game-card {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.s165-game-split {
+  display: grid;
+  gap: 20px;
+}
+
+.s165-game-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+@media (min-width: 900px) {
+  .s165-game-split {
+    grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+    align-items: start;
+  }
+}

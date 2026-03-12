@@ -32,8 +32,8 @@ import { Plus, Dice1, Hash, Users, ChevronDown, X, Pencil, Ban, Lock, Trash2 } f
 type GameTab = "coin" | "dice" | "guess" | "bets";
 
 type FlipResult = { result: string; won: boolean; bet: number; new_balance: number; payout?: number };
-type DiceResult = { roll: number; won: boolean; bet: number; new_balance: number };
-type GuessResult = { number: number; won: boolean; bet: number; new_balance: number };
+type DiceResult = { roll: number; won: boolean; bet: number; payout?: number; multiplier?: number; new_balance: number };
+type GuessResult = { number: number; won: boolean; bet: number; payout?: number; new_balance: number };
 
 export default function GamePage() {
   const { fg, fgMuted, isDark } = useTheme();
@@ -248,7 +248,11 @@ export default function GamePage() {
   };
 
   const payoutMultipliers: Record<number, number> = {
-    2: 0.5, 3: 0.6, 4: 0.7, 5: 0.8, 6: 1.0, 7: 1.2, 8: 1.5, 9: 2.0, 10: 3.0, 11: 6.0,
+    3: 1.04,
+    5: 1.31,
+    7: 2.28,
+    9: 5.7,
+    10: 11.4,
   };
 
   const formatTime = (ts: string) => new Date(ts).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -303,7 +307,7 @@ export default function GamePage() {
   );
 
   return (
-    <div>
+    <div style={{ maxWidth: 980, margin: "0 auto", width: "100%" }}>
       {/* Balance header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <div>
@@ -333,118 +337,130 @@ export default function GamePage() {
 
       {/* ── Coin Flip ── */}
       {tab === "coin" && (
-        <div className="s165-card" style={{ padding: "20px 16px", marginBottom: 24, maxWidth: 600 }}>
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{
-              width: 100, height: 100, borderRadius: "50%", margin: "0 auto",
-              backgroundColor: coinFace === "heads" ? (isDark ? "rgba(255,215,0,0.15)" : "rgba(255,215,0,0.3)") : (isDark ? "rgba(192,192,192,0.15)" : "rgba(192,192,192,0.3)"),
-              border: `2px solid ${coinFace === "heads" ? "#FFD700" : "#C0C0C0"}`,
-              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 44,
-              transition: flipping ? "none" : "all 0.3s",
-              animation: flipping ? "s165CoinSpin 0.2s linear infinite" : "none",
-            }}>
-              {coinFace === "heads" ? "👑" : "🌀"}
+        <div className="s165-card s165-game-card">
+          <div className="s165-game-split">
+            <div className="s165-game-visual">
+              <div style={{
+                width: 110, height: 110, borderRadius: "50%", margin: "0 auto",
+                backgroundColor: coinFace === "heads" ? (isDark ? "rgba(255,215,0,0.15)" : "rgba(255,215,0,0.3)") : (isDark ? "rgba(192,192,192,0.15)" : "rgba(192,192,192,0.3)"),
+                border: `2px solid ${coinFace === "heads" ? "#FFD700" : "#C0C0C0"}`,
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48,
+                transition: flipping ? "none" : "all 0.3s",
+                animation: flipping ? "s165CoinSpin 0.2s linear infinite" : "none",
+              }}>
+                {coinFace === "heads" ? "👑" : "🌀"}
+              </div>
+              <p className="text-xs mt-2 font-medium" style={{ color: fgMuted, textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "center" }}>
+                {flipping ? "Flipping…" : flipResult ? (flipResult.result === "heads" ? "Heads" : "Tails") : "Coin Flip"}
+              </p>
+              {flipResult && !flipping && (
+                <ResultBanner won={flipResult.won} amount={flipResult.won ? (flipResult.payout ?? flipResult.bet) : flipResult.bet} subtitle={`${flipResult.result === coinChoice ? "You called it right!" : "Better luck next time."} Balance: ${flipResult.new_balance.toLocaleString()}`} />
+              )}
             </div>
-            <p className="text-xs mt-2 font-medium" style={{ color: fgMuted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              {flipping ? "Flipping…" : flipResult ? (flipResult.result === "heads" ? "Heads" : "Tails") : "Coin Flip"}
-            </p>
-          </div>
 
-          {flipResult && !flipping && (
-            <ResultBanner won={flipResult.won} amount={flipResult.won ? (flipResult.payout ?? flipResult.bet) : flipResult.bet} subtitle={`${flipResult.result === coinChoice ? "You called it right!" : "Better luck next time."} Balance: ${flipResult.new_balance.toLocaleString()}`} />
-          )}
+            <div>
+              <p className="text-xs" style={{ color: fgMuted, marginBottom: 10 }}>Fair mode: server RNG and ~5% house edge when migration is installed.</p>
+              <div style={{ marginBottom: 16 }}>
+                <p className="text-xs mb-2" style={{ color: fgMuted }}>Pick a side</p>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {(["heads", "tails"] as const).map((side) => (
+                    <button key={side} onClick={() => setCoinChoice(side)} className={`s165-option-btn${coinChoice === side ? " active" : ""}`} style={{ flex: 1 }}>
+                      {side === "heads" ? "👑 Heads" : "🌀 Tails"}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <div style={{ marginBottom: 16 }}>
-            <p className="text-xs mb-2" style={{ color: fgMuted }}>Pick a side</p>
-            <div style={{ display: "flex", gap: 8 }}>
-              {(["heads", "tails"] as const).map((side) => (
-                <button key={side} onClick={() => setCoinChoice(side)} className={`s165-option-btn${coinChoice === side ? " active" : ""}`} style={{ flex: 1 }}>
-                  {side === "heads" ? "👑 Heads" : "🌀 Tails"}
-                </button>
-              ))}
+              <BetInput value={coinBet} onChange={setCoinBet} />
+              <PlayButton onClick={handleFlip} disabled={!coinBet || coinBet > (balance ?? 0)} loading={flipping} label="Flip the Coin" />
             </div>
           </div>
-
-          <BetInput value={coinBet} onChange={setCoinBet} />
-          <PlayButton onClick={handleFlip} disabled={!coinBet || coinBet > (balance ?? 0)} loading={flipping} label="Flip the Coin" />
         </div>
       )}
 
       {/* ── Dice Roll ── */}
       {tab === "dice" && (
-        <div className="s165-card" style={{ padding: "20px 16px", marginBottom: 24, maxWidth: 600 }}>
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{
-              width: 100, height: 100, borderRadius: 16, margin: "0 auto",
-              backgroundColor: isDark ? "rgba(139,92,246,0.12)" : "rgba(139,92,246,0.08)",
-              border: "2px solid rgba(139,92,246,0.4)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: rolling ? 28 : 36, fontWeight: 700, color: fg,
-              transition: rolling ? "none" : "all 0.3s",
-              animation: rolling ? "s165CoinSpin 0.15s linear infinite" : "none",
-            }}>
-              {rolling ? diceDisplay : diceResult ? diceResult.roll : "🎲"}
+        <div className="s165-card s165-game-card">
+          <div className="s165-game-split">
+            <div className="s165-game-visual">
+              <div style={{
+                width: 110, height: 110, borderRadius: 18, margin: "0 auto",
+                backgroundColor: isDark ? "rgba(139,92,246,0.12)" : "rgba(139,92,246,0.08)",
+                border: "2px solid rgba(139,92,246,0.4)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: rolling ? 30 : 40, fontWeight: 700, color: fg,
+                transition: rolling ? "none" : "all 0.3s",
+                animation: rolling ? "s165CoinSpin 0.15s linear infinite" : "none",
+              }}>
+                {rolling ? diceDisplay : diceResult ? diceResult.roll : "🎲"}
+              </div>
+              <p className="text-xs mt-2 font-medium" style={{ color: fgMuted, textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "center" }}>
+                {rolling ? "Rolling…" : diceResult ? `Rolled ${diceResult.roll}` : "Dice Roll"}
+              </p>
+              {diceResult && !rolling && (
+                <ResultBanner won={diceResult.won} amount={diceResult.won ? (diceResult.payout ?? Math.floor(diceResult.bet * (payoutMultipliers[diceTarget] || 1))) : diceResult.bet} subtitle={`Rolled ${diceResult.roll} (needed > ${diceTarget}). Balance: ${diceResult.new_balance.toLocaleString()}`} />
+              )}
             </div>
-            <p className="text-xs mt-2 font-medium" style={{ color: fgMuted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              {rolling ? "Rolling…" : diceResult ? `Rolled ${diceResult.roll}` : "Dice Roll"}
-            </p>
-          </div>
 
-          {diceResult && !rolling && (
-            <ResultBanner won={diceResult.won} amount={diceResult.won ? Math.floor(diceResult.bet * (payoutMultipliers[diceTarget] || 2)) : diceResult.bet} subtitle={`Rolled ${diceResult.roll} (needed > ${diceTarget}). Balance: ${diceResult.new_balance.toLocaleString()}`} />
-          )}
+            <div>
+              <p className="text-xs" style={{ color: fgMuted, marginBottom: 10 }}>Odds are normalized to around a 5% house edge on each target.</p>
+              <div style={{ marginBottom: 16 }}>
+                <p className="text-xs mb-2" style={{ color: fgMuted }}>Roll over target (2d6)</p>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {[3, 5, 7, 9, 10].map((t) => (
+                    <button key={t} onClick={() => setDiceTarget(t)} className={`s165-option-btn${diceTarget === t ? " active" : ""}`} style={{ flex: 1, minWidth: 60 }}>
+                      &gt;{t} <span style={{ fontSize: 10, opacity: 0.7 }}>×{payoutMultipliers[t]}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <div style={{ marginBottom: 16 }}>
-            <p className="text-xs mb-2" style={{ color: fgMuted }}>Roll over target (2d6, higher target = higher payout)</p>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {[3, 5, 7, 9, 11].map((t) => (
-                <button key={t} onClick={() => setDiceTarget(t)} className={`s165-option-btn${diceTarget === t ? " active" : ""}`} style={{ flex: 1, minWidth: 50 }}>
-                  &gt;{t} <span style={{ fontSize: 10, opacity: 0.6 }}>×{payoutMultipliers[t]}</span>
-                </button>
-              ))}
+              <BetInput value={diceBet} onChange={setDiceBet} />
+              <PlayButton onClick={handleDice} disabled={!diceBet || diceBet > (balance ?? 0)} loading={rolling} label="Roll the Dice" />
             </div>
           </div>
-
-          <BetInput value={diceBet} onChange={setDiceBet} />
-          <PlayButton onClick={handleDice} disabled={!diceBet || diceBet > (balance ?? 0)} loading={rolling} label="Roll the Dice" />
         </div>
       )}
 
       {/* ── Number Guess ── */}
       {tab === "guess" && (
-        <div className="s165-card" style={{ padding: "20px 16px", marginBottom: 24, maxWidth: 600 }}>
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{
-              width: 100, height: 100, borderRadius: 16, margin: "0 auto",
-              backgroundColor: isDark ? "rgba(234,179,8,0.1)" : "rgba(234,179,8,0.08)",
-              border: "2px solid rgba(234,179,8,0.35)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 36, fontWeight: 700, color: fg,
-            }}>
-              {guessing ? "?" : guessResult ? guessResult.number : "#"}
+        <div className="s165-card s165-game-card">
+          <div className="s165-game-split">
+            <div className="s165-game-visual">
+              <div style={{
+                width: 110, height: 110, borderRadius: 18, margin: "0 auto",
+                backgroundColor: isDark ? "rgba(234,179,8,0.1)" : "rgba(234,179,8,0.08)",
+                border: "2px solid rgba(234,179,8,0.35)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 40, fontWeight: 700, color: fg,
+              }}>
+                {guessing ? "?" : guessResult ? guessResult.number : "#"}
+              </div>
+              <p className="text-xs mt-2 font-medium" style={{ color: fgMuted, textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "center" }}>
+                {guessing ? "Picking…" : guessResult ? `It was ${guessResult.number}` : "Number Guess"}
+              </p>
+              {guessResult && !guessing && (
+                <ResultBanner won={guessResult.won} amount={guessResult.won ? (guessResult.payout ?? guessResult.bet * 19) : guessResult.bet} subtitle={`You picked ${guessNum}, it was ${guessResult.number}. ${guessResult.won ? "19× payout!" : ""} Balance: ${guessResult.new_balance.toLocaleString()}`} />
+              )}
             </div>
-            <p className="text-xs mt-2 font-medium" style={{ color: fgMuted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              {guessing ? "Picking…" : guessResult ? `It was ${guessResult.number}` : "Number Guess"}
-            </p>
-          </div>
 
-          {guessResult && !guessing && (
-            <ResultBanner won={guessResult.won} amount={guessResult.won ? guessResult.bet * 10 : guessResult.bet} subtitle={`You picked ${guessNum}, it was ${guessResult.number}. ${guessResult.won ? "10× payout!" : ""} Balance: ${guessResult.new_balance.toLocaleString()}`} />
-          )}
+            <div>
+              <p className="text-xs" style={{ color: fgMuted, marginBottom: 10 }}>Exact match on 1-20 with fair 19× gross payout.</p>
+              <div style={{ marginBottom: 16 }}>
+                <p className="text-xs mb-2" style={{ color: fgMuted }}>Pick a number (1-20)</p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
+                  {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+                    <button key={n} onClick={() => setGuessNum(n)} className={`s165-option-btn${guessNum === n ? " active" : ""}`} style={{ padding: "12px 4px", fontSize: 16 }}>
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <div style={{ marginBottom: 16 }}>
-            <p className="text-xs mb-2" style={{ color: fgMuted }}>Pick a number (1-20) — 10× payout if correct</p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
-              {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
-                <button key={n} onClick={() => setGuessNum(n)} className={`s165-option-btn${guessNum === n ? " active" : ""}`} style={{ padding: "12px 4px", fontSize: 16 }}>
-                  {n}
-                </button>
-              ))}
+              <BetInput value={guessBet} onChange={setGuessBet} />
+              <PlayButton onClick={handleGuess} disabled={!guessBet || guessBet > (balance ?? 0)} loading={guessing} label="Guess!" />
             </div>
           </div>
-
-          <BetInput value={guessBet} onChange={setGuessBet} />
-          <PlayButton onClick={handleGuess} disabled={!guessBet || guessBet > (balance ?? 0)} loading={guessing} label="Guess!" />
         </div>
       )}
 

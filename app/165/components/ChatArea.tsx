@@ -178,8 +178,12 @@ export default function ChatArea({
     (async () => {
       const msgs = await getMessages(convId);
       setMessages(msgs);
-      if (msgs.length) setReactions(await getReactions(msgs.map((m) => m.id)));
-      await markRead(convId);
+      if (msgs.length) {
+        void getReactions(msgs.map((m) => m.id)).then((data) => {
+          setReactions(data);
+        });
+      }
+      void markRead(convId);
       setLoadingMsgs(false);
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 80);
     })();

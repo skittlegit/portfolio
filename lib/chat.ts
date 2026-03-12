@@ -51,56 +51,109 @@ export async function getConversations(): Promise<ConversationWithParticipant[]>
   const supabase = createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return [];
+  const myUserId = userData.user.id;
 
-  // Get all conversation IDs for this user
-  const { data: participations } = await supabase
+  const { data: participations, error: participationError } = await supabase
     .from("conversation_participants")
     .select("conversation_id")
-    .eq("user_id", userData.user.id);
+    .eq("user_id", myUserId);
+
+  if (participationError) throw new Error(participationError.message);
 
   if (!participations?.length) return [];
 
-  const convIds = participations.map((p) => p.conversation_id);
+  const convIds = [...new Set(participations.map((p) => p.conversation_id))];
 
-  // Get conversations
-  const { data: conversations } = await supabase
-    .from("conversations")
-    .select("*")
-    .in("id", convIds)
-    .order("updated_at", { ascending: false });
+  const [conversationsRes, allParticipantsRes, receiptsRes, allMessagesRes] = await Promise.all([
+    supabase
+      .from("conversations")
+      .select("*")
+      .in("id", convIds)
+      .order("updated_at", { ascending: false }),
+    supabase
+      .from("conversation_participants")
+      .select("conversation_id, user_id")
+      .in("conversation_id", convIds),
+    supabase
+      .from("read_receipts")
+      .select("conversation_id, last_read_at")
+      .eq("user_id", myUserId)
+      .in("conversation_id", convIds),
+    supabase
+      .from("messages")
+      .select("*")
+      .in("conversation_id", convIds)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  if (conversationsRes.error) throw new Error(conversationsRes.error.message);
+  if (allParticipantsRes.error) throw new Error(allParticipantsRes.error.message);
+  if (receiptsRes.error) throw new Error(receiptsRes.error.message);
+  if (allMessagesRes.error) throw new Error(allMessagesRes.error.message);
+
+  const conversations = conversationsRes.data || [];
+  const allParticipants = allParticipantsRes.data || [];
+  const receipts = receiptsRes.data || [];
+  const allMessages = allMessagesRes.data || [];
 
   if (!conversations?.length) return [];
 
-  // Get all participants for these conversations
-  const { data: allParticipants } = await supabase
-    .from("conversation_participants")
-    .select("conversation_id, user_id")
-    .in("conversation_id", convIds);
-
-  // Get profiles for all participants (excluding self)
   const otherUserIds = [...new Set(
     (allParticipants || [])
-      .filter((p) => p.user_id !== userData.user!.id)
+      .filter((p) => p.user_id !== myUserId)
       .map((p) => p.user_id)
   )];
-  const { data: profiles } = otherUserIds.length
+  const profilesRes = otherUserIds.length
     ? await supabase
         .from("profiles")
         .select("id, username, display_name, avatar_url")
         .in("id", otherUserIds)
-    : { data: [] };
+    : { data: [], error: null };
 
-  const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+  if (profilesRes.error) throw new Error(profilesRes.error.message);
 
-  // Build participant lists per conversation
+  const profiles = profilesRes.data || [];
+
+  const profileMap = new Map(profiles.map((p) => [p.id, p]));
+  const receiptMap = new Map(receipts.map((r) => [r.conversation_id, r.last_read_at]));
+  const lastMessageMap = new Map<string, Message>();
+
+  for (const msg of allMessages) {
+    if (!lastMessageMap.has(msg.conversation_id)) {
+      lastMessageMap.set(msg.conversation_id, msg as Message);
+    }
+  }
+
   const convParticipantsMap = new Map<string, typeof profiles>();
   for (const p of allParticipants || []) {
-    if (p.user_id === userData.user.id) continue;
+    if (p.user_id === myUserId) continue;
     const list = convParticipantsMap.get(p.conversation_id) || [];
     const prof = profileMap.get(p.user_id);
     if (prof) list.push(prof);
     convParticipantsMap.set(p.conversation_id, list);
   }
+
+  const unreadEntries = await Promise.all(
+    conversations.map(async (conv) => {
+      let query = supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("conversation_id", conv.id)
+        .neq("sender_id", myUserId)
+        .is("deleted_at", null);
+
+      const lastReadAt = receiptMap.get(conv.id);
+      if (lastReadAt) {
+        query = query.gt("created_at", lastReadAt);
+      }
+
+      const { count, error } = await query;
+      if (error) throw new Error(error.message);
+      return [conv.id, count || 0] as const;
+    })
+  );
+  const unreadMap = new Map<string, number>(unreadEntries);
 
   const results: ConversationWithParticipant[] = [];
   for (const conv of conversations) {
@@ -112,43 +165,6 @@ export async function getConversations(): Promise<ConversationWithParticipant[]>
       avatar_url: null,
     };
 
-    const { data: lastMessages } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("conversation_id", conv.id)
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false })
-      .limit(1);
-
-    // Get read receipt
-    const { data: receipt } = await supabase
-      .from("read_receipts")
-      .select("last_read_at")
-      .eq("conversation_id", conv.id)
-      .eq("user_id", userData.user.id)
-      .maybeSingle();
-
-    // Count unread
-    let unreadCount = 0;
-    if (receipt?.last_read_at) {
-      const { count } = await supabase
-        .from("messages")
-        .select("id", { count: "exact", head: true })
-        .eq("conversation_id", conv.id)
-        .neq("sender_id", userData.user.id)
-        .is("deleted_at", null)
-        .gt("created_at", receipt.last_read_at);
-      unreadCount = count || 0;
-    } else {
-      const { count } = await supabase
-        .from("messages")
-        .select("id", { count: "exact", head: true })
-        .eq("conversation_id", conv.id)
-        .neq("sender_id", userData.user.id)
-        .is("deleted_at", null);
-      unreadCount = count || 0;
-    }
-
     results.push({
       conversation: {
         ...conv,
@@ -157,12 +173,39 @@ export async function getConversations(): Promise<ConversationWithParticipant[]>
       },
       otherUser: firstOther,
       participants,
-      lastMessage: lastMessages?.[0] || null,
-      unreadCount,
+      lastMessage: lastMessageMap.get(conv.id) || null,
+      unreadCount: unreadMap.get(conv.id) || 0,
     });
   }
 
   return results;
+}
+
+export async function getConversationParticipants(
+  conversationId: string
+): Promise<ConversationWithParticipant["participants"]> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return [];
+
+  const { data: participantRows, error: participantError } = await supabase
+    .from("conversation_participants")
+    .select("user_id")
+    .eq("conversation_id", conversationId)
+    .neq("user_id", userData.user.id);
+
+  if (participantError) throw new Error(participantError.message);
+
+  const participantIds = [...new Set((participantRows || []).map((row) => row.user_id))];
+  if (!participantIds.length) return [];
+
+  const { data: profiles, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, avatar_url")
+    .in("id", participantIds);
+
+  if (profileError) throw new Error(profileError.message);
+  return profiles || [];
 }
 
 export async function getOrCreateConversation(otherUserId: string): Promise<string> {
@@ -563,22 +606,28 @@ export async function deleteConversation(convId: string): Promise<void> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not logged in");
 
-  // Verify user is a participant
-  const { data: participant } = await supabase
-    .from("conversation_participants")
-    .select("user_id")
-    .eq("conversation_id", convId)
-    .eq("user_id", userData.user.id)
-    .single();
-  if (!participant) throw new Error("Not a participant of this conversation");
+  const { error: rpcError } = await supabase.rpc("delete_conversation_for_user", {
+    conv_id: convId,
+  });
 
-  // Delete messages, reactions, read_receipts, participants, then the conversation
-  await supabase.from("message_reactions").delete().in(
-    "message_id",
-    (await supabase.from("messages").select("id").eq("conversation_id", convId)).data?.map((m) => m.id) || []
-  );
-  await supabase.from("read_receipts").delete().eq("conversation_id", convId);
-  await supabase.from("messages").delete().eq("conversation_id", convId);
-  await supabase.from("conversation_participants").delete().eq("conversation_id", convId);
-  await supabase.from("conversations").delete().eq("id", convId);
+  if (!rpcError) return;
+
+  const missingRpc =
+    rpcError.code === "PGRST202" ||
+    /function\s+public\.delete_conversation_for_user\(conv_id\)|delete_conversation_for_user/i.test(rpcError.message);
+
+  if (!missingRpc) {
+    throw new Error(rpcError.message);
+  }
+
+  const { error: fallbackError } = await supabase
+    .from("conversations")
+    .delete()
+    .eq("id", convId);
+
+  if (fallbackError) {
+    throw new Error(
+      `Delete conversation failed. Run supabase-chat-delete-conversation.sql in Supabase SQL Editor. ${fallbackError.message}`
+    );
+  }
 }
