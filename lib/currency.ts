@@ -20,7 +20,19 @@ export type FamilyNode = {
   user_id: string;
   title: string;
   parent_user_id: string | null;
+  relation_type: string;
   updated_at: string;
+};
+
+export type CustomFamilyMember = {
+  id: string;
+  name: string;
+  title: string;
+  avatar_emoji: string;
+  parent_id: string | null;
+  relation_type: string;
+  created_by: string;
+  created_at: string;
 };
 
 export async function ensureBalance(): Promise<void> {
@@ -111,11 +123,18 @@ export async function getFamilyTree(): Promise<FamilyNode[]> {
   const supabase = createClient();
   const { data } = await supabase
     .from("family_tree")
-    .select("user_id, title, parent_user_id, updated_at");
-  return data || [];
+    .select("user_id, title, parent_user_id, relation_type, updated_at");
+  return (data || []).map((n: Record<string, unknown>) => ({
+    ...n,
+    relation_type: (n.relation_type as string) || "child",
+  })) as FamilyNode[];
 }
 
-export async function upsertFamilyNode(title: string, parentUserId: string | null): Promise<void> {
+export async function upsertFamilyNode(
+  title: string,
+  parentUserId: string | null,
+  relationType: string = "child"
+): Promise<void> {
   const supabase = createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not logged in");
@@ -125,8 +144,78 @@ export async function upsertFamilyNode(title: string, parentUserId: string | nul
       user_id: userData.user.id,
       title,
       parent_user_id: parentUserId || null,
+      relation_type: relationType,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
+  if (error) throw new Error(error.message);
+}
+
+/* ── Custom Family Members (non-user members) ── */
+
+export async function getCustomFamilyMembers(): Promise<CustomFamilyMember[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("custom_family_members")
+    .select("*")
+    .order("created_at", { ascending: true });
+  return (data || []) as CustomFamilyMember[];
+}
+
+export async function addCustomFamilyMember(
+  name: string,
+  title: string,
+  avatarEmoji: string,
+  parentId: string | null,
+  relationType: string
+): Promise<string> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not logged in");
+  if (!name.trim()) throw new Error("Name is required");
+  const { data, error } = await supabase
+    .from("custom_family_members")
+    .insert({
+      name: name.trim(),
+      title: title.trim() || "Member",
+      avatar_emoji: avatarEmoji || "👤",
+      parent_id: parentId || null,
+      relation_type: relationType || "child",
+      created_by: userData.user.id,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  return data.id;
+}
+
+export async function updateCustomFamilyMember(
+  id: string,
+  name: string,
+  title: string,
+  avatarEmoji: string,
+  parentId: string | null,
+  relationType: string
+): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("custom_family_members")
+    .update({
+      name: name.trim(),
+      title: title.trim() || "Member",
+      avatar_emoji: avatarEmoji || "👤",
+      parent_id: parentId || null,
+      relation_type: relationType || "child",
+    })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteCustomFamilyMember(id: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("custom_family_members")
+    .delete()
+    .eq("id", id);
   if (error) throw new Error(error.message);
 }
 
@@ -239,7 +328,7 @@ export type CustomBet = {
   title: string;
   description: string;
   amount: number;
-  status: "open" | "closed" | "resolved";
+  status: "open" | "closed" | "resolved" | "cancelled";
   outcome: string | null;
   created_at: string;
 };
@@ -365,7 +454,7 @@ export async function resolveBet(
     .single();
   if (!bet) throw new Error("Bet not found");
   if (bet.creator_id !== userData.user.id) throw new Error("Only the creator can resolve");
-  if (bet.status !== "open") throw new Error("Bet is already resolved");
+  if (bet.status !== "open" && bet.status !== "closed") throw new Error("Bet is already resolved");
 
   // Get all entries
   const { data: entries } = await supabase
@@ -422,4 +511,96 @@ export async function resolveBet(
   }
 
   await supabase.from("custom_bets").update({ status: "resolved", outcome: winningSide }).eq("id", betId);
+}
+
+/* ── Bet management (close, edit, cancel) ── */
+
+export async function closeBet(betId: string): Promise<void> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not logged in");
+  const { data: bet } = await supabase
+    .from("custom_bets")
+    .select("creator_id, status")
+    .eq("id", betId)
+    .single();
+  if (!bet) throw new Error("Bet not found");
+  if (bet.creator_id !== userData.user.id) throw new Error("Only the creator can close");
+  if (bet.status !== "open") throw new Error("Bet is not open");
+  const { error } = await supabase
+    .from("custom_bets")
+    .update({ status: "closed" })
+    .eq("id", betId);
+  if (error) throw new Error(error.message);
+}
+
+export async function editBet(
+  betId: string,
+  title: string,
+  description: string
+): Promise<void> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not logged in");
+  const { data: bet } = await supabase
+    .from("custom_bets")
+    .select("creator_id, status")
+    .eq("id", betId)
+    .single();
+  if (!bet) throw new Error("Bet not found");
+  if (bet.creator_id !== userData.user.id) throw new Error("Only the creator can edit");
+  if (bet.status !== "open" && bet.status !== "closed") throw new Error("Cannot edit resolved/cancelled bet");
+  if (!title.trim()) throw new Error("Title is required");
+  const { error } = await supabase
+    .from("custom_bets")
+    .update({ title: title.trim(), description: description.trim() })
+    .eq("id", betId);
+  if (error) throw new Error(error.message);
+}
+
+export async function cancelBet(betId: string): Promise<void> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not logged in");
+  const { data: bet } = await supabase
+    .from("custom_bets")
+    .select("creator_id, status, title")
+    .eq("id", betId)
+    .single();
+  if (!bet) throw new Error("Bet not found");
+  if (bet.creator_id !== userData.user.id) throw new Error("Only the creator can cancel");
+  if (bet.status === "resolved" || bet.status === "cancelled") throw new Error("Bet is already " + bet.status);
+
+  // Refund all entries
+  const { data: entries } = await supabase
+    .from("bet_entries")
+    .select("user_id, amount")
+    .eq("bet_id", betId);
+  if (entries && entries.length > 0) {
+    for (const entry of entries) {
+      const { data: balData } = await supabase
+        .from("user_currency")
+        .select("balance")
+        .eq("user_id", entry.user_id)
+        .single();
+      const bal = balData?.balance ?? 0;
+      await supabase
+        .from("user_currency")
+        .update({ balance: bal + entry.amount, updated_at: new Date().toISOString() })
+        .eq("user_id", entry.user_id);
+      await supabase.from("currency_transactions").insert({
+        from_user_id: null,
+        to_user_id: entry.user_id,
+        amount: entry.amount,
+        type: "game_win",
+        note: `Refund: bet "${bet.title}" cancelled`,
+      });
+    }
+  }
+
+  const { error } = await supabase
+    .from("custom_bets")
+    .update({ status: "cancelled" })
+    .eq("id", betId);
+  if (error) throw new Error(error.message);
 }

@@ -39,7 +39,7 @@ export default function DmsPage() {
   const [presence, setPresence] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
-  const loadConvs = useCallback(async () => {
+  const loadConvs = async () => {
     try {
       const all = await getConversations();
       const dmConvs = all.filter((c) => !c.conversation.is_group);
@@ -53,9 +53,29 @@ export default function DmsPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load");
     }
-  }, []);
+  };
 
-  useEffect(() => { loadConvs(); }, [loadConvs]);
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const all = await getConversations();
+        if (!active) return;
+        const dmConvs = all.filter((c) => !c.conversation.is_group);
+        setConversations(dmConvs);
+        const userIds = dmConvs.map((c) => c.otherUser.id).filter(Boolean);
+        if (userIds.length) {
+          const pres = await getUserPresence(userIds);
+          if (!active) return;
+          setPresence(pres);
+        }
+      } catch (err) {
+        if (!active) return;
+        setError(err instanceof Error ? err.message : "Failed to load");
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
   const activeConv = conversations.find((c) => c.conversation.id === activeConvId);
 

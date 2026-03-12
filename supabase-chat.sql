@@ -432,3 +432,87 @@ begin
     alter publication supabase_realtime add table read_receipts;
   end if;
 end $$;
+
+-- ── Custom family members (non-user nodes) ─────────────────────────────────
+
+create table if not exists custom_family_members (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  title text not null default 'Member',
+  avatar_emoji text not null default '👤',
+  parent_id text, -- user_id (uuid) or custom member id (uuid)
+  relation_type text not null default 'child', -- child, sibling, spouse, friend, pet, cousin, mentor, custom
+  created_by uuid references auth.users(id) on delete cascade not null,
+  created_at timestamptz default now() not null
+);
+
+alter table custom_family_members enable row level security;
+
+drop policy if exists "Authenticated can view custom members" on custom_family_members;
+create policy "Authenticated can view custom members"
+  on custom_family_members for select using (auth.uid() is not null);
+
+drop policy if exists "Users can add custom members" on custom_family_members;
+create policy "Users can add custom members"
+  on custom_family_members for insert with check (created_by = auth.uid());
+
+drop policy if exists "Users can update own custom members" on custom_family_members;
+create policy "Users can update own custom members"
+  on custom_family_members for update using (created_by = auth.uid());
+
+drop policy if exists "Users can delete own custom members" on custom_family_members;
+create policy "Users can delete own custom members"
+  on custom_family_members for delete using (created_by = auth.uid());
+
+-- Add relation_type to family_tree if not exists
+alter table family_tree add column if not exists relation_type text not null default 'child';
+
+-- ── Custom bets ──────────────────────────────────────────────────────────────
+
+create table if not exists custom_bets (
+  id uuid default gen_random_uuid() primary key,
+  creator_id uuid references auth.users(id) on delete cascade not null,
+  title text not null,
+  description text default '' not null,
+  amount integer not null default 50 check (amount > 0),
+  status text not null default 'open' check (status in ('open', 'closed', 'resolved', 'cancelled')),
+  outcome text,
+  created_at timestamptz default now() not null
+);
+
+create table if not exists bet_entries (
+  id uuid default gen_random_uuid() primary key,
+  bet_id uuid references custom_bets(id) on delete cascade not null,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  side text not null check (side in ('for', 'against')),
+  amount integer not null check (amount > 0),
+  created_at timestamptz default now() not null,
+  unique(bet_id, user_id)
+);
+
+alter table custom_bets enable row level security;
+alter table bet_entries enable row level security;
+
+drop policy if exists "Authenticated can view bets" on custom_bets;
+create policy "Authenticated can view bets"
+  on custom_bets for select using (auth.uid() is not null);
+
+drop policy if exists "Users can create bets" on custom_bets;
+create policy "Users can create bets"
+  on custom_bets for insert with check (creator_id = auth.uid());
+
+drop policy if exists "Creators can update own bets" on custom_bets;
+create policy "Creators can update own bets"
+  on custom_bets for update using (creator_id = auth.uid());
+
+drop policy if exists "Authenticated can view bet entries" on bet_entries;
+create policy "Authenticated can view bet entries"
+  on bet_entries for select using (auth.uid() is not null);
+
+drop policy if exists "Users can insert bet entries" on bet_entries;
+create policy "Users can insert bet entries"
+  on bet_entries for insert with check (user_id = auth.uid());
+
+drop policy if exists "Users can delete own bet entries" on bet_entries;
+create policy "Users can delete own bet entries"
+  on bet_entries for delete using (user_id = auth.uid());

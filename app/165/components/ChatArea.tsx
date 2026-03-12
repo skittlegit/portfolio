@@ -15,6 +15,8 @@ import {
   Forward,
   Check,
   CheckCheck,
+  UserPlus,
+  UserMinus,
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
@@ -32,6 +34,9 @@ import {
   getReadReceipts,
   getConversations,
   forwardMessage,
+  followUser,
+  unfollowUser,
+  getFollowData,
   type Message,
   type Reaction,
   type ConversationWithParticipant,
@@ -123,13 +128,20 @@ export default function ChatArea({
   const [forwardConvs, setForwardConvs] = useState<ConversationWithParticipant[]>([]);
   const [forwarding, setForwarding] = useState(false);
 
+  // Follow state for group panel
+  const [followStatus, setFollowStatus] = useState<Record<string, { followers: number; following: number; isFollowing: boolean }>>({});
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const messagesRef = useRef<Message[]>([]);
   const supabase = useRef(createClient()).current;
+
+  // Keep ref in sync
+  messagesRef.current = messages;
 
   // Load messages
   useEffect(() => {
@@ -163,13 +175,14 @@ export default function ChatArea({
         })
       .on("postgres_changes", { event: "*", schema: "public", table: "message_reactions" },
         async () => {
-          if (!messages.length) return;
-          const ids = messages.map((m) => m.id);
+          const currentMsgs = messagesRef.current;
+          if (!currentMsgs.length) return;
+          const ids = currentMsgs.map((m) => m.id);
           if (ids.length) setReactions(await getReactions(ids));
         })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [convId, supabase, messages.length]);
+  }, [convId, supabase]);
 
   // Typing indicator channel (broadcast)
   useEffect(() => {
@@ -199,6 +212,19 @@ export default function ChatArea({
     return () => { supabase.removeChannel(ch); };
   }, [convId, isGroup, supabase]);
 
+  // Load follow data for group panel participants
+  useEffect(() => {
+    if (!isGroup || !showGroupPanel || !participants.length) return;
+    const loadFollows = async () => {
+      const results: Record<string, { followers: number; following: number; isFollowing: boolean }> = {};
+      await Promise.all(participants.filter(p => p.id !== user?.id).map(async (p) => {
+        results[p.id] = await getFollowData(p.id);
+      }));
+      setFollowStatus(results);
+    };
+    loadFollows();
+  }, [isGroup, showGroupPanel, participants, user?.id]);
+
   const broadcastTyping = useCallback(() => {
     if (typingTimeout.current) return;
     typingChannelRef.current?.send({
@@ -208,6 +234,20 @@ export default function ChatArea({
     });
     typingTimeout.current = setTimeout(() => { typingTimeout.current = null; }, 2000);
   }, [user?.id]);
+
+  const handleFollowToggle = async (pid: string) => {
+    const current = followStatus[pid];
+    if (!current) return;
+    try {
+      if (current.isFollowing) {
+        await unfollowUser(pid);
+      } else {
+        await followUser(pid);
+      }
+      const updated = await getFollowData(pid);
+      setFollowStatus(prev => ({ ...prev, [pid]: updated }));
+    } catch { /* ignore */ }
+  };
 
   const getName = (userId: string) => {
     if (userId === user?.id) return profile?.display_name || profile?.username || "You";
@@ -513,21 +553,41 @@ export default function ChatArea({
             <button onClick={onToggleGroupPanel} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, lineHeight: 0, color: fgMuted }}><X size={14} /></button>
           </div>
           <div style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
-            {participants.map((p) => (
-              <button key={p.id} onClick={() => onOpenProfile(p)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", background: "none", border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = bgHover)}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-              >
-                {p.avatar_url
-                  ? <img src={p.avatar_url} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-                  : <div style={{ width: 30, height: 30, borderRadius: "50%", backgroundColor: bgSubtle, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><User size={13} strokeWidth={1} style={{ color: fgMuted }} /></div>
-                }
-                <div style={{ minWidth: 0 }}>
-                  <p className="text-sm truncate" style={{ color: p.id === user?.id ? fgMuted : fg }}>{p.display_name || p.username || "User"}{p.id === user?.id ? " (you)" : ""}</p>
-                  {p.username && <p className="text-xs" style={{ color: fgMuted }}>@{p.username}</p>}
+            {participants.map((p) => {
+              const isMe = p.id === user?.id;
+              const fd = followStatus[p.id];
+              return (
+                <div key={p.id} style={{ padding: "8px 14px", borderBottom: `1px solid ${borderSubtle}` }}>
+                  <button onClick={() => onOpenProfile(p)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", padding: 0 }}
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                  >
+                    {p.avatar_url
+                      ? <img src={p.avatar_url} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                      : <div style={{ width: 30, height: 30, borderRadius: "50%", backgroundColor: bgSubtle, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><User size={13} strokeWidth={1} style={{ color: fgMuted }} /></div>
+                    }
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <p className="text-sm truncate" style={{ color: isMe ? fgMuted : fg }}>{p.display_name || p.username || "User"}{isMe ? " (you)" : ""}</p>
+                      {fd && !isMe && <p className="text-xs" style={{ color: fgMuted }}>{fd.followers} follower{fd.followers !== 1 ? "s" : ""}</p>}
+                    </div>
+                  </button>
+                  {!isMe && fd && (
+                    <button
+                      onClick={() => handleFollowToggle(p.id)}
+                      style={{
+                        marginTop: 6, width: "100%", padding: "5px 8px", borderRadius: 6, fontSize: 11, fontFamily: "inherit",
+                        border: fd.isFollowing ? `1px solid ${borderSubtle}` : "none",
+                        backgroundColor: fd.isFollowing ? "transparent" : fg,
+                        color: fd.isFollowing ? fgMuted : isDark ? "#000" : "#fff",
+                        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                      }}
+                    >
+                      {fd.isFollowing ? <><UserMinus size={11} /> Unfollow</> : <><UserPlus size={11} /> Follow</>}
+                    </button>
+                  )}
                 </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

@@ -14,12 +14,15 @@ import {
   createCustomBet,
   joinBet,
   resolveBet,
+  closeBet,
+  editBet,
+  cancelBet,
   type CurrencyTransaction,
   type CustomBet,
   type BetEntry,
 } from "@/lib/currency";
 import { getWhitelistedUsers } from "@/lib/chat";
-import { Plus, Dice1, Hash, Users, ChevronDown, X } from "lucide-react";
+import { Plus, Dice1, Hash, Users, ChevronDown, X, Pencil, Ban, Lock } from "lucide-react";
 
 type GameTab = "coin" | "dice" | "guess" | "bets";
 
@@ -70,6 +73,11 @@ export default function GamePage() {
   const [joiningSide, setJoiningSide] = useState<Record<string, "for" | "against">>({});
   const [joiningAmount, setJoiningAmount] = useState<Record<string, number>>({});
   const [expandedBet, setExpandedBet] = useState<string | null>(null);
+
+  // Edit bet state
+  const [editingBet, setEditingBet] = useState<CustomBet | null>(null);
+  const [editBetTitle, setEditBetTitle] = useState("");
+  const [editBetDesc, setEditBetDesc] = useState("");
 
   const maxBet = Math.min(balance ?? 0, 200);
 
@@ -188,6 +196,32 @@ export default function GamePage() {
       await resolveBet(betId, side);
       loadBets(); loadData();
     } catch (err) { setError(err instanceof Error ? err.message : "Failed to resolve bet"); }
+  };
+
+  const handleCloseBet = async (betId: string) => {
+    setError(null);
+    try {
+      await closeBet(betId);
+      loadBets();
+    } catch (err) { setError(err instanceof Error ? err.message : "Failed to close bet"); }
+  };
+
+  const handleEditBet = async () => {
+    if (!editingBet) return;
+    setError(null);
+    try {
+      await editBet(editingBet.id, editBetTitle, editBetDesc);
+      setEditingBet(null);
+      loadBets();
+    } catch (err) { setError(err instanceof Error ? err.message : "Failed to edit bet"); }
+  };
+
+  const handleCancelBet = async (betId: string) => {
+    setError(null);
+    try {
+      await cancelBet(betId);
+      loadBets(); loadData();
+    } catch (err) { setError(err instanceof Error ? err.message : "Failed to cancel bet"); }
   };
 
   const payoutMultipliers: Record<number, number> = {
@@ -498,6 +532,17 @@ export default function GamePage() {
                 const alreadyJoined = entries.some((e) => e.user_id === user?.id);
                 const isExpanded = expandedBet === bet.id;
                 const isOpen = bet.status === "open";
+                const isClosed = bet.status === "closed";
+                const isCancelled = bet.status === "cancelled";
+                const isResolved = bet.status === "resolved";
+                const canJoin = isOpen && !alreadyJoined && !isCreator;
+
+                const statusColor = isOpen ? "#22c55e" : isCancelled ? "#f59e0b" : isResolved ? "#3b82f6" : fgMuted;
+                const statusBg = isOpen ? (isDark ? "rgba(34,197,94,0.12)" : "rgba(34,197,94,0.08)")
+                  : isCancelled ? (isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.08)")
+                  : isResolved ? (isDark ? "rgba(59,130,246,0.12)" : "rgba(59,130,246,0.08)")
+                  : (isDark ? "rgba(161,161,170,0.12)" : "rgba(0,0,0,0.06)");
+                const statusLabel = isOpen ? "Open" : isClosed ? "Closed" : isCancelled ? "Cancelled" : bet.outcome ? `${bet.outcome} won` : "Resolved";
 
                 return (
                   <div key={bet.id} className="s165-card" style={{ padding: 0, overflow: "hidden" }}>
@@ -517,10 +562,10 @@ export default function GamePage() {
                           </p>
                           <span style={{
                             fontSize: 10, padding: "2px 6px", borderRadius: 6, fontWeight: 500, flexShrink: 0,
-                            backgroundColor: isOpen ? (isDark ? "rgba(34,197,94,0.12)" : "rgba(34,197,94,0.08)") : (isDark ? "rgba(161,161,170,0.12)" : "rgba(0,0,0,0.06)"),
-                            color: isOpen ? "#22c55e" : fgMuted,
+                            backgroundColor: statusBg,
+                            color: statusColor,
                           }}>
-                            {isOpen ? "Open" : bet.outcome ? `${bet.outcome} won` : "Closed"}
+                            {statusLabel}
                           </span>
                         </div>
                         <p className="text-xs" style={{ color: fgMuted }}>
@@ -571,7 +616,7 @@ export default function GamePage() {
                         )}
 
                         {/* Join controls */}
-                        {isOpen && !alreadyJoined && !isCreator && (
+                        {canJoin && (
                           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                             <div style={{ display: "flex", gap: 4 }}>
                               {(["for", "against"] as const).map((s) => (
@@ -605,24 +650,64 @@ export default function GamePage() {
                           <p className="text-xs" style={{ color: fgMuted, fontStyle: "italic" }}>You&apos;ve already joined this bet.</p>
                         )}
 
-                        {/* Resolve controls (creator only) */}
-                        {isCreator && isOpen && entries.length > 0 && (
+                        {isCancelled && (
+                          <p className="text-xs" style={{ color: "#f59e0b", fontStyle: "italic", marginTop: 8 }}>This bet was cancelled. All entries were refunded.</p>
+                        )}
+
+                        {/* Creator controls */}
+                        {isCreator && (isOpen || isClosed) && (
                           <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${borderSubtle}` }}>
-                            <p className="text-xs mb-2 font-medium" style={{ color: fgMuted }}>Resolve (creator only)</p>
-                            <div style={{ display: "flex", gap: 8 }}>
-                              <button onClick={() => handleResolveBet(bet.id, "for")} style={{
-                                flex: 1, padding: "8px", borderRadius: 8, fontSize: 13, fontFamily: "inherit", cursor: "pointer",
-                                border: "1px solid rgba(34,197,94,0.3)", backgroundColor: "rgba(34,197,94,0.08)", color: "#22c55e",
-                              }}>
-                                &quot;For&quot; wins
+                            <p className="text-xs mb-2 font-medium" style={{ color: fgMuted }}>Manage bet</p>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: entries.length > 0 ? 10 : 0 }}>
+                              <button
+                                onClick={() => { setEditingBet(bet); setEditBetTitle(bet.title); setEditBetDesc(bet.description); }}
+                                className="s165-btn-ghost"
+                                style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", fontSize: 12 }}
+                              >
+                                <Pencil size={12} /> Edit
                               </button>
-                              <button onClick={() => handleResolveBet(bet.id, "against")} style={{
-                                flex: 1, padding: "8px", borderRadius: 8, fontSize: 13, fontFamily: "inherit", cursor: "pointer",
-                                border: "1px solid rgba(239,68,68,0.3)", backgroundColor: "rgba(239,68,68,0.08)", color: "#ef4444",
-                              }}>
-                                &quot;Against&quot; wins
+                              {isOpen && (
+                                <button
+                                  onClick={() => handleCloseBet(bet.id)}
+                                  className="s165-btn-ghost"
+                                  style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", fontSize: 12 }}
+                                >
+                                  <Lock size={12} /> Close entries
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleCancelBet(bet.id)}
+                                style={{
+                                  display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", fontSize: 12,
+                                  borderRadius: 8, fontFamily: "inherit", cursor: "pointer",
+                                  border: "1px solid rgba(245,158,11,0.3)", backgroundColor: "rgba(245,158,11,0.06)",
+                                  color: "#f59e0b",
+                                }}
+                              >
+                                <Ban size={12} /> Cancel & refund
                               </button>
                             </div>
+
+                            {/* Resolve controls */}
+                            {entries.length > 0 && (
+                              <div>
+                                <p className="text-xs mb-2 font-medium" style={{ color: fgMuted }}>Resolve</p>
+                                <div style={{ display: "flex", gap: 8 }}>
+                                  <button onClick={() => handleResolveBet(bet.id, "for")} style={{
+                                    flex: 1, padding: "8px", borderRadius: 8, fontSize: 13, fontFamily: "inherit", cursor: "pointer",
+                                    border: "1px solid rgba(34,197,94,0.3)", backgroundColor: "rgba(34,197,94,0.08)", color: "#22c55e",
+                                  }}>
+                                    &quot;For&quot; wins
+                                  </button>
+                                  <button onClick={() => handleResolveBet(bet.id, "against")} style={{
+                                    flex: 1, padding: "8px", borderRadius: 8, fontSize: 13, fontFamily: "inherit", cursor: "pointer",
+                                    border: "1px solid rgba(239,68,68,0.3)", backgroundColor: "rgba(239,68,68,0.08)", color: "#ef4444",
+                                  }}>
+                                    &quot;Against&quot; wins
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -630,6 +715,39 @@ export default function GamePage() {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Edit bet modal */}
+          {editingBet && (
+            <div className="s165-modal-backdrop" onClick={() => setEditingBet(null)}>
+              <div className="s165-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440, width: "92vw" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                  <h3 className="text-base font-medium" style={{ color: fg }}>Edit Bet</h3>
+                  <button onClick={() => setEditingBet(null)} style={{ background: "none", border: "none", cursor: "pointer", color: fgMuted, padding: 4 }}><X size={18} /></button>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <input
+                    className="tool-input"
+                    placeholder="Bet title"
+                    value={editBetTitle}
+                    onChange={(e) => setEditBetTitle(e.target.value)}
+                    maxLength={100}
+                  />
+                  <textarea
+                    className="tool-input"
+                    placeholder="Description / rules"
+                    value={editBetDesc}
+                    onChange={(e) => setEditBetDesc(e.target.value)}
+                    rows={3}
+                    style={{ resize: "vertical" }}
+                    maxLength={500}
+                  />
+                  <button onClick={handleEditBet} className="s165-btn-primary" style={{ padding: "12px", fontSize: 14 }}>
+                    Save Changes
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

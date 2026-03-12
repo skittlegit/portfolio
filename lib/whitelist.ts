@@ -22,6 +22,10 @@ export const WHITELIST = {
     "swagboysugas",
     "pilidium",
     "nishpish",
+    "sushan",
+    "ankita",
+    "satya",
+    "myraid",
     // Add whitelisted usernames here
   ] as string[],
 };
