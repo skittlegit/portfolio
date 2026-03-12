@@ -2,14 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useTheme } from "../../context/ThemeContext";
-import { useAuth } from "../../context/AuthContext";
 import { getMyBalance, getMyTransactions, playCoinFlip, type CurrencyTransaction } from "@/lib/currency";
 
 type FlipResult = { result: string; won: boolean; bet: number; new_balance: number };
 
 export default function GamePage() {
   const { fg, fgMuted, isDark } = useTheme();
-  const { profile } = useAuth();
 
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
   const bgSubtle = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";

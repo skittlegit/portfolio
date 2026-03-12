@@ -376,3 +376,59 @@ create policy "Users can insert own family node"
 drop policy if exists "Users can update own family node" on family_tree;
 create policy "Users can update own family node"
   on family_tree for update using (user_id = auth.uid());
+
+-- ── Follow system ─────────────────────────────────────────────────────────────
+
+create table if not exists user_follows (
+  follower_id uuid references auth.users(id) on delete cascade not null,
+  following_id uuid references auth.users(id) on delete cascade not null,
+  created_at timestamptz default now() not null,
+  primary key (follower_id, following_id),
+  check (follower_id != following_id)
+);
+
+alter table user_follows enable row level security;
+
+drop policy if exists "Authenticated can view follows" on user_follows;
+create policy "Authenticated can view follows"
+  on user_follows for select using (auth.uid() is not null);
+
+drop policy if exists "Users can follow" on user_follows;
+create policy "Users can follow"
+  on user_follows for insert with check (follower_id = auth.uid());
+
+drop policy if exists "Users can unfollow" on user_follows;
+create policy "Users can unfollow"
+  on user_follows for delete using (follower_id = auth.uid());
+
+-- ── User presence ─────────────────────────────────────────────────────────────
+
+create table if not exists user_presence (
+  user_id uuid references auth.users(id) on delete cascade primary key,
+  last_seen timestamptz default now() not null
+);
+
+alter table user_presence enable row level security;
+
+drop policy if exists "Authenticated can view presence" on user_presence;
+create policy "Authenticated can view presence"
+  on user_presence for select using (auth.uid() is not null);
+
+drop policy if exists "Users can upsert own presence" on user_presence;
+create policy "Users can upsert own presence"
+  on user_presence for insert with check (user_id = auth.uid());
+
+drop policy if exists "Users can update own presence" on user_presence;
+create policy "Users can update own presence"
+  on user_presence for update using (user_id = auth.uid());
+
+-- Realtime for read_receipts
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'read_receipts'
+  ) then
+    alter publication supabase_realtime add table read_receipts;
+  end if;
+end $$;

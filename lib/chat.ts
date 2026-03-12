@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { WHITELIST } from "@/lib/whitelist";
 
 export type Conversation = {
   id: string;
@@ -380,8 +381,8 @@ export async function getWhitelistedUsers() {
   const supabase = createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, username, display_name, avatar_url");
-
+    .select("id, username, display_name, avatar_url")
+    .in("username", WHITELIST.usernames);
   return data || [];
 }
 
@@ -413,4 +414,121 @@ export async function uploadChatFile(file: File): Promise<string> {
     .getPublicUrl(path);
 
   return urlData.publicUrl;
+}
+
+// ── Follow system ──────────────────────────────────────────────────────────
+
+export async function followUser(userId: string): Promise<void> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not logged in");
+  const { error } = await supabase.from("user_follows").insert({
+    follower_id: userData.user.id,
+    following_id: userId,
+  });
+  if (error && error.code !== "23505") throw new Error(error.message);
+}
+
+export async function unfollowUser(userId: string): Promise<void> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not logged in");
+  await supabase.from("user_follows").delete()
+    .eq("follower_id", userData.user.id)
+    .eq("following_id", userId);
+}
+
+export async function getFollowData(userId: string): Promise<{
+  followers: number;
+  following: number;
+  isFollowing: boolean;
+}> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const [{ count: followers }, { count: following }, followCheck] = await Promise.all([
+    supabase.from("user_follows").select("*", { count: "exact", head: true }).eq("following_id", userId),
+    supabase.from("user_follows").select("*", { count: "exact", head: true }).eq("follower_id", userId),
+    userData.user
+      ? supabase.from("user_follows").select("follower_id").eq("follower_id", userData.user.id).eq("following_id", userId).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+  return {
+    followers: followers || 0,
+    following: following || 0,
+    isFollowing: !!followCheck.data,
+  };
+}
+
+// ── Presence ──────────────────────────────────────────────────────────────
+
+export async function updatePresence(): Promise<void> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return;
+  await supabase.from("user_presence").upsert({
+    user_id: userData.user.id,
+    last_seen: new Date().toISOString(),
+  }, { onConflict: "user_id" });
+}
+
+export async function getUserPresence(userIds: string[]): Promise<Record<string, string>> {
+  if (!userIds.length) return {};
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("user_presence")
+    .select("user_id, last_seen")
+    .in("user_id", userIds);
+  const map: Record<string, string> = {};
+  for (const row of data || []) map[row.user_id] = row.last_seen;
+  return map;
+}
+
+// ── Read receipts (detailed) ──────────────────────────────────────────────
+
+export async function getReadReceipts(convId: string): Promise<Record<string, string>> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("read_receipts")
+    .select("user_id, last_read_at")
+    .eq("conversation_id", convId);
+  const map: Record<string, string> = {};
+  for (const row of data || []) map[row.user_id] = row.last_read_at;
+  return map;
+}
+
+// ── Sync whitelist users into group ──────────────────────────────────────
+
+export async function syncGroupMembers(convId: string): Promise<void> {
+  const supabase = createClient();
+  const users = await getWhitelistedUsers();
+  const { data: existing } = await supabase
+    .from("conversation_participants")
+    .select("user_id")
+    .eq("conversation_id", convId);
+  const existingIds = new Set((existing || []).map(p => p.user_id));
+  const missing = users.filter(u => !existingIds.has(u.id));
+  if (missing.length > 0) {
+    await supabase.from("conversation_participants").insert(
+      missing.map(u => ({ conversation_id: convId, user_id: u.id }))
+    );
+  }
+}
+
+// ── Forward message ──────────────────────────────────────────────────────
+
+export async function forwardMessage(
+  messageId: string,
+  targetConvId: string
+): Promise<void> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not logged in");
+  const { data: origMsg } = await supabase
+    .from("messages")
+    .select("content, image_url")
+    .eq("id", messageId)
+    .single();
+  if (!origMsg) throw new Error("Message not found");
+  const content = origMsg.content?.trim() ? `↪ ${origMsg.content}` : " ";
+  await sendMessage(targetConvId, content, undefined, origMsg.image_url || undefined);
 }

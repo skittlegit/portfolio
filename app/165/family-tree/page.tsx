@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -28,32 +29,6 @@ const SIBLING_GAP = 150;
 function calcSubtreeWidth(node: TreeNode): number {
   if (!node.children.length) return 1;
   return node.children.reduce((s, c) => s + calcSubtreeWidth(c), 0);
-}
-
-function layoutNodes(
-  roots: TreeNode[],
-): (TreeNode & { px: number; py: number })[] {
-  const result: (TreeNode & { px: number; py: number })[] = [];
-  let col = 0;
-
-  function place(node: TreeNode, depth: number) {
-    const w = calcSubtreeWidth(node);
-    const center = (col + col + w - 1) / 2;
-    result.push({ ...node, px: center * SIBLING_GAP + SIBLING_GAP / 2, py: depth * LEVEL_GAP + 20 });
-    const childStart = col;
-    for (const child of node.children) {
-      place(child, depth + 1);
-    }
-    col += w;
-  }
-
-  for (const root of roots) {
-    place(root, 0);
-    col += calcSubtreeWidth(root) - calcSubtreeWidth(root) + calcSubtreeWidth(root);
-    col = result.filter(n => !roots.some(r => r.id !== root.id || result.findIndex(x => x.id === root.id) < result.findIndex(x => x.id === n.id))).length;
-  }
-
-  return result;
 }
 
 function buildTree(profiles: Profile[], nodes: FamilyNode[]): { layouted: (TreeNode & { px: number; py: number })[]; svgW: number; svgH: number } {
@@ -103,7 +78,6 @@ export default function FamilyTreePage() {
 
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
   const bgSubtle = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
-  const bgHover = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
 
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [fnodes, setFnodes] = useState<FamilyNode[]>([]);

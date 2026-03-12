@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { MessageSquare, MessageCircle, TreePine, Gamepad2, Coins } from "lucide-react";
@@ -8,6 +8,7 @@ import ToolLayout from "../components/ToolLayout";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { isWhitelisted } from "@/lib/whitelist";
+import { updatePresence } from "@/lib/chat";
 
 const NAV = [
   { href: "/165", label: "Home", exact: true },
@@ -23,17 +24,28 @@ export default function Layout165({ children }: { children: React.ReactNode }) {
   const { user, profile, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [authorized, setAuthorized] = useState(false);
 
+  const authorized = useMemo(() => {
+    if (loading || !user) return false;
+    return isWhitelisted(user.email, profile?.username);
+  }, [loading, user, profile]);
+
+  // Redirect if not authorized
   useEffect(() => {
     if (loading) return;
     if (!user) { router.replace("/login?next=/165"); return; }
-    if (isWhitelisted(user.email, profile?.username)) {
-      setAuthorized(true);
-    } else {
+    if (!isWhitelisted(user.email, profile?.username)) {
       router.replace("/");
     }
   }, [loading, user, profile, router]);
+
+  // Update presence every 30s
+  useEffect(() => {
+    if (!authorized) return;
+    updatePresence();
+    const interval = setInterval(() => updatePresence(), 30000);
+    return () => clearInterval(interval);
+  }, [authorized]);
 
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
 
@@ -52,7 +64,8 @@ export default function Layout165({ children }: { children: React.ReactNode }) {
           display: "flex",
           gap: 2,
           marginBottom: 16,
-          flexWrap: "wrap",
+          overflowX: "auto",
+          WebkitOverflowScrolling: "touch",
           borderBottom: `1px solid ${borderSubtle}`,
           paddingBottom: 10,
         }}
@@ -74,6 +87,8 @@ export default function Layout165({ children }: { children: React.ReactNode }) {
                   : "transparent",
                 fontWeight: active ? 500 : 400,
                 transition: "all 0.15s",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
               }}
             >
               {item.label}

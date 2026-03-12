@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useTheme } from "../../context/ThemeContext";
-import { getMyBalance, getAllBalances, getMyTransactions, getAllTransactions, transferCurrency, type UserBalance, type CurrencyTransaction } from "@/lib/currency";
+import { getAllBalances, getAllTransactions, transferCurrency, type UserBalance, type CurrencyTransaction } from "@/lib/currency";
 import { getWhitelistedUsers } from "@/lib/chat";
 
 type Profile = { id: string; display_name: string | null; username: string | null; avatar_url: string | null };
@@ -97,7 +97,7 @@ export default function CurrencyPage() {
         <div style={{ fontSize: 36 }}>💰</div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {/* Leaderboard */}
         <div>
           <h3 className="text-sm font-medium mb-3" style={{ color: fgMuted }}>Standings</h3>
@@ -205,7 +205,7 @@ export default function CurrencyPage() {
           {transactions.length > 0 && (
             <div>
               <h3 className="text-sm font-medium mb-3" style={{ color: fgMuted }}>Recent Transfers</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 5, maxHeight: 320, overflowY: "auto" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 {transactions.filter((t) => t.type === "transfer").map((t) => {
                   const isIncoming = t.to_user_id === myId;
                   const isOutgoing = t.from_user_id === myId;
