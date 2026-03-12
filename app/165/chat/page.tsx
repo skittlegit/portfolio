@@ -78,7 +78,7 @@ export default function GroupChatPage() {
   if (!convId) return null;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100dvh - 200px)", minHeight: 300 }}>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
       {/* Header */}
       <div style={{ padding: "10px 16px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", gap: 10, flexShrink: 0, backgroundColor: isDark ? "#1F2C34" : "#F0F2F5" }}>
         <div className="s165-avatar-placeholder" style={{ width: 32, height: 32, fontSize: 16, flexShrink: 0 }}>

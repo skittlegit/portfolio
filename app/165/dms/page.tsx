@@ -117,7 +117,7 @@ export default function DmsPage() {
   }, [presence]);
 
   return (
-    <div style={{ display: "flex", height: "calc(100dvh - 230px)", minHeight: 400, border: `1px solid ${borderSubtle}`, borderRadius: 12, overflow: "hidden", position: "relative" }}>
+    <div style={{ display: "flex", flex: 1, minHeight: 0, border: `1px solid ${borderSubtle}`, borderRadius: 12, overflow: "hidden", position: "relative" }}>
 
       {/* Sidebar */}
       <div
@@ -234,7 +234,7 @@ export default function DmsPage() {
               showGroupPanel={false}
               onToggleGroupPanel={() => {}}
               onOpenProfile={setViewingProfile}
-              heightOffset={290}
+              heightOffset={0}
             />
           </>
         )}
