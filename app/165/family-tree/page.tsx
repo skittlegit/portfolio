@@ -352,31 +352,23 @@ export default function FamilyTreePage() {
           <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
             <button
               onClick={() => setShowAddMember(true)}
+              className="s165-btn-ghost"
               style={{
                 display: "flex", alignItems: "center", gap: 6,
-                padding: "7px 14px", borderRadius: 8,
-                border: `1px solid ${borderSubtle}`,
-                background: "none", fontSize: 13, color: fg,
-                fontFamily: "inherit", transition: "all 0.15s",
+                padding: "8px 14px", fontSize: 13,
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = bgHover)}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
             >
               <Plus size={13} />
               Add Member
             </button>
             <button
               onClick={() => startEdit()}
+              className="s165-btn-ghost"
               style={{
                 display: "flex", alignItems: "center", gap: 6,
-                padding: "7px 14px", borderRadius: 8,
-                border: `1px solid ${borderSubtle}`,
-                background: "none", fontSize: 13, color: fg,
-                fontFamily: "inherit", transition: "all 0.15s",
+                padding: "8px 14px", fontSize: 13,
                 flexShrink: 0,
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = bgHover)}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
             >
               <Pencil size={13} />
               Edit my node
@@ -390,7 +382,7 @@ export default function FamilyTreePage() {
         <div style={{
           padding: "16px 20px",
           border: `1px solid ${borderSubtle}`,
-          borderRadius: 12,
+          borderRadius: 16,
           marginBottom: 16,
           backgroundColor: bgSubtle,
           animation: "fadeIn 0.15s ease",
@@ -525,13 +517,8 @@ export default function FamilyTreePage() {
                     <button
                       key={r.value}
                       onClick={() => setNewMemberRelation(r.value)}
-                      style={{
-                        padding: "6px 10px", borderRadius: 8, fontSize: 12, fontFamily: "inherit",
-                        cursor: "pointer",
-                        border: `1px solid ${newMemberRelation === r.value ? fg : borderSubtle}`,
-                        backgroundColor: newMemberRelation === r.value ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)") : "transparent",
-                        color: newMemberRelation === r.value ? fg : fgMuted,
-                      }}
+                      className={`s165-option-btn${newMemberRelation === r.value ? " active" : ""}`}
+                      style={{ padding: "6px 10px", fontSize: 12 }}
                     >
                       {r.emoji} {r.label}
                     </button>
@@ -586,13 +573,8 @@ export default function FamilyTreePage() {
                     <button
                       key={r.value}
                       onClick={() => setEditingCustom({ ...editingCustom, relation_type: r.value })}
-                      style={{
-                        padding: "6px 10px", borderRadius: 8, fontSize: 12, fontFamily: "inherit",
-                        cursor: "pointer",
-                        border: `1px solid ${editingCustom.relation_type === r.value ? fg : borderSubtle}`,
-                        backgroundColor: editingCustom.relation_type === r.value ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)") : "transparent",
-                        color: editingCustom.relation_type === r.value ? fg : fgMuted,
-                      }}
+                      className={`s165-option-btn${editingCustom.relation_type === r.value ? " active" : ""}`}
+                      style={{ padding: "6px 10px", fontSize: 12 }}
                     >
                       {r.emoji} {r.label}
                     </button>
@@ -621,7 +603,7 @@ export default function FamilyTreePage() {
         style={{
           position: "relative",
           border: `1px solid ${borderSubtle}`,
-          borderRadius: 12,
+          borderRadius: 16,
           overflow: "hidden",
           height: "calc(100dvh - 340px)",
           minHeight: 300,
@@ -831,9 +813,9 @@ export default function FamilyTreePage() {
       {/* Selected member detail panel */}
       {selectedNode && (
         <div style={{
-          marginTop: 12, padding: "16px 20px",
+          marginTop: 12, padding: "18px 22px",
           border: `1px solid ${borderSubtle}`,
-          borderRadius: 12,
+          borderRadius: 16,
           backgroundColor: bgSubtle,
           display: "flex", alignItems: "center", gap: 16,
           animation: "fadeIn 0.15s ease",

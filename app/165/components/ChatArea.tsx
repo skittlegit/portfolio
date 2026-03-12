@@ -123,9 +123,9 @@ export default function ChatArea({
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
   const bgSubtle = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
   const bgHover = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
-  const myBubble = isDark ? "#005C4B" : "#D9FDD3";
-  const theirBubble = isDark ? "#1F2C34" : "#FFFFFF";
-  const chatBg = isDark ? "#0B141A" : "#EFEAE2";
+  const myBubble = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)";
+  const theirBubble = isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.9)";
+  const chatBg = isDark ? "#0a0a0a" : "#f7f7f7";
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [reactions, setReactions] = useState<Reaction[]>([]);
@@ -423,8 +423,8 @@ export default function ChatArea({
               return (
                 <Fragment key={msg.id}>
                 {showDate && (
-                  <div style={{ display: "flex", justifyContent: "center", margin: "10px 0" }}>
-                    <span style={{ backgroundColor: isDark ? "rgba(35,47,52,0.9)" : "rgba(255,255,255,0.92)", color: fgMuted, fontSize: 12, padding: "5px 12px", borderRadius: 7, boxShadow: "0 1px 1px rgba(0,0,0,0.08)", fontWeight: 500 }}>
+                  <div style={{ display: "flex", justifyContent: "center", margin: "14px 0" }}>
+                    <span style={{ backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", color: fgMuted, fontSize: 11, padding: "5px 14px", borderRadius: 20, fontWeight: 500, letterSpacing: "0.02em", border: `1px solid ${borderSubtle}` }}>
                       {getDateLabel(msg.created_at)}
                     </span>
                   </div>
@@ -453,7 +453,7 @@ export default function ChatArea({
                       </button>
                     )}
 
-                    <div style={{ backgroundColor: isMine ? myBubble : theirBubble, borderRadius: 12, borderBottomRightRadius: isMine ? 4 : 12, borderBottomLeftRadius: isMine ? 12 : 4, padding: isMedia && !hasText ? "4px" : "8px 14px", overflow: "hidden", boxShadow: "0 1px 1px rgba(0,0,0,0.06)" }}>
+                    <div style={{ backgroundColor: isMine ? myBubble : theirBubble, borderRadius: 16, borderBottomRightRadius: isMine ? 4 : 16, borderBottomLeftRadius: isMine ? 16 : 4, padding: isMedia && !hasText ? "4px" : "10px 16px", overflow: "hidden", boxShadow: isDark ? "none" : "0 1px 2px rgba(0,0,0,0.04)", border: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)"}` }}>
                       {isForwarded && (
                         <p className="text-xs mb-1" style={{ color: fgMuted, fontStyle: "italic" }}>↪ Forwarded</p>
                       )}
@@ -591,7 +591,7 @@ export default function ChatArea({
           <button
             onClick={handleSend}
             disabled={!inputValue.trim() && !pendingMedia}
-            style={{ background: inputValue.trim() || pendingMedia ? "#00A884" : "none", border: "none", cursor: inputValue.trim() || pendingMedia ? "pointer" : "default", padding: 8, lineHeight: 0, color: inputValue.trim() || pendingMedia ? "#fff" : fgMuted, opacity: inputValue.trim() || pendingMedia ? 1 : 0.4, transition: "all 0.2s", minWidth: 40, minHeight: 40, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: "50%" }}
+            style={{ background: inputValue.trim() || pendingMedia ? fg : "none", border: "none", cursor: inputValue.trim() || pendingMedia ? "pointer" : "default", padding: 8, lineHeight: 0, color: inputValue.trim() || pendingMedia ? (isDark ? "#000" : "#fff") : fgMuted, opacity: inputValue.trim() || pendingMedia ? 1 : 0.4, transition: "all 0.2s", minWidth: 40, minHeight: 40, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: "50%" }}
           >
             <Send size={18} strokeWidth={1.5} />
           </button>
@@ -613,7 +613,7 @@ export default function ChatArea({
               display: "flex",
               flexDirection: "column",
               flexShrink: 0,
-              backgroundColor: isDark ? "rgba(0,0,0,0.95)" : "rgba(255,255,255,0.98)",
+              backgroundColor: isDark ? "#0c0c0c" : "#fafafa",
               zIndex: 16,
             }}
             className="s165-group-panel"

@@ -263,11 +263,11 @@ export default function GamePage() {
   /* ── Shared components ── */
 
   const ResultBanner = ({ won, amount, subtitle }: { won: boolean; amount: number; subtitle: string }) => (
-    <div className="s165-fade-in" style={{ textAlign: "center", padding: "12px 16px", borderRadius: 10, marginBottom: 20, backgroundColor: won ? isDark ? "rgba(34,197,94,0.1)" : "rgba(34,197,94,0.08)" : isDark ? "rgba(239,68,68,0.1)" : "rgba(239,68,68,0.08)", border: `1px solid ${won ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}` }}>
+    <div className="s165-fade-in" style={{ textAlign: "center", padding: "14px 18px", borderRadius: 14, marginBottom: 20, backgroundColor: won ? isDark ? "rgba(34,197,94,0.1)" : "rgba(34,197,94,0.08)" : isDark ? "rgba(239,68,68,0.1)" : "rgba(239,68,68,0.08)", border: `1px solid ${won ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}` }}>
       <p className="text-lg font-medium" style={{ color: won ? "#22c55e" : "#ef4444" }}>
         {won ? `+${amount} coins!` : `-${amount} coins`}
       </p>
-      <p className="text-xs" style={{ color: fgMuted, marginTop: 2 }}>{subtitle}</p>
+      <p className="text-xs" style={{ color: fgMuted, marginTop: 3 }}>{subtitle}</p>
     </div>
   );
 
@@ -317,29 +317,12 @@ export default function GamePage() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 4, marginBottom: 20, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+      <div style={{ display: "flex", gap: 6, marginBottom: 20, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
         {tabItems.map((t) => (
           <button
             key={t.key}
             onClick={() => { setTab(t.key); setError(null); }}
-            style={{
-              flex: 1,
-              minWidth: 0,
-              padding: "10px 6px",
-              border: `1px solid ${tab === t.key ? fg : borderSubtle}`,
-              borderRadius: 10,
-              backgroundColor: tab === t.key ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)") : "transparent",
-              color: tab === t.key ? fg : fgMuted,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              fontSize: 13,
-              fontWeight: tab === t.key ? 500 : 400,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 5,
-              whiteSpace: "nowrap",
-            }}
+            className={`s165-tab${tab === t.key ? " active" : ""}`}
           >
             {t.icon} {t.label}
           </button>
@@ -375,13 +358,7 @@ export default function GamePage() {
             <p className="text-xs mb-2" style={{ color: fgMuted }}>Pick a side</p>
             <div style={{ display: "flex", gap: 8 }}>
               {(["heads", "tails"] as const).map((side) => (
-                <button key={side} onClick={() => setCoinChoice(side)} style={{
-                  flex: 1, padding: "10px", borderRadius: 10,
-                  border: `1px solid ${coinChoice === side ? fg : borderSubtle}`,
-                  backgroundColor: coinChoice === side ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)") : "transparent",
-                  color: coinChoice === side ? fg : fgMuted, cursor: "pointer", fontFamily: "inherit", fontSize: 14,
-                  fontWeight: coinChoice === side ? 500 : 400,
-                }}>
+                <button key={side} onClick={() => setCoinChoice(side)} className={`s165-option-btn${coinChoice === side ? " active" : ""}`} style={{ flex: 1 }}>
                   {side === "heads" ? "👑 Heads" : "🌀 Tails"}
                 </button>
               ))}
@@ -421,13 +398,7 @@ export default function GamePage() {
             <p className="text-xs mb-2" style={{ color: fgMuted }}>Roll over target (2d6, higher target = higher payout)</p>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {[3, 5, 7, 9, 11].map((t) => (
-                <button key={t} onClick={() => setDiceTarget(t)} style={{
-                  flex: 1, minWidth: 50, padding: "10px 4px", borderRadius: 10,
-                  border: `1px solid ${diceTarget === t ? fg : borderSubtle}`,
-                  backgroundColor: diceTarget === t ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)") : "transparent",
-                  color: diceTarget === t ? fg : fgMuted, cursor: "pointer", fontFamily: "inherit", fontSize: 13,
-                  fontWeight: diceTarget === t ? 500 : 400,
-                }}>
+                <button key={t} onClick={() => setDiceTarget(t)} className={`s165-option-btn${diceTarget === t ? " active" : ""}`} style={{ flex: 1, minWidth: 50 }}>
                   &gt;{t} <span style={{ fontSize: 10, opacity: 0.6 }}>×{payoutMultipliers[t]}</span>
                 </button>
               ))}
@@ -465,13 +436,7 @@ export default function GamePage() {
             <p className="text-xs mb-2" style={{ color: fgMuted }}>Pick a number (1-20) — 10× payout if correct</p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
               {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
-                <button key={n} onClick={() => setGuessNum(n)} style={{
-                  padding: "12px 4px", borderRadius: 10,
-                  border: `1px solid ${guessNum === n ? fg : borderSubtle}`,
-                  backgroundColor: guessNum === n ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)") : "transparent",
-                  color: guessNum === n ? fg : fgMuted, cursor: "pointer", fontFamily: "inherit", fontSize: 16,
-                  fontWeight: guessNum === n ? 600 : 400,
-                }}>
+                <button key={n} onClick={() => setGuessNum(n)} className={`s165-option-btn${guessNum === n ? " active" : ""}`} style={{ padding: "12px 4px", fontSize: 16 }}>
                   {n}
                 </button>
               ))}
@@ -640,15 +605,17 @@ export default function GamePage() {
                         {/* Join controls */}
                         {canJoin && (
                           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                            <div style={{ display: "flex", gap: 4 }}>
+                            <div style={{ display: "flex", gap: 6 }}>
                               {(["for", "against"] as const).map((s) => (
-                                <button key={s} onClick={() => setJoiningSide({ ...joiningSide, [bet.id]: s })} style={{
-                                  padding: "6px 12px", borderRadius: 8, fontSize: 12, fontFamily: "inherit", cursor: "pointer",
-                                  border: `1px solid ${(joiningSide[bet.id] || "for") === s ? (s === "for" ? "#22c55e" : "#ef4444") : borderSubtle}`,
-                                  backgroundColor: (joiningSide[bet.id] || "for") === s ? (s === "for" ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)") : "transparent",
-                                  color: (joiningSide[bet.id] || "for") === s ? (s === "for" ? "#22c55e" : "#ef4444") : fgMuted,
-                                  textTransform: "capitalize",
-                                }}>
+                                <button key={s} onClick={() => setJoiningSide({ ...joiningSide, [bet.id]: s })}
+                                  className={`s165-option-btn${(joiningSide[bet.id] || "for") === s ? " active" : ""}`}
+                                  style={{
+                                    padding: "7px 14px",
+                                    borderColor: (joiningSide[bet.id] || "for") === s ? (s === "for" ? "#22c55e" : "#ef4444") : undefined,
+                                    color: (joiningSide[bet.id] || "for") === s ? (s === "for" ? "#22c55e" : "#ef4444") : undefined,
+                                    textTransform: "capitalize",
+                                  }}
+                                >
                                   {s}
                                 </button>
                               ))}
@@ -804,7 +771,7 @@ export default function GamePage() {
           <h3 className="s165-section-title">Recent Games</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {history.map((t) => (
-              <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 14px", border: `1px solid ${borderSubtle}`, borderRadius: 10, backgroundColor: bgSubtle }}>
+              <div key={t.id} className="s165-card" style={{ justifyContent: "space-between" }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <p className="text-sm" style={{ color: fg, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.note || (t.type === "game_win" ? "Win" : "Loss")}</p>
                   <p className="text-xs" style={{ color: fgMuted }}>{formatTime(t.created_at)}</p>

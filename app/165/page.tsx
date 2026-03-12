@@ -33,67 +33,52 @@ export default function Hub165() {
   }, []);
 
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-  const cardBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)";
-  const cardBgHover = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)";
-  const statBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.03)";
 
   return (
     <div style={{ padding: "28px 24px", maxWidth: 760, margin: "0 auto", width: "100%" }}>
       {/* Welcome */}
-      <div style={{ marginBottom: 28 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 600, color: fg }}>
+      <div style={{ marginBottom: 32 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 600, color: fg, letterSpacing: "-0.01em" }}>
           Welcome back{profile?.display_name ? `, ${profile.display_name}` : ""} ✨
         </h2>
         <p className="text-sm mt-1" style={{ color: fgMuted }}>Your private space</p>
       </div>
 
       {/* Quick stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 28 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 32 }}>
         {[
           { label: "Balance", value: balance !== null ? balance.toLocaleString() : "…", icon: "💰" },
           { label: "Unread", value: unread !== null ? String(unread) : "…", icon: "✉️" },
           { label: "Members", value: memberCount !== null ? String(memberCount) : "…", icon: "👥" },
         ].map((s) => (
-          <div key={s.label} style={{ padding: "16px 14px", borderRadius: 12, backgroundColor: statBg, border: `1px solid ${borderSubtle}`, textAlign: "center" }}>
-            <span style={{ fontSize: 22, lineHeight: 1 }}>{s.icon}</span>
-            <p style={{ fontSize: 18, fontWeight: 600, color: fg, marginTop: 4 }}>{s.value}</p>
-            <p className="text-xs" style={{ color: fgMuted }}>{s.label}</p>
+          <div key={s.label} className="s165-stat-card" style={{ border: `1px solid ${borderSubtle}`, textAlign: "center" }}>
+            <span style={{ fontSize: 24, lineHeight: 1 }}>{s.icon}</span>
+            <p style={{ fontSize: 20, fontWeight: 600, color: fg, marginTop: 6 }}>{s.value}</p>
+            <p className="text-xs" style={{ color: fgMuted, marginTop: 2 }}>{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* Feature grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
         {FEATURES.map((f) => {
           const Icon = f.icon;
           return (
             <Link
               key={f.href}
               href={f.href}
+              className="s165-feature-card"
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: 12,
-                padding: "20px",
+                gap: 14,
+                padding: "22px",
                 border: `1px solid ${borderSubtle}`,
-                borderRadius: 14,
                 textDecoration: "none",
-                backgroundColor: cardBg,
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = cardBgHover;
-                e.currentTarget.style.borderColor = f.color + "40";
-                e.currentTarget.style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = cardBg;
-                e.currentTarget.style.borderColor = borderSubtle;
-                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
-              <div style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: f.color + "18", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Icon size={20} strokeWidth={1.5} style={{ color: f.color }} />
+              <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: f.color + "18", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Icon size={22} strokeWidth={1.5} style={{ color: f.color }} />
               </div>
               <div>
                 <p className="text-sm font-medium" style={{ color: fg }}>{f.label}</p>

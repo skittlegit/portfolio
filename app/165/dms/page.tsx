@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Search, User, X, ArrowLeft } from "lucide-react";
+import { Plus, Search, User, X, ArrowLeft, Trash2 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -10,6 +10,7 @@ import {
   getOrCreateConversation,
   getWhitelistedUsers,
   getUserPresence,
+  deleteConversation,
   type ConversationWithParticipant,
 } from "@/lib/chat";
 import ChatArea, { type Participant } from "../components/ChatArea";
@@ -38,6 +39,8 @@ export default function DmsPage() {
   const [viewingProfile, setViewingProfile] = useState<Participant | null>(null);
   const [presence, setPresence] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  const [deletingConvId, setDeletingConvId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const loadConvs = async () => {
     try {
@@ -91,6 +94,21 @@ export default function DmsPage() {
     }
   };
 
+  const handleDeleteConversation = async (convId: string) => {
+    if (!confirm("Delete this conversation? All messages will be permanently removed.")) return;
+    try {
+      await deleteConversation(convId);
+      if (activeConvId === convId) {
+        setActiveConvId(null);
+        setMobileShowChat(false);
+      }
+      await loadConvs();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete conversation");
+    }
+    setDeletingConvId(null);
+  };
+
   const loadUsers = async () => {
     const users = await getWhitelistedUsers();
     setAllUsers(users.filter((u) => u.id !== user?.id));
@@ -113,11 +131,11 @@ export default function DmsPage() {
 
   const isUserOnline = useCallback((uid: string) => {
     const ls = presence[uid];
-    return ls ? performance.now() > 0 && (globalThis.Date.now() - new Date(ls).getTime() < 2 * 60 * 1000) : false;
+    return ls ? (Date.now() - new Date(ls).getTime() < 2 * 60 * 1000) : false;
   }, [presence]);
 
   return (
-    <div style={{ display: "flex", flex: 1, minHeight: 0, border: `1px solid ${borderSubtle}`, borderRadius: 12, overflow: "hidden", position: "relative" }}>
+    <div style={{ display: "flex", flex: 1, minHeight: 0, border: `1px solid ${borderSubtle}`, borderRadius: 16, overflow: "hidden", position: "relative" }}>
 
       {/* Sidebar */}
       <div
@@ -130,12 +148,12 @@ export default function DmsPage() {
           minWidth: mobileShowChat ? 0 : undefined,
           overflow: mobileShowChat ? "hidden" : undefined,
         }}
-        className="sm:!w-[280px] sm:!min-w-[280px] sm:!overflow-visible"
+        className="sm:!w-[300px] sm:!min-w-[300px] sm:!overflow-visible"
       >
-        <div style={{ padding: "14px 14px 10px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: isDark ? "#1F2C34" : "#F0F2F5" }}>
-          <h2 className="text-sm font-medium">Messages</h2>
-          <button onClick={() => { setShowNewChat(true); loadUsers(); }} className="s165-btn-ghost" style={{ padding: 6, border: "none" }} title="New DM">
-            <Plus size={17} strokeWidth={1.5} />
+        <div className="s165-dm-header">
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: fg }}>Messages</h2>
+          <button onClick={() => { setShowNewChat(true); loadUsers(); }} className="s165-btn-ghost" style={{ padding: 7, border: "none" }} title="New message">
+            <Plus size={18} strokeWidth={1.5} />
           </button>
         </div>
         {error && (
@@ -148,17 +166,23 @@ export default function DmsPage() {
             conversations.map((c) => {
               const other = c.otherUser;
               const online = isUserOnline(other.id);
+              const isActive = activeConvId === c.conversation.id;
               const lastContent = c.lastMessage?.image_url && !c.lastMessage.content.trim() ? "📎 Media" : c.lastMessage?.content || "No messages yet";
               return (
-                <button
+                <div
                   key={c.conversation.id}
+                  style={{ position: "relative" }}
+                  onMouseEnter={() => setDeletingConvId(c.conversation.id)}
+                  onMouseLeave={() => setDeletingConvId(null)}
+                >
+                <button
                   onClick={() => { setActiveConvId(c.conversation.id); setMobileShowChat(true); }}
-                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: activeConvId === c.conversation.id ? bgHover : "transparent", border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", borderBottom: `1px solid ${borderSubtle}`, transition: "background-color 0.15s" }}
+                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: isActive ? bgHover : "transparent", border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", borderBottom: `1px solid ${borderSubtle}`, transition: "background-color 0.2s", borderLeft: isActive ? `2px solid ${fg}` : "2px solid transparent" }}
                 >
                   <div style={{ position: "relative", flexShrink: 0 }}>
                     {other.avatar_url
-                      ? <img src={other.avatar_url} alt="" className="s165-avatar" style={{ width: 38, height: 38 }} />
-                      : <div className="s165-avatar-placeholder" style={{ width: 38, height: 38 }}><User size={16} strokeWidth={1} /></div>
+                      ? <img src={other.avatar_url} alt="" className="s165-avatar" style={{ width: 42, height: 42 }} />
+                      : <div className="s165-avatar-placeholder" style={{ width: 42, height: 42, fontSize: 16 }}><User size={16} strokeWidth={1} /></div>
                     }
                     {online && <div className="s165-online-dot" />}
                   </div>
@@ -175,6 +199,16 @@ export default function DmsPage() {
                     </div>
                   </div>
                 </button>
+                {deletingConvId === c.conversation.id && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDeleteConversation(c.conversation.id); }}
+                    style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.06)", border: "none", cursor: "pointer", padding: 6, borderRadius: 8, lineHeight: 0, color: "#ef4444", transition: "background 0.15s" }}
+                    title="Delete conversation"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+                </div>
               );
             })
           )}
@@ -200,7 +234,7 @@ export default function DmsPage() {
         ) : (
           <>
             {/* Chat header */}
-            <div style={{ padding: "10px 14px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", gap: 10, backgroundColor: isDark ? "#1F2C34" : "#F0F2F5" }}>
+            <div className="s165-chat-header" style={{ padding: "10px 14px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", gap: 10 }}>
               <button onClick={() => setMobileShowChat(false)} className="sm:hidden" style={{ background: "none", border: "none", cursor: "pointer", padding: 4, lineHeight: 0, color: fgMuted, minWidth: 36, minHeight: 36, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <ArrowLeft size={18} />
               </button>
@@ -226,6 +260,17 @@ export default function DmsPage() {
                   </p>
                 </div>
               </button>
+              {activeConvId && (
+                <button
+                  onClick={() => handleDeleteConversation(activeConvId)}
+                  style={{ background: "none", border: "none", cursor: "pointer", padding: 6, lineHeight: 0, color: fgMuted, borderRadius: 8, transition: "color 0.15s" }}
+                  title="Delete conversation"
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = fgMuted)}
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
             </div>
             <ChatArea
               convId={activeConvId}

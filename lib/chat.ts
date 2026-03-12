@@ -557,3 +557,28 @@ export async function getAllRegisteredUsers(): Promise<{ id: string; display_nam
   const { data } = await supabase.from("profiles").select("id, display_name, username, avatar_url");
   return data || [];
 }
+
+export async function deleteConversation(convId: string): Promise<void> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not logged in");
+
+  // Verify user is a participant
+  const { data: participant } = await supabase
+    .from("conversation_participants")
+    .select("user_id")
+    .eq("conversation_id", convId)
+    .eq("user_id", userData.user.id)
+    .single();
+  if (!participant) throw new Error("Not a participant of this conversation");
+
+  // Delete messages, reactions, read_receipts, participants, then the conversation
+  await supabase.from("message_reactions").delete().in(
+    "message_id",
+    (await supabase.from("messages").select("id").eq("conversation_id", convId)).data?.map((m) => m.id) || []
+  );
+  await supabase.from("read_receipts").delete().eq("conversation_id", convId);
+  await supabase.from("messages").delete().eq("conversation_id", convId);
+  await supabase.from("conversation_participants").delete().eq("conversation_id", convId);
+  await supabase.from("conversations").delete().eq("id", convId);
+}

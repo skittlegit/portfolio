@@ -120,19 +120,19 @@ export default function CurrencyPage() {
   return (
     <div>
       {/* Balance header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+      <div className="s165-stat-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, border: `1px solid ${borderSubtle}` }}>
         <div>
           <p className="text-xs" style={{ color: fgMuted }}>Your balance</p>
           <p className="text-2xl font-medium" style={{ color: fg }}>{myBalance === null ? "…" : myBalance.toLocaleString()} <span style={{ color: fgMuted, fontSize: 14 }}>coins</span></p>
         </div>
-        <div style={{ fontSize: 36 }}>💰</div>
+        <div style={{ fontSize: 40 }}>💰</div>
       </div>
 
       {/* Admin panel */}
       {userIsAdmin && (
         <div className="s165-panel" style={{ marginBottom: 20, borderRadius: 16, padding: 20, border: `1px solid rgba(245,158,11,0.3)` }}>
           <h3 className="s165-section-title" style={{ color: "#f59e0b" }}>Admin — Set Balance</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div>
               <label className="text-xs mb-1 block" style={{ color: fgMuted }}>User</label>
               <select
@@ -232,7 +232,7 @@ export default function CurrencyPage() {
           <div className="s165-panel" style={{ marginBottom: 20, borderRadius: 16, padding: 20 }}>
             <h3 className="s165-section-title">Send Coins</h3>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div>
                 <label className="text-xs mb-1 block" style={{ color: fgMuted }}>Recipient</label>
                 <select
@@ -291,7 +291,7 @@ export default function CurrencyPage() {
           {transactions.length > 0 && (
             <div>
               <h3 className="s165-section-title">Recent Transfers</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {transactions.filter((t) => t.type === "transfer").map((t) => {
                   const isIncoming = t.to_user_id === myId;
                   const isOutgoing = t.from_user_id === myId;
