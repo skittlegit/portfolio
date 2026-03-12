@@ -395,7 +395,7 @@ export async function playDiceRoll(
   if (!userData.user) throw new Error("Not logged in");
 
   // Validate
-  if (betAmount <= 0 || betAmount > 200) throw new Error("Bet must be 1-200");
+  if (betAmount <= 0) throw new Error("Bet must be positive");
   if (targetOver < 2 || targetOver > 11) throw new Error("Target must be 2-11");
 
   // Check balance
@@ -415,9 +415,10 @@ export async function playDiceRoll(
 
   // Payout: higher target = higher multiplier
   // Probability of rolling > N with 2d6:
+  // Reduced multipliers — house edge ~30-50%
   const payoutMultipliers: Record<number, number> = {
-    2: 1.1, 3: 1.2, 4: 1.4, 5: 1.6, 6: 1.9, 7: 2.4,
-    8: 3.0, 9: 4.0, 10: 6.0, 11: 12.0,
+    2: 0.5, 3: 0.6, 4: 0.7, 5: 0.8, 6: 1.0, 7: 1.2,
+    8: 1.5, 9: 2.0, 10: 3.0, 11: 6.0,
   };
   const multiplier = payoutMultipliers[targetOver] || 2;
   const payout = won ? Math.floor(betAmount * multiplier) : 0;
@@ -452,8 +453,8 @@ export async function playNumberGuess(
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not logged in");
 
-  if (betAmount <= 0 || betAmount > 200) throw new Error("Bet must be 1-200");
-  if (guess < 1 || guess > 10) throw new Error("Guess must be 1-10");
+  if (betAmount <= 0) throw new Error("Bet must be positive");
+  if (guess < 1 || guess > 20) throw new Error("Guess must be 1-20");
 
   const { data: balData } = await supabase
     .from("user_currency")
@@ -463,9 +464,9 @@ export async function playNumberGuess(
   const balance = balData?.balance ?? 0;
   if (betAmount > balance) throw new Error("Insufficient balance");
 
-  const number = Math.floor(Math.random() * 10) + 1;
+  const number = Math.floor(Math.random() * 20) + 1;
   const won = number === guess;
-  const payout = won ? betAmount * 8 : 0; // 8x payout for 1/10 chance
+  const payout = won ? betAmount * 10 : 0; // 10x payout for 1/20 chance (expected -50%)
   const delta = won ? payout - betAmount : -betAmount;
   const newBalance = balance + delta;
 
@@ -534,7 +535,7 @@ export async function createCustomBet(
   const supabase = createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not logged in");
-  if (amount <= 0 || amount > 500) throw new Error("Amount must be 1-500");
+  if (amount <= 0) throw new Error("Amount must be positive");
   if (!title.trim()) throw new Error("Title is required");
 
   const { data, error } = await supabase
@@ -768,4 +769,37 @@ export async function cancelBet(betId: string): Promise<void> {
     .update({ status: "cancelled" })
     .eq("id", betId);
   if (error) throw new Error(error.message);
+}
+
+export async function adminDeleteBet(betId: string): Promise<void> {
+  await requireAdmin();
+  const supabase = createClient();
+  const { data: bet } = await supabase
+    .from("custom_bets")
+    .select("status")
+    .eq("id", betId)
+    .single();
+  if (!bet) throw new Error("Bet not found");
+  if (bet.status === "open" || bet.status === "closed")
+    throw new Error("Resolve or cancel the bet first");
+  await supabase.from("bet_entries").delete().eq("bet_id", betId);
+  const { error } = await supabase.from("custom_bets").delete().eq("id", betId);
+  if (error) throw new Error(error.message);
+}
+
+export async function adminResetAllBalances(): Promise<void> {
+  await requireAdmin();
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("user_currency")
+    .update({ balance: 0, updated_at: new Date().toISOString() })
+    .neq("balance", 0);
+  if (error) throw new Error(error.message);
+  await supabase.from("currency_transactions").insert({
+    from_user_id: null,
+    to_user_id: null,
+    amount: 0,
+    type: "admin_set",
+    note: "All balances reset to 0 by admin",
+  });
 }

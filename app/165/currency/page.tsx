@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useTheme } from "../../context/ThemeContext";
-import { getAllBalances, getAllTransactions, transferCurrency, adminSetBalance, type UserBalance, type CurrencyTransaction } from "@/lib/currency";
+import { getAllBalances, getAllTransactions, transferCurrency, adminSetBalance, adminResetAllBalances, type UserBalance, type CurrencyTransaction } from "@/lib/currency";
 import { getWhitelistedUsers } from "@/lib/chat";
 import { isAdmin } from "@/lib/whitelist";
 
@@ -168,6 +168,31 @@ export default function CurrencyPage() {
               style={{ backgroundColor: "#f59e0b" }}
             >
               {settingBalance ? "Setting…" : "Set Balance"}
+            </button>
+            <button
+              onClick={async () => {
+                if (!confirm("Reset ALL users' balances to 0?")) return;
+                setSettingBalance(true);
+                setAdminMsg(null);
+                try {
+                  await adminResetAllBalances();
+                  setAdminMsg({ ok: true, text: "All balances reset to 0" });
+                  loadData();
+                } catch (err) {
+                  setAdminMsg({ ok: false, text: err instanceof Error ? err.message : "Failed" });
+                } finally {
+                  setSettingBalance(false);
+                }
+              }}
+              disabled={settingBalance}
+              style={{
+                width: "100%", padding: "10px", borderRadius: 8, fontSize: 14,
+                fontFamily: "inherit", cursor: "pointer",
+                border: "1px solid rgba(239,68,68,0.3)", backgroundColor: "rgba(239,68,68,0.08)",
+                color: "#ef4444", opacity: settingBalance ? 0.5 : 1,
+              }}
+            >
+              Reset All Balances to 0
             </button>
           </div>
         </div>

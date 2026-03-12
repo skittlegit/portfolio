@@ -45,12 +45,25 @@ const SIBLING_GAP = 170;
 
 const RELATION_TYPES = [
   { value: "child", label: "Child", emoji: "👶" },
+  { value: "parent", label: "Parent", emoji: "👨‍👩‍👦" },
   { value: "sibling", label: "Sibling", emoji: "👫" },
   { value: "spouse", label: "Spouse", emoji: "💍" },
-  { value: "friend", label: "Friend", emoji: "🤝" },
-  { value: "pet", label: "Pet", emoji: "🐾" },
+  { value: "grandparent", label: "Grandparent", emoji: "👴" },
+  { value: "grandchild", label: "Grandchild", emoji: "🧒" },
+  { value: "uncle_aunt", label: "Uncle/Aunt", emoji: "🧑" },
+  { value: "niece_nephew", label: "Niece/Nephew", emoji: "👦" },
   { value: "cousin", label: "Cousin", emoji: "🤙" },
+  { value: "godparent", label: "Godparent", emoji: "🌟" },
+  { value: "godchild", label: "Godchild", emoji: "✝️" },
+  { value: "in_law", label: "In-Law", emoji: "🤵" },
+  { value: "step", label: "Step-family", emoji: "🔗" },
+  { value: "friend", label: "Friend", emoji: "🤝" },
+  { value: "best_friend", label: "Best Friend", emoji: "💛" },
+  { value: "pet", label: "Pet", emoji: "🐾" },
   { value: "mentor", label: "Mentor", emoji: "🎓" },
+  { value: "rival", label: "Rival", emoji: "⚔️" },
+  { value: "partner", label: "Partner", emoji: "💕" },
+  { value: "ex", label: "Ex", emoji: "💔" },
   { value: "custom", label: "Custom", emoji: "✨" },
 ];
 
@@ -331,7 +344,7 @@ export default function FamilyTreePage() {
   ];
 
   return (
-    <div>
+    <div style={{ overflow: "hidden" }}>
       {/* Header row */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, gap: 12, flexWrap: "wrap" }}>
         <p className="text-sm" style={{ color: fgMuted }}>

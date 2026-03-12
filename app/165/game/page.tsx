@@ -20,13 +20,14 @@ import {
   adminCancelBet,
   adminResolveBet,
   adminEditBet,
+  adminDeleteBet,
   type CurrencyTransaction,
   type CustomBet,
   type BetEntry,
 } from "@/lib/currency";
 import { getWhitelistedUsers } from "@/lib/chat";
 import { isAdmin } from "@/lib/whitelist";
-import { Plus, Dice1, Hash, Users, ChevronDown, X, Pencil, Ban, Lock } from "lucide-react";
+import { Plus, Dice1, Hash, Users, ChevronDown, X, Pencil, Ban, Lock, Trash2 } from "lucide-react";
 
 type GameTab = "coin" | "dice" | "guess" | "bets";
 
@@ -84,7 +85,7 @@ export default function GamePage() {
   const [editBetTitle, setEditBetTitle] = useState("");
   const [editBetDesc, setEditBetDesc] = useState("");
 
-  const maxBet = Math.min(balance ?? 0, 200);
+  const maxBet = balance ?? 0;
 
   const loadData = useCallback(async () => {
     const [bal, txns] = await Promise.all([
@@ -247,7 +248,7 @@ export default function GamePage() {
   };
 
   const payoutMultipliers: Record<number, number> = {
-    2: 1.1, 3: 1.2, 4: 1.4, 5: 1.6, 6: 1.9, 7: 2.4, 8: 3.0, 9: 4.0, 10: 6.0, 11: 12.0,
+    2: 0.5, 3: 0.6, 4: 0.7, 5: 0.8, 6: 1.0, 7: 1.2, 8: 1.5, 9: 2.0, 10: 3.0, 11: 6.0,
   };
 
   const formatTime = (ts: string) => new Date(ts).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -274,7 +275,7 @@ export default function GamePage() {
     <div style={{ marginBottom: 20 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
         <p className="text-xs" style={{ color: fgMuted }}>{label || "Bet amount"}</p>
-        <p className="text-xs" style={{ color: fgMuted }}>Max: {maxBet}</p>
+        <p className="text-xs" style={{ color: fgMuted }}>Max: {maxBet.toLocaleString()}</p>
       </div>
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
         <input
@@ -286,7 +287,7 @@ export default function GamePage() {
           value={value}
           onChange={(e) => onChange(Math.max(1, Math.min(Number(e.target.value), maxBet)))}
         />
-        {[10, 25, 50, 100].map((v) => (
+        {[10, 25, 50, 100, 500].map((v) => (
           <button key={v} onClick={() => onChange(Math.min(v, balance ?? 0))} className="s165-btn-ghost" style={{ padding: "8px 10px", fontSize: 12 }}>
             {v}
           </button>
@@ -302,7 +303,7 @@ export default function GamePage() {
   );
 
   return (
-    <div style={{ maxWidth: 600 }}>
+    <div>
       {/* Balance header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <div>
@@ -349,7 +350,7 @@ export default function GamePage() {
 
       {/* ── Coin Flip ── */}
       {tab === "coin" && (
-        <div className="s165-card" style={{ padding: "28px 24px", marginBottom: 24 }}>
+        <div className="s165-card" style={{ padding: "20px 16px", marginBottom: 24, maxWidth: 600 }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
             <div style={{
               width: 100, height: 100, borderRadius: "50%", margin: "0 auto",
@@ -394,7 +395,7 @@ export default function GamePage() {
 
       {/* ── Dice Roll ── */}
       {tab === "dice" && (
-        <div className="s165-card" style={{ padding: "28px 24px", marginBottom: 24 }}>
+        <div className="s165-card" style={{ padding: "20px 16px", marginBottom: 24, maxWidth: 600 }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
             <div style={{
               width: 100, height: 100, borderRadius: 16, margin: "0 auto",
@@ -440,7 +441,7 @@ export default function GamePage() {
 
       {/* ── Number Guess ── */}
       {tab === "guess" && (
-        <div className="s165-card" style={{ padding: "28px 24px", marginBottom: 24 }}>
+        <div className="s165-card" style={{ padding: "20px 16px", marginBottom: 24, maxWidth: 600 }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
             <div style={{
               width: 100, height: 100, borderRadius: 16, margin: "0 auto",
@@ -457,13 +458,13 @@ export default function GamePage() {
           </div>
 
           {guessResult && !guessing && (
-            <ResultBanner won={guessResult.won} amount={guessResult.won ? guessResult.bet * 8 : guessResult.bet} subtitle={`You picked ${guessNum}, it was ${guessResult.number}. ${guessResult.won ? "8× payout!" : ""} Balance: ${guessResult.new_balance.toLocaleString()}`} />
+            <ResultBanner won={guessResult.won} amount={guessResult.won ? guessResult.bet * 10 : guessResult.bet} subtitle={`You picked ${guessNum}, it was ${guessResult.number}. ${guessResult.won ? "10× payout!" : ""} Balance: ${guessResult.new_balance.toLocaleString()}`} />
           )}
 
           <div style={{ marginBottom: 16 }}>
-            <p className="text-xs mb-2" style={{ color: fgMuted }}>Pick a number (1-10) — 8× payout if correct</p>
+            <p className="text-xs mb-2" style={{ color: fgMuted }}>Pick a number (1-20) — 10× payout if correct</p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+              {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
                 <button key={n} onClick={() => setGuessNum(n)} style={{
                   padding: "12px 4px", borderRadius: 10,
                   border: `1px solid ${guessNum === n ? fg : borderSubtle}`,
@@ -518,14 +519,13 @@ export default function GamePage() {
                     maxLength={500}
                   />
                   <div>
-                    <p className="text-xs mb-1" style={{ color: fgMuted }}>Entry amount (1-500 coins)</p>
+                    <p className="text-xs mb-1" style={{ color: fgMuted }}>Entry amount</p>
                     <input
                       type="number"
                       className="tool-input"
                       value={newBetAmount}
-                      onChange={(e) => setNewBetAmount(Math.max(1, Math.min(500, Number(e.target.value))))}
+                      onChange={(e) => setNewBetAmount(Math.max(1, Number(e.target.value)))}
                       min={1}
-                      max={500}
                     />
                   </div>
                   <button onClick={handleCreateBet} className="s165-btn-primary" style={{ padding: "12px", fontSize: 14 }}>
@@ -658,9 +658,9 @@ export default function GamePage() {
                               className="tool-input"
                               style={{ width: 80, fontSize: 13, padding: "6px 8px", textAlign: "center" }}
                               min={1}
-                              max={Math.min(balance ?? 0, 500)}
+                              max={balance ?? 0}
                               value={joiningAmount[bet.id] || bet.amount}
-                              onChange={(e) => setJoiningAmount({ ...joiningAmount, [bet.id]: Math.max(1, Math.min(Number(e.target.value), Math.min(balance ?? 0, 500))) })}
+                              onChange={(e) => setJoiningAmount({ ...joiningAmount, [bet.id]: Math.max(1, Math.min(Number(e.target.value), balance ?? 0)) })}
                             />
                             <button onClick={() => handleJoinBet(bet.id)} className="s165-btn-primary" style={{ padding: "6px 16px", fontSize: 13 }}>
                               Join
@@ -674,6 +674,29 @@ export default function GamePage() {
 
                         {isCancelled && (
                           <p className="text-xs" style={{ color: "#f59e0b", fontStyle: "italic", marginTop: 8 }}>This bet was cancelled. All entries were refunded.</p>
+                        )}
+
+                        {/* Delete resolved/cancelled bets */}
+                        {(isCreator || userIsAdmin) && (isResolved || isCancelled) && (
+                          <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${borderSubtle}` }}>
+                            <button
+                              onClick={async () => {
+                                setError(null);
+                                try {
+                                  await adminDeleteBet(bet.id);
+                                  loadBets();
+                                } catch (err) { setError(err instanceof Error ? err.message : "Failed to delete bet"); }
+                              }}
+                              style={{
+                                display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", fontSize: 12,
+                                borderRadius: 8, fontFamily: "inherit", cursor: "pointer",
+                                border: "1px solid rgba(239,68,68,0.3)", backgroundColor: "rgba(239,68,68,0.06)",
+                                color: "#ef4444",
+                              }}
+                            >
+                              <Trash2 size={12} /> Delete bet
+                            </button>
+                          </div>
                         )}
 
                         {/* Creator / Admin controls */}

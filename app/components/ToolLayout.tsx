@@ -10,12 +10,14 @@ export default function ToolLayout({
   description,
   backHref = "/tools",
   backLabel = "Tools",
+  hideBack = false,
   children,
 }: {
   title: string;
   description?: string;
   backHref?: string;
   backLabel?: string;
+  hideBack?: boolean;
   children: React.ReactNode;
 }) {
   const { fg, fgMuted } = useTheme();
@@ -36,20 +38,22 @@ export default function ToolLayout({
       >
         {/* Header */}
         <header className="relative z-[100] flex items-center justify-between px-6 sm:px-10 md:px-20 pt-7 pb-4">
-          <Link
-            href={backHref}
-            className="flex items-center gap-2 text-sm tracking-wide"
-            style={{
-              color: fgMuted,
-              textDecoration: "none",
-              transition: "color 0.2s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = fg)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = fgMuted)}
-          >
-            <ArrowLeft size={16} strokeWidth={1.5} />
-            {backLabel}
-          </Link>
+          {hideBack ? <div /> : (
+            <Link
+              href={backHref}
+              className="flex items-center gap-2 text-sm tracking-wide"
+              style={{
+                color: fgMuted,
+                textDecoration: "none",
+                transition: "color 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = fg)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = fgMuted)}
+            >
+              <ArrowLeft size={16} strokeWidth={1.5} />
+              {backLabel}
+            </Link>
+          )}
           <NavMenu />
         </header>
 

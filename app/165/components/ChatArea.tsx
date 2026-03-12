@@ -370,13 +370,13 @@ export default function ChatArea({
     : null;
 
   return (
-    <div style={{ flex: 1, display: "flex", height: heightOffset > 0 ? `calc(100dvh - ${heightOffset}px)` : "100%", minWidth: 0, position: "relative" }}>
+    <div style={{ flex: 1, display: "flex", height: heightOffset > 0 ? `calc(100dvh - ${heightOffset}px)` : "100%", minWidth: 0, position: "relative", overflow: "hidden" }}>
       {/* Message column */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0, overflow: "hidden" }}>
         {/* Message scroll */}
         <div
           className="s165-scroll"
-          style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 4 }}
+          style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "16px", display: "flex", flexDirection: "column", gap: 4 }}
           onClick={() => setShowEmojiFor(null)}
         >
           {loadingMsgs ? (
@@ -472,7 +472,7 @@ export default function ChatArea({
 
                     {/* Emoji picker */}
                     {showEmojiFor === msg.id && (
-                      <div style={{ position: "absolute", bottom: "100%", ...(isMine ? { right: 0 } : { left: 0 }), marginBottom: 4, backgroundColor: isDark ? "#1a1a1a" : "#fff", border: `1px solid ${borderSubtle}`, borderRadius: 12, padding: "6px 8px", display: "flex", flexWrap: "wrap", gap: 2, zIndex: 20, boxShadow: "0 4px 12px rgba(0,0,0,0.15)", maxWidth: 220 }}>
+                      <div style={{ position: "absolute", ...(messages.indexOf(msg) < 2 ? { top: "100%", marginTop: 4 } : { bottom: "100%", marginBottom: 4 }), ...(isMine ? { right: 0 } : { left: 0 }), backgroundColor: isDark ? "#1a1a1a" : "#fff", border: `1px solid ${borderSubtle}`, borderRadius: 12, padding: "6px 8px", display: "flex", flexWrap: "wrap", gap: 2, zIndex: 20, boxShadow: "0 4px 12px rgba(0,0,0,0.15)", maxWidth: 220 }}>
                         {EMOJI_LIST.map((e) => (
                           <button key={e} onClick={(ev) => { ev.stopPropagation(); handleReaction(msg.id, e); }} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", padding: "4px 2px", borderRadius: 6, lineHeight: 1, minWidth: 32, minHeight: 36 }}
                             onMouseEnter={(ev) => (ev.currentTarget.style.backgroundColor = bgHover)}

@@ -51,14 +51,14 @@ export default function Layout165({ children }: { children: React.ReactNode }) {
 
   if (loading || !authorized) {
     return (
-      <ToolLayout title="165" description="" backHref="/" backLabel="Home">
+      <ToolLayout title="165" description="" hideBack>
         <p className="text-sm" style={{ color: fgMuted }}>Loading…</p>
       </ToolLayout>
     );
   }
 
   return (
-    <ToolLayout title="165" description="" backHref="/" backLabel="Home">
+    <ToolLayout title="165" description="" hideBack>
       <nav
         style={{
           display: "flex",
