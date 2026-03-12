@@ -9,7 +9,7 @@ const FEATURES = [
   { href: "/165/chat",        label: "Group Chat",  desc: "The 165 family group chat",      emoji: "💬" },
   { href: "/165/dms",         label: "Messages",    desc: "Private conversations",          emoji: "✉️"  },
   { href: "/165/family-tree", label: "Family Tree", desc: "See who belongs to who",         emoji: "🌳" },
-  { href: "/165/game",        label: "Coin Flip",   desc: "Bet your coins, flip your fate", emoji: "🪙" },
+  { href: "/165/game",        label: "Games",       desc: "Coin flip, dice, bets & more",  emoji: "🎮" },
   { href: "/165/currency",    label: "Currency",    desc: "Leaderboard and transfers",      emoji: "💰" },
 ];
 

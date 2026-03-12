@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -22,7 +21,7 @@ export default function GroupChatPage() {
   const { fg, fgMuted, isDark } = useTheme();
   const { user } = useAuth();
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-  const bgSubtle = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
+
 
   const [convId, setConvId] = useState<string | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -79,10 +78,10 @@ export default function GroupChatPage() {
   if (!convId) return null;
 
   return (
-    <div style={{ border: `1px solid ${borderSubtle}`, borderRadius: 12, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+    <div className="s165-card" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
       {/* Header */}
       <div style={{ padding: "10px 16px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ width: 32, height: 32, borderRadius: "50%", backgroundColor: bgSubtle, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
+        <div className="s165-avatar-placeholder" style={{ width: 32, height: 32, fontSize: 16, flexShrink: 0 }}>
           👥
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -91,7 +90,8 @@ export default function GroupChatPage() {
         </div>
         <button
           onClick={() => setShowGroupPanel((v) => !v)}
-          style={{ background: "none", border: "none", cursor: "pointer", padding: 6, lineHeight: 0, color: showGroupPanel ? fg : fgMuted, borderRadius: 8, minWidth: 36, minHeight: 36, display: "flex", alignItems: "center", justifyContent: "center" }}
+          className="s165-btn-ghost"
+          style={{ padding: 6, lineHeight: 0, color: showGroupPanel ? fg : fgMuted, minWidth: 36, minHeight: 36, display: "flex", alignItems: "center", justifyContent: "center" }}
           title="Group members"
         >
           <Users size={16} strokeWidth={1.5} />
@@ -106,7 +106,7 @@ export default function GroupChatPage() {
         showGroupPanel={showGroupPanel}
         onToggleGroupPanel={() => setShowGroupPanel((v) => !v)}
         onOpenProfile={setViewingProfile}
-        heightOffset={258}
+        heightOffset={200}
       />
 
       {/* Profile modal */}

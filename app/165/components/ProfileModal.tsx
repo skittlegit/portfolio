@@ -25,7 +25,6 @@ type Props = {
 
 export default function ProfileModal({ user: viewing, myId, onClose, onMessage, presence, fg, fgMuted, isDark }: Props) {
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-  const bgSubtle = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
 
   const [followData, setFollowData] = useState<{ followers: number; following: number; isFollowing: boolean } | null>(null);
   const [toggling, setToggling] = useState(false);
@@ -66,22 +65,18 @@ export default function ProfileModal({ user: viewing, myId, onClose, onMessage, 
   const isMe = viewing.id === myId;
 
   return (
-    <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60, padding: 16 }} onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: isDark ? "#111" : "#fff", borderRadius: 20, width: "100%", maxWidth: 320, border: `1px solid ${borderSubtle}`, overflow: "hidden" }}>
+    <div className="s165-modal-backdrop" onClick={onClose}>
+      <div className="s165-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 320, width: "92vw", borderRadius: 20, overflow: "hidden" }}>
         <div style={{ textAlign: "center", padding: "28px 24px 16px", position: "relative" }}>
           <button onClick={onClose} style={{ position: "absolute", top: 12, right: 12, background: "none", border: "none", cursor: "pointer", padding: 6, lineHeight: 0, color: fgMuted }}><X size={16} /></button>
 
           <div style={{ position: "relative", width: 80, height: 80, margin: "0 auto 10px" }}>
             {viewing.avatar_url
-              ? <img src={viewing.avatar_url} alt="" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover" }} />
-              : <div style={{ width: 80, height: 80, borderRadius: "50%", backgroundColor: bgSubtle, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>👤</div>
+              ? <img src={viewing.avatar_url} alt="" className="s165-avatar" style={{ width: 80, height: 80 }} />
+              : <div className="s165-avatar-placeholder" style={{ width: 80, height: 80, fontSize: 28 }}>👤</div>
             }
             {!isMe && (
-              <div style={{
-                position: "absolute", bottom: 2, right: 2, width: 14, height: 14,
-                borderRadius: "50%", border: `2px solid ${isDark ? "#111" : "#fff"}`,
-                backgroundColor: isOnline ? "#22c55e" : "#71717a",
-              }} />
+              <div className="s165-online-dot" style={{ width: 14, height: 14, backgroundColor: isOnline ? "#22c55e" : "#71717a" }} />
             )}
           </div>
 

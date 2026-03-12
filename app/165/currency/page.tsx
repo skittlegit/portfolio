@@ -11,7 +11,6 @@ export default function CurrencyPage() {
   const { fg, fgMuted, isDark } = useTheme();
 
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-  const bgSubtle = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
 
   const [myBalance, setMyBalance] = useState<number | null>(null);
   const [leaderboard, setLeaderboard] = useState<(UserBalance & { profile?: Profile })[]>([]);
@@ -39,10 +38,17 @@ export default function CurrencyPage() {
     setProfiles(userProfiles);
     setTransactions(txnsRaw);
 
-    // Merge balances with profiles
-    const merged = balancesRaw
-      .map((b) => ({ ...b, profile: userProfiles.find((u) => u.id === b.user_id) }))
-      .sort((a, z) => z.balance - a.balance);
+    // Merge balances with profiles — include ALL whitelisted users
+    const balanceMap = new Map(balancesRaw.map((b) => [b.user_id, b]));
+    const merged = userProfiles.map((p) => {
+      const bal = balanceMap.get(p.id);
+      return {
+        user_id: p.id,
+        balance: bal?.balance ?? 500,
+        updated_at: bal?.updated_at ?? new Date().toISOString(),
+        profile: p,
+      };
+    }).sort((a, z) => z.balance - a.balance);
     setLeaderboard(merged);
 
     // Get own balance + id via Supabase client
@@ -51,8 +57,8 @@ export default function CurrencyPage() {
     const { data: { user } } = await sb.auth.getUser();
     if (user) {
       setMyId(user.id);
-      const own = balancesRaw.find((b) => b.user_id === user.id);
-      setMyBalance(own?.balance ?? null);
+      const own = merged.find((b) => b.user_id === user.id);
+      setMyBalance(own?.balance ?? 500);
     }
   }, []);
 
@@ -100,7 +106,7 @@ export default function CurrencyPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {/* Leaderboard */}
         <div>
-          <h3 className="text-sm font-medium mb-3" style={{ color: fgMuted }}>Standings</h3>
+          <h3 className="s165-section-title">Standings</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {leaderboard.map((entry, i) => {
               const isMe = entry.user_id === myId;
@@ -109,14 +115,10 @@ export default function CurrencyPage() {
               return (
                 <div
                   key={entry.user_id}
+                  className="s165-card"
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "10px 14px",
-                    borderRadius: 12,
                     border: `1px solid ${isMe ? fg : borderSubtle}`,
-                    backgroundColor: isMe ? isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" : bgSubtle,
+                    backgroundColor: isMe ? isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" : undefined,
                   }}
                 >
                   <span style={{ fontSize: 16, minWidth: 28 }}>{medal}</span>
@@ -132,17 +134,17 @@ export default function CurrencyPage() {
 
         <div>
           {/* Transfer form */}
-          <div style={{ border: `1px solid ${borderSubtle}`, borderRadius: 16, padding: "20px", marginBottom: 20 }}>
-            <h3 className="text-sm font-medium mb-4" style={{ color: fgMuted }}>Send Coins</h3>
+          <div className="s165-panel" style={{ marginBottom: 20, borderRadius: 16, padding: 20 }}>
+            <h3 className="s165-section-title">Send Coins</h3>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div>
                 <label className="text-xs mb-1 block" style={{ color: fgMuted }}>Recipient</label>
                 <select
-                  className="tool-input"
+                  className="tool-select"
                   value={toUserId}
                   onChange={(e) => setToUserId(e.target.value)}
-                  style={{ fontSize: 14, padding: "9px 12px" }}
+                  style={{ width: "100%", fontSize: 14, padding: "9px 12px" }}
                 >
                   <option value="">Select person…</option>
                   {otherUsers.map((u) => (
@@ -160,7 +162,7 @@ export default function CurrencyPage() {
                   max={myBalance ?? undefined}
                   value={transferAmount}
                   onChange={(e) => setTransferAmount(Math.max(1, Number(e.target.value)))}
-                  style={{ fontSize: 14, padding: "9px 12px" }}
+                  style={{ width: "100%", fontSize: 14, padding: "9px 12px" }}
                 />
               </div>
 
@@ -172,7 +174,7 @@ export default function CurrencyPage() {
                   placeholder="What's it for?"
                   value={transferNote}
                   onChange={(e) => setTransferNote(e.target.value)}
-                  style={{ fontSize: 14, padding: "9px 12px" }}
+                  style={{ width: "100%", fontSize: 14, padding: "9px 12px" }}
                 />
               </div>
 
@@ -183,18 +185,7 @@ export default function CurrencyPage() {
               <button
                 onClick={handleTransfer}
                 disabled={transferring || !toUserId || !transferAmount}
-                style={{
-                  padding: "11px",
-                  borderRadius: 10,
-                  border: "none",
-                  backgroundColor: fg,
-                  color: isDark ? "#000" : "#fff",
-                  fontSize: 14,
-                  fontWeight: 500,
-                  fontFamily: "inherit",
-                  cursor: transferring || !toUserId || !transferAmount ? "default" : "pointer",
-                  opacity: transferring || !toUserId || !transferAmount ? 0.5 : 1,
-                }}
+                className="s165-btn-primary"
               >
                 {transferring ? "Sending…" : "Send Coins"}
               </button>
@@ -204,15 +195,15 @@ export default function CurrencyPage() {
           {/* Transaction feed */}
           {transactions.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium mb-3" style={{ color: fgMuted }}>Recent Transfers</h3>
+              <h3 className="s165-section-title">Recent Transfers</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 {transactions.filter((t) => t.type === "transfer").map((t) => {
                   const isIncoming = t.to_user_id === myId;
                   const isOutgoing = t.from_user_id === myId;
                   const other = isIncoming ? nameOf(t.from_user_id ?? "") : nameOf(t.to_user_id ?? "");
                   return (
-                    <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderRadius: 10, border: `1px solid ${borderSubtle}`, backgroundColor: bgSubtle }}>
-                      <div style={{ minWidth: 0 }}>
+                    <div key={t.id} className="s165-card" style={{ justifyContent: "space-between" }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
                         <p className="text-xs truncate" style={{ color: fg }}>
                           {isIncoming ? `From ${other}` : isOutgoing ? `To ${other}` : `${nameOf(t.from_user_id ?? "")} → ${nameOf(t.to_user_id ?? "")}`}
                         </p>

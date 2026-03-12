@@ -309,6 +309,7 @@ export default function ChatArea({
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         {/* Message scroll */}
         <div
+          className="s165-scroll"
           style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 4 }}
           onClick={() => setShowEmojiFor(null)}
         >
@@ -391,7 +392,7 @@ export default function ChatArea({
                     </div>
 
                     {/* Hover actions */}
-                    <div className="message-actions" style={{ position: "absolute", top: -8, ...(isMine ? { left: -8 } : { right: -8 }), display: "flex", gap: 2, opacity: 0, transition: "opacity 0.15s", backgroundColor: isDark ? "#1a1a1a" : "#fff", borderRadius: 8, border: `1px solid ${borderSubtle}`, padding: 2, zIndex: 5 }}>
+                    <div className="s165-msg-actions" style={{ position: "absolute", top: -8, ...(isMine ? { left: -8 } : { right: -8 }), display: "flex", gap: 2, opacity: 0, transition: "opacity 0.15s", backgroundColor: isDark ? "#1a1a1a" : "#fff", borderRadius: 8, border: `1px solid ${borderSubtle}`, padding: 2, zIndex: 5 }}>
                       <button onClick={(e) => { e.stopPropagation(); setShowEmojiFor(showEmojiFor === msg.id ? null : msg.id); }} style={btnStyle(fgMuted)}><Smile size={14} /></button>
                       <button onClick={() => { setReplyTo(msg); inputRef.current?.focus(); }} style={btnStyle(fgMuted)}><CornerUpLeft size={14} /></button>
                       <button onClick={() => openForward(msg)} style={btnStyle(fgMuted)} title="Forward"><Forward size={14} /></button>
@@ -472,7 +473,7 @@ export default function ChatArea({
         )}
 
         {/* Input bar */}
-        <div style={{ padding: "10px 12px", paddingBottom: "calc(10px + env(safe-area-inset-bottom))", borderTop: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", gap: 6 }}>
+        <div className="s165-input-bar">
           <input ref={fileInputRef} type="file" accept="image/*,video/*" style={{ display: "none" }} onChange={handleFileSelect} />
           <button
             onClick={() => fileInputRef.current?.click()}
@@ -504,7 +505,7 @@ export default function ChatArea({
         </div>
       </div>
 
-      {/* Group info panel - hidden on mobile */}
+      {/* Group info panel */}
       {showGroupPanel && isGroup && (
         <div style={{ width: 210, borderLeft: `1px solid ${borderSubtle}`, display: "flex", flexDirection: "column", flexShrink: 0, backgroundColor: isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.5)" }} className="hidden sm:flex">
           <div style={{ padding: "14px 16px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -541,8 +542,8 @@ export default function ChatArea({
 
       {/* Forward modal */}
       {forwardingMsg && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60, padding: 16 }} onClick={() => setForwardingMsg(null)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: isDark ? "#111" : "#fff", borderRadius: 16, width: "100%", maxWidth: 360, maxHeight: "60vh", display: "flex", flexDirection: "column", border: `1px solid ${borderSubtle}` }}>
+        <div className="s165-modal-backdrop" style={{ zIndex: 60 }} onClick={() => setForwardingMsg(null)}>
+          <div onClick={(e) => e.stopPropagation()} className="s165-modal" style={{ maxWidth: 360 }}>
             <div style={{ padding: "14px 18px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <h3 className="text-sm font-medium" style={{ color: fg }}>Forward to…</h3>
               <button onClick={() => setForwardingMsg(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, lineHeight: 0, color: fgMuted }}><X size={16} /></button>
@@ -577,11 +578,7 @@ export default function ChatArea({
         </div>
       )}
 
-      <style>{`
-        .message-actions { opacity: 0 !important; }
-        div:hover > div > .message-actions { opacity: 1 !important; }
-        @media (hover: none) { .message-actions { display: none !important; } }
-      `}</style>
+
     </div>
   );
 }

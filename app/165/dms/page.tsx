@@ -27,7 +27,6 @@ export default function DmsPage() {
   const { user } = useAuth();
 
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-  const bgSubtle = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
   const bgHover = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
 
   const [conversations, setConversations] = useState<ConversationWithParticipant[]>([]);
@@ -92,29 +91,37 @@ export default function DmsPage() {
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  const isUserOnline = (uid: string) => {
+  const isUserOnline = useCallback((uid: string) => {
     const ls = presence[uid];
-    return ls ? Date.now() - new Date(ls).getTime() < 2 * 60 * 1000 : false;
-  };
+    return ls ? performance.now() > 0 && (globalThis.Date.now() - new Date(ls).getTime() < 2 * 60 * 1000) : false;
+  }, [presence]);
 
   return (
-    <div style={{ display: "flex", height: "calc(100dvh - 230px)", border: `1px solid ${borderSubtle}`, borderRadius: 12, overflow: "hidden", position: "relative" }}>
+    <div style={{ display: "flex", height: "calc(100dvh - 230px)", minHeight: 400, border: `1px solid ${borderSubtle}`, borderRadius: 12, overflow: "hidden", position: "relative" }}>
 
       {/* Sidebar */}
       <div
-        style={{ width: 280, maxWidth: "100%", borderRight: `1px solid ${borderSubtle}`, display: "flex", flexDirection: "column", flexShrink: 0 }}
-        className={mobileShowChat ? "hidden sm:flex" : "flex"}
+        style={{
+          borderRight: `1px solid ${borderSubtle}`,
+          display: "flex",
+          flexDirection: "column",
+          flexShrink: 0,
+          width: mobileShowChat ? 0 : "100%",
+          minWidth: mobileShowChat ? 0 : undefined,
+          overflow: mobileShowChat ? "hidden" : undefined,
+        }}
+        className="sm:!w-[280px] sm:!min-w-[280px] sm:!overflow-visible"
       >
         <div style={{ padding: "14px 14px 10px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 className="text-sm font-medium">Messages</h2>
-          <button onClick={() => { setShowNewChat(true); loadUsers(); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, lineHeight: 0, color: fgMuted, minWidth: 32, minHeight: 32, display: "flex", alignItems: "center", justifyContent: "center" }} title="New DM">
+          <button onClick={() => { setShowNewChat(true); loadUsers(); }} className="s165-btn-ghost" style={{ padding: 6, border: "none" }} title="New DM">
             <Plus size={17} strokeWidth={1.5} />
           </button>
         </div>
         {error && (
           <div className="text-xs p-3" style={{ color: "#ef4444", borderBottom: `1px solid rgba(239,68,68,0.2)` }}>{error}</div>
         )}
-        <div style={{ flex: 1, overflowY: "auto" }}>
+        <div style={{ flex: 1, overflowY: "auto" }} className="s165-scroll">
           {conversations.length === 0 ? (
             <p className="text-sm p-4" style={{ color: fgMuted }}>No direct messages yet.</p>
           ) : (
@@ -126,16 +133,14 @@ export default function DmsPage() {
                 <button
                   key={c.conversation.id}
                   onClick={() => { setActiveConvId(c.conversation.id); setMobileShowChat(true); }}
-                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: activeConvId === c.conversation.id ? bgHover : "transparent", border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", borderBottom: `1px solid ${borderSubtle}` }}
+                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: activeConvId === c.conversation.id ? bgHover : "transparent", border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", borderBottom: `1px solid ${borderSubtle}`, transition: "background-color 0.15s" }}
                 >
                   <div style={{ position: "relative", flexShrink: 0 }}>
                     {other.avatar_url
-                      ? <img src={other.avatar_url} alt="" style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover" }} />
-                      : <div style={{ width: 38, height: 38, borderRadius: "50%", backgroundColor: bgSubtle, display: "flex", alignItems: "center", justifyContent: "center" }}><User size={16} strokeWidth={1} style={{ color: fgMuted }} /></div>
+                      ? <img src={other.avatar_url} alt="" className="s165-avatar" style={{ width: 38, height: 38 }} />
+                      : <div className="s165-avatar-placeholder" style={{ width: 38, height: 38 }}><User size={16} strokeWidth={1} /></div>
                     }
-                    {online && (
-                      <div style={{ position: "absolute", bottom: 0, right: 0, width: 10, height: 10, borderRadius: "50%", backgroundColor: "#22c55e", border: `2px solid ${isDark ? "#111" : "#fff"}` }} />
-                    )}
+                    {online && <div className="s165-online-dot" />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="flex items-center justify-between">
@@ -157,7 +162,17 @@ export default function DmsPage() {
       </div>
 
       {/* Chat pane */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }} className={!mobileShowChat ? "hidden sm:flex" : "flex"}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          minWidth: 0,
+          width: !mobileShowChat ? 0 : "100%",
+          overflow: !mobileShowChat ? "hidden" : undefined,
+        }}
+        className="sm:!w-auto sm:!overflow-visible"
+      >
         {!activeConvId ? (
           <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <p className="text-sm" style={{ color: fgMuted }}>Select a conversation or start a new one</p>
@@ -166,22 +181,22 @@ export default function DmsPage() {
           <>
             {/* Chat header */}
             <div style={{ padding: "10px 14px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", gap: 10 }}>
-              <button onClick={() => setMobileShowChat(false)} className="sm:hidden" style={{ background: "none", border: "none", cursor: "pointer", padding: 4, lineHeight: 0, color: fgMuted, minWidth: 32, minHeight: 32, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <button onClick={() => setMobileShowChat(false)} className="sm:hidden" style={{ background: "none", border: "none", cursor: "pointer", padding: 4, lineHeight: 0, color: fgMuted, minWidth: 36, minHeight: 36, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <ArrowLeft size={18} />
               </button>
               <button
                 onClick={() => activeConv && setViewingProfile(activeConv.otherUser)}
-                style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, background: "none", border: "none", cursor: "pointer", padding: "3px 6px", borderRadius: 8, fontFamily: "inherit", textAlign: "left", minWidth: 0 }}
+                style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, background: "none", border: "none", cursor: "pointer", padding: "3px 6px", borderRadius: 8, fontFamily: "inherit", textAlign: "left", minWidth: 0, transition: "background-color 0.15s" }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = bgHover)}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
               >
                 <div style={{ position: "relative", flexShrink: 0 }}>
                   {activeConv?.otherUser.avatar_url
-                    ? <img src={activeConv.otherUser.avatar_url} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover" }} />
-                    : <div style={{ width: 30, height: 30, borderRadius: "50%", backgroundColor: bgSubtle, display: "flex", alignItems: "center", justifyContent: "center" }}><User size={13} strokeWidth={1} style={{ color: fgMuted }} /></div>
+                    ? <img src={activeConv.otherUser.avatar_url} alt="" className="s165-avatar" style={{ width: 30, height: 30 }} />
+                    : <div className="s165-avatar-placeholder" style={{ width: 30, height: 30 }}><User size={13} strokeWidth={1} /></div>
                   }
                   {activeConv && isUserOnline(activeConv.otherUser.id) && (
-                    <div style={{ position: "absolute", bottom: -1, right: -1, width: 9, height: 9, borderRadius: "50%", backgroundColor: "#22c55e", border: `2px solid ${isDark ? "#111" : "#fff"}` }} />
+                    <div className="s165-online-dot" style={{ width: 9, height: 9 }} />
                   )}
                 </div>
                 <div style={{ minWidth: 0 }}>
@@ -207,8 +222,8 @@ export default function DmsPage() {
 
       {/* New DM modal */}
       {showNewChat && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 16 }} onClick={() => setShowNewChat(false)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: isDark ? "#111" : "#fff", borderRadius: 16, width: "100%", maxWidth: 380, maxHeight: "65vh", display: "flex", flexDirection: "column", border: `1px solid ${borderSubtle}` }}>
+        <div className="s165-modal-backdrop" onClick={() => setShowNewChat(false)}>
+          <div onClick={(e) => e.stopPropagation()} className="s165-modal">
             <div style={{ padding: "14px 18px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <h3 className="text-sm font-medium">New Message</h3>
               <button onClick={() => setShowNewChat(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, lineHeight: 0, color: fgMuted }}><X size={16} /></button>
@@ -219,17 +234,17 @@ export default function DmsPage() {
                 <input type="text" className="tool-input" style={{ width: "100%", paddingLeft: 32, fontSize: 13 }} placeholder="Search…" value={userSearch} onChange={(e) => setUserSearch(e.target.value)} autoFocus />
               </div>
             </div>
-            <div style={{ flex: 1, overflowY: "auto" }}>
+            <div style={{ flex: 1, overflowY: "auto" }} className="s165-scroll">
               {filteredUsers.length === 0
                 ? <p className="text-sm p-4" style={{ color: fgMuted }}>{allUsers.length === 0 ? "Loading…" : "No users found."}</p>
                 : filteredUsers.map((u) => (
-                  <button key={u.id} onClick={() => startNewChat(u.id)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 11, padding: "10px 18px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
+                  <button key={u.id} onClick={() => startNewChat(u.id)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 11, padding: "10px 18px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "background-color 0.15s" }}
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = bgHover)}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                   >
                     {u.avatar_url
-                      ? <img src={u.avatar_url} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover" }} />
-                      : <div style={{ width: 34, height: 34, borderRadius: "50%", backgroundColor: bgSubtle, display: "flex", alignItems: "center", justifyContent: "center" }}><User size={15} strokeWidth={1} style={{ color: fgMuted }} /></div>
+                      ? <img src={u.avatar_url} alt="" className="s165-avatar" style={{ width: 34, height: 34 }} />
+                      : <div className="s165-avatar-placeholder" style={{ width: 34, height: 34 }}><User size={15} strokeWidth={1} /></div>
                     }
                     <div>
                       <p className="text-sm" style={{ color: fg }}>{u.display_name || u.username || "User"}</p>
