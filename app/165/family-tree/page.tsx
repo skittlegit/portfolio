@@ -199,8 +199,6 @@ export default function FamilyTreePage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const myNode = fnodes.find((n) => n.user_id === user?.id);
-
   const startEdit = (targetUserId?: string) => {
     const uid = targetUserId || user?.id || "";
     setEditTargetUserId(uid);

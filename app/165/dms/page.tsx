@@ -132,7 +132,7 @@ export default function DmsPage() {
         }}
         className="sm:!w-[280px] sm:!min-w-[280px] sm:!overflow-visible"
       >
-        <div style={{ padding: "14px 14px 10px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ padding: "14px 14px 10px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: isDark ? "#1F2C34" : "#F0F2F5" }}>
           <h2 className="text-sm font-medium">Messages</h2>
           <button onClick={() => { setShowNewChat(true); loadUsers(); }} className="s165-btn-ghost" style={{ padding: 6, border: "none" }} title="New DM">
             <Plus size={17} strokeWidth={1.5} />
@@ -200,7 +200,7 @@ export default function DmsPage() {
         ) : (
           <>
             {/* Chat header */}
-            <div style={{ padding: "10px 14px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ padding: "10px 14px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", gap: 10, backgroundColor: isDark ? "#1F2C34" : "#F0F2F5" }}>
               <button onClick={() => setMobileShowChat(false)} className="sm:hidden" style={{ background: "none", border: "none", cursor: "pointer", padding: 4, lineHeight: 0, color: fgMuted, minWidth: 36, minHeight: 36, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <ArrowLeft size={18} />
               </button>

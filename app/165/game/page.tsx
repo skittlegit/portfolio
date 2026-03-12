@@ -31,7 +31,7 @@ import { Plus, Dice1, Hash, Users, ChevronDown, X, Pencil, Ban, Lock, Trash2 } f
 
 type GameTab = "coin" | "dice" | "guess" | "bets";
 
-type FlipResult = { result: string; won: boolean; bet: number; new_balance: number };
+type FlipResult = { result: string; won: boolean; bet: number; new_balance: number; payout?: number };
 type DiceResult = { roll: number; won: boolean; bet: number; new_balance: number };
 type GuessResult = { number: number; won: boolean; bet: number; new_balance: number };
 
@@ -368,7 +368,7 @@ export default function GamePage() {
           </div>
 
           {flipResult && !flipping && (
-            <ResultBanner won={flipResult.won} amount={flipResult.bet} subtitle={`${flipResult.result === coinChoice ? "You called it right!" : "Better luck next time."} Balance: ${flipResult.new_balance.toLocaleString()}`} />
+            <ResultBanner won={flipResult.won} amount={flipResult.won ? (flipResult.payout ?? flipResult.bet) : flipResult.bet} subtitle={`${flipResult.result === coinChoice ? "You called it right!" : "Better luck next time."} Balance: ${flipResult.new_balance.toLocaleString()}`} />
           )}
 
           <div style={{ marginBottom: 16 }}>

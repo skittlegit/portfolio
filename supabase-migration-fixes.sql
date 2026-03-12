@@ -111,3 +111,29 @@ create policy "Users can update own family node"
 
 -- The transfer_currency function doesn't have a max bet limit, so no change needed.
 -- The coinflip function above already removes the max bet limit.
+
+-- ══════════════════════════════════════════════════════════════════════════════
+-- 5. Fix custom_bets status CHECK to allow 'cancelled'
+-- ══════════════════════════════════════════════════════════════════════════════
+
+ALTER TABLE custom_bets DROP CONSTRAINT IF EXISTS custom_bets_status_check;
+ALTER TABLE custom_bets ADD CONSTRAINT custom_bets_status_check
+  CHECK (status IN ('open', 'closed', 'resolved', 'cancelled'));
+
+-- Allow admin to update any bet (not just creator)
+DROP POLICY IF EXISTS "Creators can update own bets" ON custom_bets;
+CREATE POLICY "Creators or admin can update bets"
+  ON custom_bets FOR UPDATE
+  USING (creator_id = auth.uid() OR is_admin_user());
+
+-- Allow deletion of bets (creator or admin)
+DROP POLICY IF EXISTS "Admin can delete bets" ON custom_bets;
+CREATE POLICY "Admin can delete bets"
+  ON custom_bets FOR DELETE
+  USING (creator_id = auth.uid() OR is_admin_user());
+
+-- Allow admin to delete bet entries (for cleanup)
+DROP POLICY IF EXISTS "Admin can delete bet entries" ON bet_entries;
+CREATE POLICY "Admin can delete bet entries"
+  ON bet_entries FOR DELETE
+  USING (is_admin_user());

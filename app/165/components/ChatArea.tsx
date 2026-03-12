@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState, useRef, useCallback, ChangeEvent } from "react";
+import { useEffect, useState, useRef, useCallback, ChangeEvent, Fragment } from "react";
 import {
   Send,
   Smile,
@@ -75,6 +75,22 @@ function formatTime(ts: string): string {
   return `${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} ${time}`;
 }
 
+function getDateLabel(ts: string): string {
+  const d = new Date(ts);
+  const now = new Date();
+  const diff = Math.floor((now.getTime() - d.getTime()) / 86400000);
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: d.getFullYear() !== now.getFullYear() ? "numeric" : undefined });
+}
+
+const SENDER_COLORS = ["#E17076", "#7BC862", "#E5CA77", "#65AADD", "#A695E7", "#EE7E48", "#6EC9CB", "#FAA774"];
+function getSenderColor(uid: string): string {
+  let h = 0;
+  for (let i = 0; i < uid.length; i++) h = ((h << 5) - h) + uid.charCodeAt(i);
+  return SENDER_COLORS[Math.abs(h) % SENDER_COLORS.length];
+}
+
 function btnStyle(color: string): React.CSSProperties {
   return {
     background: "none",
@@ -107,8 +123,9 @@ export default function ChatArea({
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
   const bgSubtle = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
   const bgHover = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
-  const myBubble = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)";
-  const theirBubble = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
+  const myBubble = isDark ? "#005C4B" : "#D9FDD3";
+  const theirBubble = isDark ? "#1F2C34" : "#FFFFFF";
+  const chatBg = isDark ? "#0B141A" : "#EFEAE2";
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [reactions, setReactions] = useState<Reaction[]>([]);
@@ -376,7 +393,7 @@ export default function ChatArea({
         {/* Message scroll */}
         <div
           className="s165-scroll"
-          style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "16px", display: "flex", flexDirection: "column", gap: 4 }}
+          style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "16px", display: "flex", flexDirection: "column", gap: 4, backgroundColor: chatBg }}
           onClick={() => setShowEmojiFor(null)}
         >
           {loadingMsgs ? (
@@ -384,7 +401,7 @@ export default function ChatArea({
           ) : messages.length === 0 ? (
             <p className="text-sm text-center my-auto" style={{ color: fgMuted }}>No messages yet. Say hello!</p>
           ) : (
-            messages.map((msg) => {
+            messages.map((msg, idx) => {
               const isMine = msg.sender_id === user?.id;
               const msgRxns = reactions.filter((r) => r.message_id === msg.id);
               const replyMsg = msg.reply_to ? messages.find((m) => m.id === msg.reply_to) : null;
@@ -393,6 +410,8 @@ export default function ChatArea({
               const hasText = msg.content.trim() && msg.content.trim() !== " ";
               const status = getMessageStatus(msg);
               const isForwarded = hasText && msg.content.startsWith("↪ ");
+              const prevMsg = idx > 0 ? messages[idx - 1] : null;
+              const showDate = !prevMsg || getDateLabel(msg.created_at) !== getDateLabel(prevMsg.created_at);
 
               const emojiGroups: Record<string, { count: number; mine: boolean }> = {};
               for (const r of msgRxns) {
@@ -402,8 +421,15 @@ export default function ChatArea({
               }
 
               return (
+                <Fragment key={msg.id}>
+                {showDate && (
+                  <div style={{ display: "flex", justifyContent: "center", margin: "10px 0" }}>
+                    <span style={{ backgroundColor: isDark ? "rgba(35,47,52,0.9)" : "rgba(255,255,255,0.92)", color: fgMuted, fontSize: 12, padding: "5px 12px", borderRadius: 7, boxShadow: "0 1px 1px rgba(0,0,0,0.08)", fontWeight: 500 }}>
+                      {getDateLabel(msg.created_at)}
+                    </span>
+                  </div>
+                )}
                 <div
-                  key={msg.id}
                   style={{ display: "flex", flexDirection: "column", alignItems: isMine ? "flex-end" : "flex-start", marginBottom: Object.keys(emojiGroups).length ? 16 : 2, position: "relative" }}
                   onTouchStart={() => handleTouchStart(msg.id)}
                   onTouchEnd={handleTouchEnd}
@@ -421,13 +447,13 @@ export default function ChatArea({
                       <button
                         onClick={() => { const s = participants.find((p) => p.id === msg.sender_id); if (s) onOpenProfile(s); }}
                         className="text-xs mb-1 ml-2"
-                        style={{ color: fgMuted, fontWeight: 500, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", display: "block" }}
+                        style={{ color: getSenderColor(msg.sender_id), fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", display: "block", fontSize: 13 }}
                       >
                         {getName(msg.sender_id)}
                       </button>
                     )}
 
-                    <div style={{ backgroundColor: isMine ? myBubble : theirBubble, borderRadius: 16, borderTopRightRadius: isMine ? 4 : 16, borderTopLeftRadius: isMine ? 16 : 4, padding: isMedia && !hasText ? "4px" : "8px 14px", overflow: "hidden" }}>
+                    <div style={{ backgroundColor: isMine ? myBubble : theirBubble, borderRadius: 12, borderBottomRightRadius: isMine ? 4 : 12, borderBottomLeftRadius: isMine ? 12 : 4, padding: isMedia && !hasText ? "4px" : "8px 14px", overflow: "hidden", boxShadow: "0 1px 1px rgba(0,0,0,0.06)" }}>
                       {isForwarded && (
                         <p className="text-xs mb-1" style={{ color: fgMuted, fontStyle: "italic" }}>↪ Forwarded</p>
                       )}
@@ -495,6 +521,7 @@ export default function ChatArea({
                     )}
                   </div>
                 </div>
+                </Fragment>
               );
             })
           )}
@@ -564,7 +591,7 @@ export default function ChatArea({
           <button
             onClick={handleSend}
             disabled={!inputValue.trim() && !pendingMedia}
-            style={{ background: "none", border: "none", cursor: inputValue.trim() || pendingMedia ? "pointer" : "default", padding: 8, lineHeight: 0, color: inputValue.trim() || pendingMedia ? fg : fgMuted, opacity: inputValue.trim() || pendingMedia ? 1 : 0.4, transition: "opacity 0.15s", minWidth: 40, minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+            style={{ background: inputValue.trim() || pendingMedia ? "#00A884" : "none", border: "none", cursor: inputValue.trim() || pendingMedia ? "pointer" : "default", padding: 8, lineHeight: 0, color: inputValue.trim() || pendingMedia ? "#fff" : fgMuted, opacity: inputValue.trim() || pendingMedia ? 1 : 0.4, transition: "all 0.2s", minWidth: 40, minHeight: 40, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: "50%" }}
           >
             <Send size={18} strokeWidth={1.5} />
           </button>
