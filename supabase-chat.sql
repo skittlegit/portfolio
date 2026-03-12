@@ -233,3 +233,146 @@ drop policy if exists "Users can delete own chat media" on storage.objects;
 create policy "Users can delete own chat media"
   on storage.objects for delete
   using (bucket_id = 'chat-media' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ── Currency system ───────────────────────────────────────────────────────────
+
+create table if not exists user_currency (
+  user_id uuid references auth.users(id) on delete cascade primary key,
+  balance integer not null default 500 check (balance >= 0),
+  updated_at timestamptz default now() not null
+);
+
+create table if not exists currency_transactions (
+  id uuid default gen_random_uuid() primary key,
+  from_user_id uuid references auth.users(id) on delete set null,
+  to_user_id uuid references auth.users(id) on delete set null,
+  amount integer not null check (amount > 0),
+  note text,
+  type text not null default 'transfer', -- 'transfer' | 'game_win' | 'game_loss'
+  created_at timestamptz default now() not null
+);
+
+alter table user_currency enable row level security;
+alter table currency_transactions enable row level security;
+
+drop policy if exists "Authenticated can view balances" on user_currency;
+create policy "Authenticated can view balances"
+  on user_currency for select using (auth.uid() is not null);
+
+drop policy if exists "Users can init own balance" on user_currency;
+create policy "Users can init own balance"
+  on user_currency for insert with check (user_id = auth.uid());
+
+drop policy if exists "Users can update own balance" on user_currency;
+create policy "Users can update own balance"
+  on user_currency for update using (user_id = auth.uid());
+
+drop policy if exists "Authenticated can view transactions" on currency_transactions;
+create policy "Authenticated can view transactions"
+  on currency_transactions for select using (auth.uid() is not null);
+
+drop policy if exists "Authenticated can insert transactions" on currency_transactions;
+create policy "Authenticated can insert transactions"
+  on currency_transactions for insert with check (auth.uid() is not null);
+
+-- Atomic transfer function (SECURITY DEFINER bypasses RLS for internal updates)
+create or replace function transfer_currency(
+  from_uid uuid,
+  to_uid uuid,
+  transfer_amount integer,
+  transfer_note text default null
+)
+returns void
+language plpgsql
+security definer
+as $$
+declare
+  sender_balance integer;
+begin
+  if transfer_amount <= 0 then raise exception 'Amount must be positive'; end if;
+  if from_uid = to_uid then raise exception 'Cannot transfer to yourself'; end if;
+
+  insert into user_currency (user_id, balance) values (from_uid, 500) on conflict (user_id) do nothing;
+  insert into user_currency (user_id, balance) values (to_uid, 500) on conflict (user_id) do nothing;
+
+  select balance into sender_balance from user_currency where user_id = from_uid for update;
+  if sender_balance < transfer_amount then raise exception 'Insufficient balance'; end if;
+
+  update user_currency set balance = balance - transfer_amount, updated_at = now() where user_id = from_uid;
+  update user_currency set balance = balance + transfer_amount, updated_at = now() where user_id = to_uid;
+
+  insert into currency_transactions (from_user_id, to_user_id, amount, note, type)
+    values (from_uid, to_uid, transfer_amount, transfer_note, 'transfer');
+end;
+$$;
+
+-- Coin flip game function
+create or replace function play_coinflip(
+  bet_amount integer,
+  player_choice text  -- 'heads' or 'tails'
+)
+returns jsonb
+language plpgsql
+security definer
+as $$
+declare
+  player_id uuid := auth.uid();
+  current_balance integer;
+  flip_result text;
+  won boolean;
+  new_balance integer;
+begin
+  if bet_amount <= 0 then raise exception 'Bet must be positive'; end if;
+  if bet_amount > 200 then raise exception 'Maximum bet is 200'; end if;
+  if player_choice not in ('heads', 'tails') then raise exception 'Choice must be heads or tails'; end if;
+
+  insert into user_currency (user_id, balance) values (player_id, 500) on conflict (user_id) do nothing;
+  select balance into current_balance from user_currency where user_id = player_id for update;
+  if current_balance < bet_amount then raise exception 'Insufficient balance'; end if;
+
+  flip_result := case when random() < 0.5 then 'heads' else 'tails' end;
+  won := flip_result = player_choice;
+  new_balance := current_balance + case when won then bet_amount else -bet_amount end;
+
+  update user_currency set balance = new_balance, updated_at = now() where user_id = player_id;
+
+  insert into currency_transactions (from_user_id, to_user_id, amount, note, type)
+    values (
+      case when won then null else player_id end,
+      case when won then player_id else null end,
+      bet_amount,
+      'Coin flip — ' || flip_result,
+      case when won then 'game_win' else 'game_loss' end
+    );
+
+  return jsonb_build_object(
+    'result', flip_result,
+    'won', won,
+    'bet', bet_amount,
+    'new_balance', new_balance
+  );
+end;
+$$;
+
+-- ── Family tree ───────────────────────────────────────────────────────────────
+
+create table if not exists family_tree (
+  user_id uuid references auth.users(id) on delete cascade primary key,
+  title text not null default 'Member',
+  parent_user_id uuid references auth.users(id) on delete set null,
+  updated_at timestamptz default now() not null
+);
+
+alter table family_tree enable row level security;
+
+drop policy if exists "Authenticated can view family tree" on family_tree;
+create policy "Authenticated can view family tree"
+  on family_tree for select using (auth.uid() is not null);
+
+drop policy if exists "Users can insert own family node" on family_tree;
+create policy "Users can insert own family node"
+  on family_tree for insert with check (user_id = auth.uid());
+
+drop policy if exists "Users can update own family node" on family_tree;
+create policy "Users can update own family node"
+  on family_tree for update using (user_id = auth.uid());
