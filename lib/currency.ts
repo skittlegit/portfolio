@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { ADMIN_USERNAME } from "@/lib/whitelist";
 
 export type UserBalance = {
   user_id: string;
@@ -117,6 +118,170 @@ export async function getAllTransactions(limit = 50): Promise<CurrencyTransactio
     .order("created_at", { ascending: false })
     .limit(limit);
   return data || [];
+}
+
+/* ── Admin helpers ── */
+
+async function requireAdmin(): Promise<string> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not logged in");
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", userData.user.id)
+    .single();
+  if (!profile?.username || profile.username.toLowerCase() !== ADMIN_USERNAME)
+    throw new Error("Admin only");
+  return userData.user.id;
+}
+
+export async function adminSetBalance(userId: string, newBalance: number): Promise<void> {
+  await requireAdmin();
+  const supabase = createClient();
+  if (newBalance < 0) throw new Error("Balance cannot be negative");
+  const { error } = await supabase
+    .from("user_currency")
+    .upsert({ user_id: userId, balance: newBalance, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+  if (error) throw new Error(error.message);
+  await supabase.from("currency_transactions").insert({
+    from_user_id: null,
+    to_user_id: userId,
+    amount: newBalance,
+    type: "admin_set",
+    note: `Balance set to ${newBalance} by admin`,
+  });
+}
+
+export async function adminCancelBet(betId: string): Promise<void> {
+  await requireAdmin();
+  const supabase = createClient();
+  const { data: bet } = await supabase
+    .from("custom_bets")
+    .select("status, title")
+    .eq("id", betId)
+    .single();
+  if (!bet) throw new Error("Bet not found");
+  if (bet.status === "resolved" || bet.status === "cancelled") throw new Error("Bet is already " + bet.status);
+  // Refund all entries
+  const { data: entries } = await supabase
+    .from("bet_entries")
+    .select("user_id, amount")
+    .eq("bet_id", betId);
+  if (entries && entries.length > 0) {
+    for (const entry of entries) {
+      const { data: balData } = await supabase
+        .from("user_currency")
+        .select("balance")
+        .eq("user_id", entry.user_id)
+        .single();
+      const bal = balData?.balance ?? 0;
+      await supabase
+        .from("user_currency")
+        .update({ balance: bal + entry.amount, updated_at: new Date().toISOString() })
+        .eq("user_id", entry.user_id);
+      await supabase.from("currency_transactions").insert({
+        from_user_id: null,
+        to_user_id: entry.user_id,
+        amount: entry.amount,
+        type: "game_win",
+        note: `Refund: bet "${bet.title}" cancelled by admin`,
+      });
+    }
+  }
+  await supabase.from("custom_bets").update({ status: "cancelled" }).eq("id", betId);
+}
+
+export async function adminResolveBet(betId: string, winningSide: "for" | "against"): Promise<void> {
+  await requireAdmin();
+  const supabase = createClient();
+  const { data: bet } = await supabase
+    .from("custom_bets")
+    .select("*")
+    .eq("id", betId)
+    .single();
+  if (!bet) throw new Error("Bet not found");
+  if (bet.status === "resolved" || bet.status === "cancelled") throw new Error("Bet is already " + bet.status);
+  const { data: entries } = await supabase
+    .from("bet_entries")
+    .select("*")
+    .eq("bet_id", betId);
+  if (!entries || entries.length === 0) {
+    await supabase.from("custom_bets").update({ status: "resolved", outcome: winningSide }).eq("id", betId);
+    return;
+  }
+  const winners = entries.filter((e: BetEntry) => e.side === winningSide);
+  const totalPool = entries.reduce((s: number, e: BetEntry) => s + e.amount, 0);
+  const winnerPool = winners.reduce((s: number, e: BetEntry) => s + e.amount, 0);
+  for (const winner of winners) {
+    const share = winnerPool > 0 ? Math.floor((winner.amount / winnerPool) * totalPool) : 0;
+    if (share > 0) {
+      const { data: balData } = await supabase
+        .from("user_currency")
+        .select("balance")
+        .eq("user_id", winner.user_id)
+        .single();
+      const bal = balData?.balance ?? 0;
+      await supabase.from("user_currency")
+        .update({ balance: bal + share, updated_at: new Date().toISOString() })
+        .eq("user_id", winner.user_id);
+      await supabase.from("currency_transactions").insert({
+        from_user_id: null,
+        to_user_id: winner.user_id,
+        amount: share,
+        type: "game_win",
+        note: `Won bet: ${bet.title} (admin resolved)`,
+      });
+    }
+  }
+  if (winners.length === 0) {
+    const losers = entries.filter((e: BetEntry) => e.side !== winningSide);
+    for (const loser of losers) {
+      const { data: balData } = await supabase
+        .from("user_currency")
+        .select("balance")
+        .eq("user_id", loser.user_id)
+        .single();
+      const bal = balData?.balance ?? 0;
+      await supabase.from("user_currency")
+        .update({ balance: bal + loser.amount, updated_at: new Date().toISOString() })
+        .eq("user_id", loser.user_id);
+    }
+  }
+  await supabase.from("custom_bets").update({ status: "resolved", outcome: winningSide }).eq("id", betId);
+}
+
+export async function adminEditBet(betId: string, title: string, description: string): Promise<void> {
+  await requireAdmin();
+  const supabase = createClient();
+  if (!title.trim()) throw new Error("Title is required");
+  const { error } = await supabase
+    .from("custom_bets")
+    .update({ title: title.trim(), description: description.trim() })
+    .eq("id", betId);
+  if (error) throw new Error(error.message);
+}
+
+/* ── Admin family tree helpers ── */
+
+export async function adminUpsertFamilyNode(
+  userId: string,
+  title: string,
+  parentUserId: string | null,
+  relationType: string = "child"
+): Promise<void> {
+  await requireAdmin();
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("family_tree")
+    .upsert({
+      user_id: userId,
+      title,
+      parent_user_id: parentUserId || null,
+      relation_type: relationType,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+  if (error) throw new Error(error.message);
 }
 
 export async function getFamilyTree(): Promise<FamilyNode[]> {

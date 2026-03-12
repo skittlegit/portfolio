@@ -37,10 +37,13 @@ import {
   followUser,
   unfollowUser,
   getFollowData,
+  adminAddGroupMember,
+  getAllRegisteredUsers,
   type Message,
   type Reaction,
   type ConversationWithParticipant,
 } from "@/lib/chat";
+import { isAdmin } from "@/lib/whitelist";
 
 const EMOJI_LIST = ["❤️", "😂", "😮", "😢", "😡", "👍", "👎", "🔥", "💯", "🎉"];
 
@@ -130,6 +133,12 @@ export default function ChatArea({
 
   // Follow state for group panel
   const [followStatus, setFollowStatus] = useState<Record<string, { followers: number; following: number; isFollowing: boolean }>>({});
+
+  // Admin: add member
+  const userIsAdmin = isAdmin(profile?.username);
+  const [allUsers, setAllUsers] = useState<{ id: string; display_name: string | null; username: string | null; avatar_url: string | null }[]>([]);
+  const [addMemberId, setAddMemberId] = useState("");
+  const [addingMember, setAddingMember] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -224,6 +233,23 @@ export default function ChatArea({
     };
     loadFollows();
   }, [isGroup, showGroupPanel, participants, user?.id]);
+
+  // Admin: load all registered users for add-member dropdown
+  useEffect(() => {
+    if (!isGroup || !showGroupPanel || !userIsAdmin) return;
+    getAllRegisteredUsers().then(setAllUsers);
+  }, [isGroup, showGroupPanel, userIsAdmin]);
+
+  const handleAddMember = async () => {
+    if (!addMemberId) return;
+    setAddingMember(true);
+    try {
+      await adminAddGroupMember(convId, addMemberId);
+      setAddMemberId("");
+    } catch { /* ignore */ } finally {
+      setAddingMember(false);
+    }
+  };
 
   const broadcastTyping = useCallback(() => {
     if (typingTimeout.current) return;
@@ -344,9 +370,9 @@ export default function ChatArea({
     : null;
 
   return (
-    <div style={{ flex: 1, display: "flex", height: `calc(100dvh - ${heightOffset}px)`, minWidth: 0 }}>
+    <div style={{ flex: 1, display: "flex", height: heightOffset > 0 ? `calc(100dvh - ${heightOffset}px)` : "100%", minWidth: 0, position: "relative" }}>
       {/* Message column */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 }}>
         {/* Message scroll */}
         <div
           className="s165-scroll"
@@ -545,13 +571,30 @@ export default function ChatArea({
         </div>
       </div>
 
-      {/* Group info panel */}
+      {/* Group info panel — desktop: side panel, mobile: overlay */}
       {showGroupPanel && isGroup && (
-        <div style={{ width: 210, borderLeft: `1px solid ${borderSubtle}`, display: "flex", flexDirection: "column", flexShrink: 0, backgroundColor: isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.5)" }} className="hidden sm:flex">
-          <div style={{ padding: "14px 16px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span className="text-sm font-medium">Members</span>
-            <button onClick={onToggleGroupPanel} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, lineHeight: 0, color: fgMuted }}><X size={14} /></button>
-          </div>
+        <>
+          {/* Mobile overlay backdrop */}
+          <div
+            className="sm:hidden"
+            onClick={onToggleGroupPanel}
+            style={{ position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", zIndex: 15 }}
+          />
+          <div
+            style={{
+              borderLeft: `1px solid ${borderSubtle}`,
+              display: "flex",
+              flexDirection: "column",
+              flexShrink: 0,
+              backgroundColor: isDark ? "rgba(0,0,0,0.95)" : "rgba(255,255,255,0.98)",
+              zIndex: 16,
+            }}
+            className="s165-group-panel"
+          >
+            <div style={{ padding: "14px 16px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span className="text-sm font-medium">Members</span>
+              <button onClick={onToggleGroupPanel} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, lineHeight: 0, color: fgMuted }}><X size={14} /></button>
+            </div>
           <div style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
             {participants.map((p) => {
               const isMe = p.id === user?.id;
@@ -589,7 +632,33 @@ export default function ChatArea({
               );
             })}
           </div>
-        </div>
+          {/* Admin: add member */}
+          {userIsAdmin && (
+            <div style={{ padding: "10px 14px", borderTop: `1px solid ${borderSubtle}` }}>
+              <p className="text-xs font-medium mb-2" style={{ color: "#f59e0b" }}>Add member</p>
+              <select
+                className="tool-select"
+                value={addMemberId}
+                onChange={(e) => setAddMemberId(e.target.value)}
+                style={{ width: "100%", fontSize: 12, padding: "6px 8px", marginBottom: 6 }}
+              >
+                <option value="">Select user…</option>
+                {allUsers.filter(u => !participants.some(p => p.id === u.id)).map(u => (
+                  <option key={u.id} value={u.id}>{u.display_name || u.username || u.id.slice(0, 8)}</option>
+                ))}
+              </select>
+              <button
+                onClick={handleAddMember}
+                disabled={addingMember || !addMemberId}
+                className="s165-btn-primary"
+                style={{ width: "100%", fontSize: 11, padding: "6px 8px" }}
+              >
+                {addingMember ? "Adding…" : "Add"}
+              </button>
+            </div>
+          )}
+          </div>
+        </>
       )}
 
       {/* Lightbox */}

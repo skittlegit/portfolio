@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useTheme } from "../../context/ThemeContext";
-import { getAllBalances, getAllTransactions, transferCurrency, type UserBalance, type CurrencyTransaction } from "@/lib/currency";
+import { getAllBalances, getAllTransactions, transferCurrency, adminSetBalance, type UserBalance, type CurrencyTransaction } from "@/lib/currency";
 import { getWhitelistedUsers } from "@/lib/chat";
+import { isAdmin } from "@/lib/whitelist";
 
 type Profile = { id: string; display_name: string | null; username: string | null; avatar_url: string | null };
 
@@ -26,6 +27,13 @@ export default function CurrencyPage() {
 
   // Transactions feed
   const [transactions, setTransactions] = useState<CurrencyTransaction[]>([]);
+
+  // Admin
+  const [userIsAdmin, setUserIsAdmin] = useState(false);
+  const [adminTargetUser, setAdminTargetUser] = useState("");
+  const [adminAmount, setAdminAmount] = useState(500);
+  const [adminMsg, setAdminMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [settingBalance, setSettingBalance] = useState(false);
 
   const loadData = useCallback(async () => {
     const [usersRaw, balancesRaw, txnsRaw] = await Promise.all([
@@ -59,6 +67,8 @@ export default function CurrencyPage() {
       setMyId(user.id);
       const own = merged.find((b) => b.user_id === user.id);
       setMyBalance(own?.balance ?? 500);
+      const myProfile = userProfiles.find((p) => p.id === user.id);
+      setUserIsAdmin(isAdmin(myProfile?.username));
     }
   }, []);
 
@@ -92,6 +102,21 @@ export default function CurrencyPage() {
 
   const otherUsers = profiles.filter((u) => u.id !== myId);
 
+  const handleAdminSetBalance = async () => {
+    if (!adminTargetUser || adminAmount < 0) return;
+    setSettingBalance(true);
+    setAdminMsg(null);
+    try {
+      await adminSetBalance(adminTargetUser, adminAmount);
+      setAdminMsg({ ok: true, text: `Balance set to ${adminAmount}` });
+      loadData();
+    } catch (err) {
+      setAdminMsg({ ok: false, text: err instanceof Error ? err.message : "Failed to set balance" });
+    } finally {
+      setSettingBalance(false);
+    }
+  };
+
   return (
     <div>
       {/* Balance header */}
@@ -102,6 +127,51 @@ export default function CurrencyPage() {
         </div>
         <div style={{ fontSize: 36 }}>💰</div>
       </div>
+
+      {/* Admin panel */}
+      {userIsAdmin && (
+        <div className="s165-panel" style={{ marginBottom: 20, borderRadius: 16, padding: 20, border: `1px solid rgba(245,158,11,0.3)` }}>
+          <h3 className="s165-section-title" style={{ color: "#f59e0b" }}>Admin — Set Balance</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: fgMuted }}>User</label>
+              <select
+                className="tool-select"
+                value={adminTargetUser}
+                onChange={(e) => setAdminTargetUser(e.target.value)}
+                style={{ width: "100%", fontSize: 14, padding: "9px 12px" }}
+              >
+                <option value="">Select user…</option>
+                {profiles.map((u) => (
+                  <option key={u.id} value={u.id}>{u.display_name || u.username}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: fgMuted }}>New Balance</label>
+              <input
+                type="number"
+                className="tool-input"
+                min={0}
+                value={adminAmount}
+                onChange={(e) => setAdminAmount(Math.max(0, Number(e.target.value)))}
+                style={{ width: "100%", fontSize: 14, padding: "9px 12px" }}
+              />
+            </div>
+            {adminMsg && (
+              <p className="text-xs" style={{ color: adminMsg.ok ? "#22c55e" : "#ef4444" }}>{adminMsg.text}</p>
+            )}
+            <button
+              onClick={handleAdminSetBalance}
+              disabled={settingBalance || !adminTargetUser}
+              className="s165-btn-primary"
+              style={{ backgroundColor: "#f59e0b" }}
+            >
+              {settingBalance ? "Setting…" : "Set Balance"}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {/* Leaderboard */}

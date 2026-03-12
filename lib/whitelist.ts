@@ -26,6 +26,7 @@ export const WHITELIST = {
     "ankita",
     "satya",
     "myraid",
+    "ankitsblade",
     // Add whitelisted usernames here
   ] as string[],
 };
@@ -34,4 +35,10 @@ export function isWhitelisted(email?: string | null, username?: string | null): 
   if (email && WHITELIST.emails.includes(email.toLowerCase())) return true;
   if (username && WHITELIST.usernames.includes(username.toLowerCase())) return true;
   return false;
+}
+
+export const ADMIN_USERNAME = "skittle";
+
+export function isAdmin(username?: string | null): boolean {
+  return !!username && username.toLowerCase() === ADMIN_USERNAME;
 }

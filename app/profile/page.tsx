@@ -9,6 +9,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { getSavedItems, type SavedItem } from "@/lib/saved-items";
 import { updateProfile, checkUsernameAvailable, uploadAvatar } from "@/lib/profile";
+import { getFollowData } from "@/lib/chat";
 import { createClient } from "@/lib/supabase/client";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -28,6 +29,7 @@ export default function ProfilePage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [linkingProvider, setLinkingProvider] = useState<string | null>(null);
+  const [followData, setFollowData] = useState<{ followers: number; following: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -48,6 +50,11 @@ export default function ProfilePage() {
     fetchItems();
     return () => { cancelled = true; };
   }, [user, authLoading]);
+
+  useEffect(() => {
+    if (!user) return;
+    getFollowData(user.id).then(setFollowData);
+  }, [user]);
 
   const stats = useMemo(() => {
     const byType: Record<string, number> = {};
@@ -357,6 +364,29 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
+
+          {/* Followers / Following */}
+          {followData && (
+            <div
+              style={{
+                display: "flex",
+                gap: 24,
+                marginBottom: 24,
+                padding: "16px 24px",
+                border: `1px solid ${borderSubtle}`,
+                borderRadius: 12,
+              }}
+            >
+              <div style={{ textAlign: "center" }}>
+                <p className="text-xl font-medium">{followData.followers}</p>
+                <p className="text-xs" style={{ color: fgMuted }}>Followers</p>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <p className="text-xl font-medium">{followData.following}</p>
+                <p className="text-xs" style={{ color: fgMuted }}>Following</p>
+              </div>
+            </div>
+          )}
 
           {/* Account Details */}
           <div

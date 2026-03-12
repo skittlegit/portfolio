@@ -408,3 +408,20 @@ div:hover > div > .s165-msg-actions { opacity: 1 !important; }
   align-items: center;
   gap: 6px;
 }
+
+/* Group panel: overlay on mobile, side panel on desktop */
+.s165-group-panel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 240px;
+  max-width: 80vw;
+}
+@media (min-width: 640px) {
+  .s165-group-panel {
+    position: relative;
+    width: 210px;
+    max-width: none;
+  }
+}

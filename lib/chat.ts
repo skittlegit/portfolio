@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { WHITELIST } from "@/lib/whitelist";
+import { WHITELIST, isAdmin } from "@/lib/whitelist";
 
 export type Conversation = {
   id: string;
@@ -381,9 +381,11 @@ export async function getWhitelistedUsers() {
   const supabase = createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, username, display_name, avatar_url")
-    .in("username", WHITELIST.usernames);
-  return data || [];
+    .select("id, username, display_name, avatar_url");
+  const lowerWhitelist = WHITELIST.usernames.map(u => u.toLowerCase());
+  return (data || []).filter(p =>
+    p.username && lowerWhitelist.includes(p.username.toLowerCase())
+  );
 }
 
 export async function uploadChatFile(file: File): Promise<string> {
@@ -531,4 +533,27 @@ export async function forwardMessage(
   if (!origMsg) throw new Error("Message not found");
   const content = origMsg.content?.trim() ? `↪ ${origMsg.content}` : " ";
   await sendMessage(targetConvId, content, undefined, origMsg.image_url || undefined);
+}
+
+// ── Admin: add user to group chat ────────────────────────────────────────
+
+export async function adminAddGroupMember(convId: string, userId: string): Promise<void> {
+  const supabase = createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not logged in");
+  const { data: profile } = await supabase.from("profiles").select("username").eq("id", userData.user.id).single();
+  if (!isAdmin(profile?.username)) throw new Error("Admin only");
+  const { data: existing } = await supabase
+    .from("conversation_participants")
+    .select("user_id")
+    .eq("conversation_id", convId)
+    .eq("user_id", userId);
+  if (existing && existing.length > 0) return; // already a member
+  await supabase.from("conversation_participants").insert({ conversation_id: convId, user_id: userId });
+}
+
+export async function getAllRegisteredUsers(): Promise<{ id: string; display_name: string | null; username: string | null; avatar_url: string | null }[]> {
+  const supabase = createClient();
+  const { data } = await supabase.from("profiles").select("id, display_name, username, avatar_url");
+  return data || [];
 }

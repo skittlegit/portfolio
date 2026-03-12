@@ -17,11 +17,15 @@ import {
   closeBet,
   editBet,
   cancelBet,
+  adminCancelBet,
+  adminResolveBet,
+  adminEditBet,
   type CurrencyTransaction,
   type CustomBet,
   type BetEntry,
 } from "@/lib/currency";
 import { getWhitelistedUsers } from "@/lib/chat";
+import { isAdmin } from "@/lib/whitelist";
 import { Plus, Dice1, Hash, Users, ChevronDown, X, Pencil, Ban, Lock } from "lucide-react";
 
 type GameTab = "coin" | "dice" | "guess" | "bets";
@@ -32,7 +36,8 @@ type GuessResult = { number: number; won: boolean; bet: number; new_balance: num
 
 export default function GamePage() {
   const { fg, fgMuted, isDark } = useTheme();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const userIsAdmin = isAdmin(profile?.username);
 
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
   const bgSubtle = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
@@ -190,14 +195,6 @@ export default function GamePage() {
     } catch (err) { setError(err instanceof Error ? err.message : "Failed to join bet"); }
   };
 
-  const handleResolveBet = async (betId: string, side: "for" | "against") => {
-    setError(null);
-    try {
-      await resolveBet(betId, side);
-      loadBets(); loadData();
-    } catch (err) { setError(err instanceof Error ? err.message : "Failed to resolve bet"); }
-  };
-
   const handleCloseBet = async (betId: string) => {
     setError(null);
     try {
@@ -210,7 +207,12 @@ export default function GamePage() {
     if (!editingBet) return;
     setError(null);
     try {
-      await editBet(editingBet.id, editBetTitle, editBetDesc);
+      const isCreator = editingBet.creator_id === user?.id;
+      if (isCreator) {
+        await editBet(editingBet.id, editBetTitle, editBetDesc);
+      } else {
+        await adminEditBet(editingBet.id, editBetTitle, editBetDesc);
+      }
       setEditingBet(null);
       loadBets();
     } catch (err) { setError(err instanceof Error ? err.message : "Failed to edit bet"); }
@@ -219,9 +221,29 @@ export default function GamePage() {
   const handleCancelBet = async (betId: string) => {
     setError(null);
     try {
-      await cancelBet(betId);
+      const bet = bets.find((b) => b.id === betId);
+      const isCreator = bet?.creator_id === user?.id;
+      if (isCreator) {
+        await cancelBet(betId);
+      } else {
+        await adminCancelBet(betId);
+      }
       loadBets(); loadData();
     } catch (err) { setError(err instanceof Error ? err.message : "Failed to cancel bet"); }
+  };
+
+  const handleResolveBet = async (betId: string, side: "for" | "against") => {
+    setError(null);
+    try {
+      const bet = bets.find((b) => b.id === betId);
+      const isCreator = bet?.creator_id === user?.id;
+      if (isCreator) {
+        await resolveBet(betId, side);
+      } else {
+        await adminResolveBet(betId, side);
+      }
+      loadBets(); loadData();
+    } catch (err) { setError(err instanceof Error ? err.message : "Failed to resolve bet"); }
   };
 
   const payoutMultipliers: Record<number, number> = {
@@ -654,8 +676,8 @@ export default function GamePage() {
                           <p className="text-xs" style={{ color: "#f59e0b", fontStyle: "italic", marginTop: 8 }}>This bet was cancelled. All entries were refunded.</p>
                         )}
 
-                        {/* Creator controls */}
-                        {isCreator && (isOpen || isClosed) && (
+                        {/* Creator / Admin controls */}
+                        {(isCreator || userIsAdmin) && (isOpen || isClosed) && (
                           <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${borderSubtle}` }}>
                             <p className="text-xs mb-2 font-medium" style={{ color: fgMuted }}>Manage bet</p>
                             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: entries.length > 0 ? 10 : 0 }}>

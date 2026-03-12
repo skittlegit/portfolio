@@ -5,10 +5,12 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { Pencil, X, Check, ZoomIn, ZoomOut, Maximize2, Plus, Trash2 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { isAdmin } from "@/lib/whitelist";
 import { getWhitelistedUsers } from "@/lib/chat";
 import {
   getFamilyTree,
   upsertFamilyNode,
+  adminUpsertFamilyNode,
   getCustomFamilyMembers,
   addCustomFamilyMember,
   updateCustomFamilyMember,
@@ -128,7 +130,8 @@ function buildTree(profiles: Profile[], nodes: FamilyNode[], customMembers: Cust
 
 export default function FamilyTreePage() {
   const { fg, fgMuted, isDark } = useTheme();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const userIsAdmin = isAdmin(profile?.username);
 
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
   const bgSubtle = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
@@ -158,6 +161,9 @@ export default function FamilyTreePage() {
   // Edit custom member
   const [editingCustom, setEditingCustom] = useState<CustomFamilyMember | null>(null);
 
+  // Admin: which user's node to edit
+  const [editTargetUserId, setEditTargetUserId] = useState<string>("");
+
   // Pan & zoom
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -182,10 +188,13 @@ export default function FamilyTreePage() {
 
   const myNode = fnodes.find((n) => n.user_id === user?.id);
 
-  const startEdit = () => {
-    setEditTitle(myNode?.title || "Member");
-    setEditParent(myNode?.parent_user_id || "");
-    setEditRelationType(myNode?.relation_type || "child");
+  const startEdit = (targetUserId?: string) => {
+    const uid = targetUserId || user?.id || "";
+    setEditTargetUserId(uid);
+    const node = fnodes.find((n) => n.user_id === uid);
+    setEditTitle(node?.title || "Member");
+    setEditParent(node?.parent_user_id || "");
+    setEditRelationType(node?.relation_type || "child");
     setSaveError(null);
     setEditing(true);
   };
@@ -194,7 +203,12 @@ export default function FamilyTreePage() {
     setSaving(true);
     setSaveError(null);
     try {
-      await upsertFamilyNode(editTitle.trim() || "Member", editParent || null, editRelationType);
+      const targetId = editTargetUserId || user?.id || "";
+      if (userIsAdmin && targetId !== user?.id) {
+        await adminUpsertFamilyNode(targetId, editTitle.trim() || "Member", editParent || null, editRelationType);
+      } else {
+        await upsertFamilyNode(editTitle.trim() || "Member", editParent || null, editRelationType);
+      }
       await load();
       setEditing(false);
     } catch (err) {
@@ -321,45 +335,47 @@ export default function FamilyTreePage() {
       {/* Header row */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, gap: 12, flexWrap: "wrap" }}>
         <p className="text-sm" style={{ color: fgMuted }}>
-          Set your title and parent to build the tree.
+          {userIsAdmin ? "Admin: manage the family tree." : "View the family tree."}
         </p>
-        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-          <button
-            onClick={() => setShowAddMember(true)}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              padding: "7px 14px", borderRadius: 8,
-              border: `1px solid ${borderSubtle}`,
-              background: "none", fontSize: 13, color: fg,
-              fontFamily: "inherit", transition: "all 0.15s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = bgHover)}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-          >
-            <Plus size={13} />
-            Add Member
-          </button>
-          <button
-            onClick={startEdit}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              padding: "7px 14px", borderRadius: 8,
-              border: `1px solid ${borderSubtle}`,
-              background: "none", fontSize: 13, color: fg,
-              fontFamily: "inherit", transition: "all 0.15s",
-              flexShrink: 0,
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = bgHover)}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-          >
-            <Pencil size={13} />
-            Edit my node
-          </button>
-        </div>
+        {userIsAdmin && (
+          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+            <button
+              onClick={() => setShowAddMember(true)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "7px 14px", borderRadius: 8,
+                border: `1px solid ${borderSubtle}`,
+                background: "none", fontSize: 13, color: fg,
+                fontFamily: "inherit", transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = bgHover)}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+            >
+              <Plus size={13} />
+              Add Member
+            </button>
+            <button
+              onClick={() => startEdit()}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "7px 14px", borderRadius: 8,
+                border: `1px solid ${borderSubtle}`,
+                background: "none", fontSize: 13, color: fg,
+                fontFamily: "inherit", transition: "all 0.15s",
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = bgHover)}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+            >
+              <Pencil size={13} />
+              Edit my node
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Edit panel */}
-      {editing && (
+      {editing && userIsAdmin && (
         <div style={{
           padding: "16px 20px",
           border: `1px solid ${borderSubtle}`,
@@ -369,6 +385,26 @@ export default function FamilyTreePage() {
           animation: "fadeIn 0.15s ease",
         }}>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <label className="text-xs" style={{ color: fgMuted, display: "block", marginBottom: 4, letterSpacing: "0.06em", textTransform: "uppercase" }}>Editing user</label>
+              <select
+                className="tool-select"
+                style={{ width: "100%", fontSize: 13 }}
+                value={editTargetUserId}
+                onChange={(e) => {
+                  const uid = e.target.value;
+                  setEditTargetUserId(uid);
+                  const node = fnodes.find((n) => n.user_id === uid);
+                  setEditTitle(node?.title || "Member");
+                  setEditParent(node?.parent_user_id || "");
+                  setEditRelationType(node?.relation_type || "child");
+                }}
+              >
+                {profiles.map((p) => (
+                  <option key={p.id} value={p.id}>{p.display_name || p.username || "User"}</option>
+                ))}
+              </select>
+            </div>
             <div style={{ flex: 1, minWidth: 160 }}>
               <label className="text-xs" style={{ color: fgMuted, display: "block", marginBottom: 4, letterSpacing: "0.06em", textTransform: "uppercase" }}>My title / role</label>
               <input
@@ -390,7 +426,7 @@ export default function FamilyTreePage() {
                 onChange={(e) => setEditParent(e.target.value)}
               >
                 <option value="">— none (root) —</option>
-                {parentOptions.filter((p) => p.id !== user?.id).map((p) => (
+                {parentOptions.filter((p) => p.id !== editTargetUserId && p.id !== user?.id).map((p) => (
                   <option key={p.id} value={p.id}>{p.label}</option>
                 ))}
               </select>
@@ -847,7 +883,7 @@ export default function FamilyTreePage() {
           </div>
 
           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-            {selectedNode.isCustom && selectedNode.customId && (
+            {userIsAdmin && selectedNode.isCustom && selectedNode.customId && (
               <button
                 onClick={() => {
                   const cm = customMembers.find((m) => m.id === selectedNode.customId);
@@ -861,6 +897,22 @@ export default function FamilyTreePage() {
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = fg)}
                 onMouseLeave={(e) => (e.currentTarget.style.color = fgMuted)}
+              >
+                <Pencil size={14} />
+              </button>
+            )}
+            {userIsAdmin && !selectedNode.isCustom && (
+              <button
+                onClick={() => startEdit(selectedNode.id)}
+                style={{
+                  padding: "6px", borderRadius: 6,
+                  border: `1px solid ${borderSubtle}`,
+                  background: "none", color: fgMuted,
+                  transition: "color 0.15s", cursor: "pointer",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = fg)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = fgMuted)}
+                title="Edit this node"
               >
                 <Pencil size={14} />
               </button>

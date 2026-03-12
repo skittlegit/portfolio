@@ -78,9 +78,9 @@ export default function GroupChatPage() {
   if (!convId) return null;
 
   return (
-    <div className="s165-card" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100dvh - 200px)", minHeight: 300 }}>
       {/* Header */}
-      <div style={{ padding: "10px 16px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ padding: "10px 16px", borderBottom: `1px solid ${borderSubtle}`, display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
         <div className="s165-avatar-placeholder" style={{ width: 32, height: 32, fontSize: 16, flexShrink: 0 }}>
           👥
         </div>
@@ -99,15 +99,17 @@ export default function GroupChatPage() {
       </div>
 
       {/* Chat */}
-      <ChatArea
-        convId={convId}
-        isGroup={true}
-        participants={participants}
-        showGroupPanel={showGroupPanel}
-        onToggleGroupPanel={() => setShowGroupPanel((v) => !v)}
-        onOpenProfile={setViewingProfile}
-        heightOffset={200}
-      />
+      <div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+        <ChatArea
+          convId={convId}
+          isGroup={true}
+          participants={participants}
+          showGroupPanel={showGroupPanel}
+          onToggleGroupPanel={() => setShowGroupPanel((v) => !v)}
+          onOpenProfile={setViewingProfile}
+          heightOffset={0}
+        />
+      </div>
 
       {/* Profile modal */}
       <ProfileModal
