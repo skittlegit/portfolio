@@ -59,12 +59,28 @@ export async function checkUsernameAvailable(username: string): Promise<boolean>
   return !data || data.id === userData.user?.id;
 }
 
+const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2 MB
+
 export async function uploadAvatar(file: File): Promise<string> {
   const supabase = createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not logged in");
 
-  const ext = file.name.split(".").pop();
+  if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+    throw new Error("Only JPEG, PNG, GIF, and WebP images are allowed");
+  }
+  if (file.size > MAX_AVATAR_SIZE) {
+    throw new Error("Avatar must be under 2 MB");
+  }
+
+  const extMap: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/gif": "gif",
+    "image/webp": "webp",
+  };
+  const ext = extMap[file.type] ?? "jpg";
   const fileName = `${userData.user.id}.${ext}`;
 
   const { error } = await supabase.storage

@@ -5,6 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import CursorEffect from "./components/CursorEffect";
+import ErrorBoundary from "./components/ErrorBoundary";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -29,7 +30,9 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <CursorEffect />
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </AuthProvider>
         </ThemeProvider>
         <Analytics />
