@@ -1,9 +1,8 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sun, Moon } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "../context/ThemeContext";
-import NavMenu from "./NavMenu";
 
 export default function ToolLayout({
   title,
@@ -20,7 +19,7 @@ export default function ToolLayout({
   hideBack?: boolean;
   children: React.ReactNode;
 }) {
-  const { fg, fgMuted } = useTheme();
+  const { fg, fgMuted, isDark, toggle } = useTheme();
 
   return (
     <>
@@ -54,7 +53,21 @@ export default function ToolLayout({
               {backLabel}
             </Link>
           )}
-          <NavMenu />
+          <button
+            onClick={toggle}
+            aria-label="Toggle dark mode"
+            style={{
+              background: "transparent",
+              border: "none",
+              color: fg,
+              padding: "12px",
+              lineHeight: 0,
+              transition: "color 0.3s",
+              cursor: "pointer",
+            }}
+          >
+            {isDark ? <Sun size={18} strokeWidth={1.5} /> : <Moon size={18} strokeWidth={1.5} />}
+          </button>
         </header>
 
         {/* Page title */}

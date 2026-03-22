@@ -10,11 +10,10 @@ import {
   Twitter,
   Instagram,
   Github,
-  Sun,
-  Moon,
 } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "./context/ThemeContext";
+import NavMenu from "./components/NavMenu";
 
 type HoverKey = "design" | "build" | "create" | "resume" | null;
 
@@ -91,7 +90,7 @@ const socials = [
 ];
 
 export default function Home() {
-  const { fg, fgMuted, isDark, toggle } = useTheme();
+  const { fg, fgMuted } = useTheme();
   const [hovered, setHovered] = useState<HoverKey>(null);
   const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
 
@@ -112,7 +111,7 @@ export default function Home() {
         {/* Top nav */}
         <div className="absolute top-7 left-0 right-0 z-[100] flex justify-between items-center px-6 sm:px-10 md:px-20">
           <Link
-            href="/tools"
+            href="/"
             className="text-sm tracking-widest uppercase"
             style={{
               color: fgMuted,
@@ -123,23 +122,9 @@ export default function Home() {
             onMouseEnter={(e) => { e.currentTarget.style.color = fg; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; }}
           >
-            Tools
+            Deepak
           </Link>
-          <button
-            onClick={toggle}
-            aria-label="Toggle dark mode"
-            style={{
-              background: "transparent",
-              border: "none",
-              color: fg,
-              padding: "12px",
-              lineHeight: 0,
-              transition: "color 0.3s",
-              cursor: "pointer",
-            }}
-          >
-            {isDark ? <Sun size={18} strokeWidth={1.5} /> : <Moon size={18} strokeWidth={1.5} />}
-          </button>
+          <NavMenu />
         </div>
 
         {/* Main content — vertically centered */}
