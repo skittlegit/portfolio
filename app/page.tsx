@@ -13,7 +13,7 @@ import {
   Linkedin,
   Twitter,
   Instagram,
-  Mail,
+  Phone,
   Wrench,
 } from "lucide-react";
 
@@ -27,7 +27,7 @@ const PROJECTS = [
       "Real-time trading simulator for 400+ users with matching engine & WebSocket updates",
     tech: "Next.js · Firebase · Google Scripts",
     status: "Shipped",
-    url: "https://team30-omega.vercel.app",
+    url: "https://mcse.in",
   },
   {
     name: "F1 Prediction",
@@ -72,7 +72,6 @@ const SOCIALS = [
     href: "https://instagram.com/skittlllle",
     label: "Instagram",
   },
-  { icon: Mail, href: "mailto:deepakrdy7@gmail.com", label: "Email" },
 ];
 
 /* ── Component ── */
@@ -274,8 +273,13 @@ export default function Home() {
               background: "none",
               border: "none",
               color: "var(--fg-muted)",
-              padding: 8,
+              padding: 10,
+              minWidth: 44,
+              minHeight: 44,
               lineHeight: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               transition: "color 0.2s",
             }}
             onMouseEnter={(e) =>
@@ -340,23 +344,28 @@ export default function Home() {
               Building tools, crafting interfaces, and documenting the process.
             </p>
 
-            <div
-              data-hero-sub
-              className="flex items-center gap-6"
-            >
+            <div data-hero-sub className="flex items-center gap-4">
               <a
                 href="/resume.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
                 data-cursor-hover
-                className="mono text-xs tracking-wider uppercase flex items-center gap-2"
+                className="mono text-xs tracking-wider uppercase flex items-center gap-2 px-5 py-3 rounded-full"
                 style={{
-                  color: "var(--accent)",
+                  color: "var(--bg)",
+                  background: "var(--accent)",
                   textDecoration: "none",
-                  transition: "opacity 0.2s",
+                  transition: "opacity 0.2s, background 0.2s",
+                  whiteSpace: "nowrap",
                 }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "var(--accent-hover)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "var(--accent)")
+                }
               >
-                Resume <ArrowUpRight size={14} strokeWidth={1.5} />
+                View Resume <ArrowUpRight size={13} strokeWidth={2} />
               </a>
             </div>
           </div>
@@ -624,11 +633,12 @@ export default function Home() {
               </div>
               <a
                 href="mailto:deepakrdy7@gmail.com"
-                className="heading text-xl sm:text-2xl tracking-tight"
+                className="heading text-lg sm:text-xl tracking-tight block"
                 style={{
                   color: "var(--fg)",
                   textDecoration: "none",
                   transition: "color 0.2s",
+                  wordBreak: "break-all",
                 }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.color = "var(--accent)")
@@ -638,6 +648,24 @@ export default function Home() {
                 }
               >
                 deepakrdy7@gmail.com
+              </a>
+              <a
+                href="tel:+918885015899"
+                className="flex items-center gap-2 mono text-sm mt-3"
+                style={{
+                  color: "var(--fg-muted)",
+                  textDecoration: "none",
+                  transition: "color 0.2s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "var(--accent)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = "var(--fg-muted)")
+                }
+              >
+                <Phone size={13} strokeWidth={1.5} />
+                +91 88850 15899
               </a>
             </div>
 
@@ -657,10 +685,11 @@ export default function Home() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={label}
-                    className="flex items-center gap-2 mono text-sm transition-colors duration-200"
+                    className="flex items-center gap-2 mono text-sm transition-colors duration-200 py-1.5"
                     style={{
                       color: "var(--fg-muted)",
                       textDecoration: "none",
+                      minHeight: 44,
                     }}
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.color = "var(--accent)")
