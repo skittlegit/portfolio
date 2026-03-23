@@ -33,6 +33,25 @@ export default function ToolLayout({
         zIndex: 2,
       }}
     >
+      {/* Ambient background gradient (matching home) */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          background: isDark
+            ? "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(167,139,250,0.06) 0%, transparent 70%)"
+            : "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124,58,237,0.04) 0%, transparent 70%)",
+        }}
+      />
+
+      {/* Noise texture overlay (matching home) */}
+      <div
+        className="pointer-events-none fixed inset-0 z-[60] opacity-[0.03]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+        }}
+      />
+
       {/* Header */}
       <header className="relative z-[100] flex items-center justify-between px-6 sm:px-10 md:px-16 pt-7 pb-4">
         {hideBack ? (
@@ -40,6 +59,7 @@ export default function ToolLayout({
         ) : (
           <Link
             href={backHref}
+            data-cursor-hover
             className="flex items-center gap-2 mono text-xs tracking-wider uppercase"
             style={{
               color: "var(--fg-muted)",
@@ -59,6 +79,7 @@ export default function ToolLayout({
         )}
         <button
           onClick={toggle}
+          data-cursor-hover
           aria-label="Toggle dark mode"
           style={{
             background: "transparent",
@@ -84,13 +105,14 @@ export default function ToolLayout({
       </header>
 
       {/* Page title */}
-      <div className="relative z-10 px-6 sm:px-10 md:px-16 pt-4 pb-8">
+      <div className="relative z-10 px-6 sm:px-10 md:px-16 pt-4 pb-10">
         <h1 className="heading text-3xl sm:text-4xl md:text-5xl tracking-tight">
           {title}
+          <span style={{ color: "var(--accent)" }}>.</span>
         </h1>
         {description && (
           <p
-            className="mono mt-3 text-sm sm:text-base tracking-wide"
+            className="mono mt-3 text-sm sm:text-base leading-relaxed max-w-lg"
             style={{ color: "var(--fg-muted)" }}
           >
             {description}
@@ -99,9 +121,28 @@ export default function ToolLayout({
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex-1 px-6 sm:px-10 md:px-16 pb-12">
+      <div className="relative z-10 flex-1 px-6 sm:px-10 md:px-16 pb-16">
         {children}
       </div>
+
+      {/* Footer */}
+      <footer className="relative z-10 px-6 sm:px-10 md:px-16 py-8" style={{ borderTop: "1px solid var(--border)" }}>
+        <div className="flex items-center justify-between">
+          <span className="mono text-xs" style={{ color: "var(--fg-muted)" }}>
+            &copy; {new Date().getFullYear()} Deepak
+          </span>
+          <Link
+            href="/"
+            data-cursor-hover
+            className="mono text-xs"
+            style={{ color: "var(--fg-muted)", textDecoration: "none", transition: "color 0.2s" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--fg-muted)")}
+          >
+            bydeepak.com
+          </Link>
+        </div>
+      </footer>
     </div>
   );
 }

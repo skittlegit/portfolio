@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -65,7 +65,7 @@ const SOCIALS = [
   {
     icon: Twitter,
     href: "https://x.com/itsnotskittle",
-    label: "X / Twitter",
+    label: "Twitter",
   },
   {
     icon: Instagram,
@@ -83,37 +83,55 @@ export default function Home() {
   const aboutRef = useRef<HTMLElement>(null);
   const projectsRef = useRef<HTMLElement>(null);
   const footerRef = useRef<HTMLElement>(null);
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("visited")) return false;
+    return true;
+  });
+
+  /* ── Check if returning from tools (skip intro) ── */
+  const isReturn = useRef(false);
+  useEffect(() => {
+    if (sessionStorage.getItem("visited")) {
+      isReturn.current = true;
+    } else {
+      sessionStorage.setItem("visited", "1");
+      const timer = setTimeout(() => setLoading(false), 1400);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   /* ── GSAP Animations ── */
   useEffect(() => {
+    if (loading) return;
+    const skip = isReturn.current;
     const ctx = gsap.context(() => {
       // Hero text reveal
       gsap.from("[data-hero-line]", {
-        y: 80,
-        opacity: 0,
-        duration: 1.2,
+        y: skip ? 0 : 80,
+        opacity: skip ? 1 : 0,
+        duration: skip ? 0 : 1.2,
         ease: "power4.out",
-        stagger: 0.15,
-        delay: 0.3,
+        stagger: skip ? 0 : 0.15,
+        delay: skip ? 0 : 0.1,
       });
 
       // Hero subtitle
       gsap.from("[data-hero-sub]", {
-        y: 30,
-        opacity: 0,
-        duration: 1,
+        y: skip ? 0 : 30,
+        opacity: skip ? 1 : 0,
+        duration: skip ? 0 : 1,
         ease: "power3.out",
-        delay: 0.9,
+        delay: skip ? 0 : 0.7,
       });
 
       // Nav items
       gsap.from("[data-nav-item]", {
-        y: -20,
-        opacity: 0,
-        duration: 0.8,
+        y: skip ? 0 : -20,
+        opacity: skip ? 1 : 0,
+        duration: skip ? 0 : 0.8,
         ease: "power3.out",
-        stagger: 0.1,
-        delay: 0.2,
+        stagger: skip ? 0 : 0.1,
+        delay: skip ? 0 : 0.1,
       });
 
       // About section
@@ -181,14 +199,39 @@ export default function Home() {
     }, mainRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [loading]);
 
   return (
+    <>
+      {/* ── Loading Screen ── */}
+      {loading && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center"
+          style={{ background: "var(--bg)" }}
+        >
+          <div className="flex flex-col items-center gap-6">
+            <div className="heading text-3xl sm:text-4xl tracking-tight" style={{ color: "var(--fg)" }}>
+              Deepak<span style={{ color: "var(--accent)" }}>.</span>
+            </div>
+            <div className="loading-bar" />
+          </div>
+        </div>
+      )}
+
     <div
       ref={mainRef}
       className="relative min-h-screen"
-      style={{ background: "var(--bg)", color: "var(--fg)" }}
+      style={{ background: "var(--bg)", color: "var(--fg)", opacity: loading ? 0 : 1, transition: "opacity 0.4s ease" }}
     >
+      {/* ── Ambient background gradient ── */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          background: isDark
+            ? "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(167,139,250,0.08) 0%, transparent 70%), radial-gradient(ellipse 50% 40% at 80% 50%, rgba(167,139,250,0.04) 0%, transparent 60%)"
+            : "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124,58,237,0.06) 0%, transparent 70%), radial-gradient(ellipse 50% 40% at 80% 50%, rgba(124,58,237,0.03) 0%, transparent 60%)",
+        }}
+      />
       {/* ── Navigation ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 sm:px-10 md:px-16 py-5">
         <div className="flex items-center gap-8">
@@ -683,6 +726,7 @@ export default function Home() {
         }}
       />
     </div>
+    </>
   );
 }
 

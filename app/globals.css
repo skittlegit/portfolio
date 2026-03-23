@@ -66,6 +66,31 @@ body {
   color: var(--bg);
 }
 
+/* ── Loading bar animation ── */
+.loading-bar {
+  width: 120px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.loading-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  animation: loading-slide 1s ease-in-out infinite;
+}
+@keyframes loading-slide {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+
 /* ── Custom Cursor ── */
 @media (hover: hover) and (pointer: fine) {
   *, *::before, *::after {
@@ -289,13 +314,6 @@ footer {
   overflow: auto;
   white-space: pre-wrap;
   color: var(--foreground-muted);
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-playfair), Georgia, serif;
-  transition: background-color 0.3s, color 0.3s;
 }
 
 /* ── 165 App Shell ── */

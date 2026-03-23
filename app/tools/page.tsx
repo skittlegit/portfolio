@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   QrCode,
-  Palette,
   Paintbrush,
   Layers,
   Terminal,
@@ -14,7 +13,6 @@ import {
   LayoutGrid,
   Dna,
   Shapes,
-  Stamp,
 } from "lucide-react";
 import ToolLayout from "../components/ToolLayout";
 
@@ -36,12 +34,6 @@ const tools = [
     name: "CSS Gradient Generator",
     description: "Create CSS gradients or extract them from photos",
     icon: Layers,
-  },
-  {
-    slug: "color-converter",
-    name: "Color Converter",
-    description: "Convert between HEX, RGB, and HSL",
-    icon: Palette,
   },
   {
     slug: "ascii-art",
@@ -85,12 +77,6 @@ const tools = [
     description: "Generate vector illustrations with various styles",
     icon: Shapes,
   },
-  {
-    slug: "logo-maker",
-    name: "Shape Maker",
-    description: "Create unique shape compositions with blended colors",
-    icon: Stamp,
-  },
 ];
 
 export default function ToolsPage() {
@@ -99,7 +85,7 @@ export default function ToolsPage() {
   return (
     <ToolLayout
       title="Tools"
-      description="A collection of small, useful utilities."
+      description="Free browser-based design & dev utilities. No sign-up, no tracking."
       backHref="/"
       backLabel="Home"
     >
@@ -110,34 +96,49 @@ export default function ToolsPage() {
             <Link
               key={slug}
               href={`/tools/${slug}`}
+              data-cursor-hover
               style={{
                 textDecoration: "none",
                 color: "inherit",
-                border: "1px solid var(--border)",
-                borderRadius: 12,
-                padding: "24px",
+                border: `1px solid ${isHov ? "var(--accent)" : "var(--border)"}`,
+                borderRadius: 14,
+                padding: "28px 24px",
                 display: "flex",
                 flexDirection: "column",
-                gap: 12,
-                transition: "border-color 0.2s, background-color 0.2s",
-                backgroundColor: isHov ? "var(--surface-hover)" : "transparent",
-                borderColor: isHov ? "var(--border-hover)" : "var(--border)",
+                gap: 14,
+                transition:
+                  "border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease",
+                backgroundColor: isHov ? "var(--surface)" : "transparent",
+                transform: isHov ? "translateY(-2px)" : "translateY(0)",
               }}
               onMouseEnter={() => setHoveredCard(slug)}
               onMouseLeave={() => setHoveredCard(null)}
             >
-              <Icon
-                size={22}
-                strokeWidth={1.5}
+              <div
+                className="flex items-center justify-center"
                 style={{
-                  color: isHov ? "var(--accent)" : "var(--fg-muted)",
-                  transition: "color 0.2s",
+                  width: 40,
+                  height: 40,
+                  borderRadius: 10,
+                  background: isHov
+                    ? "var(--accent)"
+                    : "var(--surface)",
+                  transition: "background 0.2s ease",
                 }}
-              />
+              >
+                <Icon
+                  size={18}
+                  strokeWidth={1.5}
+                  style={{
+                    color: isHov ? "var(--bg)" : "var(--fg-muted)",
+                    transition: "color 0.2s",
+                  }}
+                />
+              </div>
               <div>
-                <p className="text-base tracking-tight">{name}</p>
+                <p className="heading text-base tracking-tight">{name}</p>
                 <p
-                  className="mono text-xs mt-1 tracking-wide"
+                  className="mono text-xs mt-1.5 leading-relaxed"
                   style={{ color: "var(--fg-muted)" }}
                 >
                   {description}
