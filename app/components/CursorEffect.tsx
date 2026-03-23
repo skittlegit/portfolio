@@ -1,92 +1,98 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useTheme } from "../context/ThemeContext";
+import gsap from "gsap";
 
-const RING_SELECTOR =
-  "a,button,input,select,textarea,label,[role='button'],[data-interactive]," +
-  "h1,h2,h3,h4,h5,h6,p,span,li,td,th,blockquote,code,pre,kbd," +
-  "img,video,canvas";
-
-function shouldShowRing(target: EventTarget | null): boolean {
-  if (!target || !(target instanceof Element)) return false;
-  if (target instanceof SVGElement) return true;
-  return !!target.closest(RING_SELECTOR);
-}
+const HOVER_SELECTOR =
+  "a,button,[role='button'],[data-interactive],[data-cursor-hover],input,select,textarea";
 
 export default function CursorEffect() {
-  const { fg, isDark } = useTheme();
   const dotRef = useRef<HTMLDivElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null);
-  const ringState = useRef(false);
+  const ringRef = useRef<HTMLDivElement>(null);
+  const pos = useRef({ x: 0, y: 0 });
+  const isHovering = useRef(false);
+  const initialized = useRef(false);
 
   useEffect(() => {
     const dot = dotRef.current;
-    const glow = glowRef.current;
-    if (!dot || !glow) return;
+    const ring = ringRef.current;
+    if (!dot || !ring) return;
+
+    // Center the elements on their own midpoint via GSAP
+    gsap.set(dot, { xPercent: -50, yPercent: -50 });
+    gsap.set(ring, { xPercent: -50, yPercent: -50 });
+
+    // GSAP quickSetter for smooth positioning
+    const setDotX = gsap.quickSetter(dot, "x", "px");
+    const setDotY = gsap.quickSetter(dot, "y", "px");
+    const setRingX = gsap.quickSetter(ring, "x", "px");
+    const setRingY = gsap.quickSetter(ring, "y", "px");
+
+    let ringX = 0,
+      ringY = 0;
 
     const onMove = (e: MouseEvent) => {
-      dot.style.left = `${e.clientX}px`;
-      dot.style.top = `${e.clientY}px`;
+      pos.current.x = e.clientX;
+      pos.current.y = e.clientY;
+      // Dot follows mouse instantly
+      setDotX(e.clientX);
+      setDotY(e.clientY);
+
+      // Snap ring to first mouse position to avoid fly-in from corner
+      if (!initialized.current) {
+        ringX = e.clientX;
+        ringY = e.clientY;
+        setRingX(ringX);
+        setRingY(ringY);
+        initialized.current = true;
+      }
+
       dot.style.opacity = "1";
+      ring.style.opacity = "0.5";
 
-      glow.style.left = `${e.clientX}px`;
-      glow.style.top = `${e.clientY}px`;
-      glow.style.opacity = "1";
-
-      const ring = shouldShowRing(e.target);
-      if (ring !== ringState.current) {
-        ringState.current = ring;
-        dot.setAttribute("data-ring", ring ? "1" : "0");
+      // Check hover state
+      const target = e.target as Element | null;
+      const hovering = !!target?.closest(HOVER_SELECTOR);
+      if (hovering !== isHovering.current) {
+        isHovering.current = hovering;
+        dot.setAttribute("data-hover", hovering ? "1" : "0");
       }
     };
 
+    // Ring follows with lerp
+    const ticker = gsap.ticker.add(() => {
+      const speed = 0.15;
+      ringX += (pos.current.x - ringX) * speed;
+      ringY += (pos.current.y - ringY) * speed;
+      setRingX(ringX);
+      setRingY(ringY);
+    });
+
     const onLeave = () => {
       dot.style.opacity = "0";
-      glow.style.opacity = "0";
+      ring.style.opacity = "0";
     };
-
     const onEnter = () => {
       dot.style.opacity = "1";
-      glow.style.opacity = "1";
+      ring.style.opacity = "0.5";
     };
 
-    const root = document.documentElement;
     window.addEventListener("mousemove", onMove, { passive: true });
-    root.addEventListener("mouseleave", onLeave);
-    root.addEventListener("mouseenter", onEnter);
+    document.documentElement.addEventListener("mouseleave", onLeave);
+    document.documentElement.addEventListener("mouseenter", onEnter);
+
     return () => {
       window.removeEventListener("mousemove", onMove);
-      root.removeEventListener("mouseleave", onLeave);
-      root.removeEventListener("mouseenter", onEnter);
+      document.documentElement.removeEventListener("mouseleave", onLeave);
+      document.documentElement.removeEventListener("mouseenter", onEnter);
+      gsap.ticker.remove(ticker);
     };
   }, []);
 
-  useEffect(() => {
-    const dot = dotRef.current;
-    if (!dot) return;
-    dot.style.setProperty("--fg", fg);
-  }, [fg]);
-
-  useEffect(() => {
-    const glow = glowRef.current;
-    if (!glow) return;
-    glow.style.background = isDark
-      ? "radial-gradient(circle, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 40%, transparent 70%)"
-      : "radial-gradient(circle, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.015) 40%, transparent 70%)";
-  }, [isDark]);
-
   return (
     <>
-      <div
-        ref={glowRef}
-        className="custom-cursor cursor-glow"
-      />
-      <div
-        ref={dotRef}
-        className="custom-cursor cursor-dot"
-        data-ring="0"
-      />
+      <div ref={dotRef} className="custom-cursor cursor-dot" data-hover="0" />
+      <div ref={ringRef} className="custom-cursor cursor-ring" />
     </>
   );
 }

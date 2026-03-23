@@ -1,284 +1,688 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useRef } from "react";
+import Link from "next/link";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useTheme } from "./context/ThemeContext";
 import {
-  Palette,
-  Code2,
-  Wrench,
-  FileText,
+  ArrowUpRight,
+  Sun,
+  Moon,
+  Github,
   Linkedin,
   Twitter,
   Instagram,
-  Github,
-  Sun,
-  Moon,
+  Mail,
+  Wrench,
 } from "lucide-react";
-import Link from "next/link";
-import { useTheme } from "./context/ThemeContext";
 
-type HoverKey = "design" | "build" | "create" | "resume" | null;
+gsap.registerPlugin(ScrollTrigger);
 
-const icons: Record<NonNullable<HoverKey>, React.ReactNode> = {
-  design: <Palette size={30} strokeWidth={1.5} />,
-  build: <Code2 size={30} strokeWidth={1.5} />,
-  create: <Wrench size={30} strokeWidth={1.5} />,
-  resume: <FileText size={30} strokeWidth={1.5} />,
-};
-
-function Word({
-  id,
-  hovered,
-  onEnter,
-  onLeave,
-  href,
-  children,
-}: {
-  id: NonNullable<HoverKey>;
-  hovered: HoverKey;
-  onEnter: (id: NonNullable<HoverKey>) => void;
-  onLeave: () => void;
-  href?: string;
-  children: React.ReactNode;
-}) {
-  const isActive = hovered === id;
-
-  const inner = (
-    <span
-      className="relative inline-flex items-center"
-      onMouseEnter={() => onEnter(id)}
-      onMouseLeave={onLeave}
-    >
-      {href ? (
-        <span className="underline decoration-1 underline-offset-4">{children}</span>
-      ) : (
-        children
-      )}
-      <span
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: "calc(100% + 1px)",
-          transform: `translateX(-50%) translateY(${isActive ? "0px" : "-4px"})`,
-          opacity: isActive ? 1 : 0,
-          transition: "opacity 0.2s ease, transform 0.2s ease",
-          pointerEvents: "none",
-        }}
-      >
-        {icons[id]}
-      </span>
-    </span>
-  );
-
-  if (href) {
-    return (
-      <a href={href} target="_blank" rel="noopener noreferrer" style={{
-        color: "inherit",
-        textDecoration: "none",
-      }}>
-        {inner}
-      </a>
-    );
-  }
-
-  return inner;
-}
-
-const socials = [
-  { href: "https://linkedin.com/in/deepakaeleni", Icon: Linkedin, label: "LinkedIn" },
-  { href: "https://twitter.com/itsnotskittle", Icon: Twitter, label: "Twitter" },
-  { href: "https://instagram.com/skittlllle", Icon: Instagram, label: "Instagram" },
-  { href: "https://github.com/skittlegit", Icon: Github, label: "GitHub" },
+/* ── Data ── */
+const PROJECTS = [
+  {
+    name: "Stock Trading Sim",
+    description:
+      "Real-time trading simulator for 400+ users with matching engine & WebSocket updates",
+    tech: "Next.js · Firebase · Google Scripts",
+    status: "Shipped",
+    url: "https://team30-omega.vercel.app",
+  },
+  {
+    name: "F1 Prediction",
+    description:
+      "ML-powered race predictions achieving 85% accuracy on 10K+ race records",
+    tech: "Python · scikit-learn · FastF1",
+    status: "Shipped",
+    url: "https://github.com/skittlegit/F1_Prediction",
+  },
+  {
+    name: "Reddys Digital",
+    description:
+      "Full company website redesign — 10+ pages revamped, 20+ bugs fixed",
+    tech: "Next.js · Tailwind CSS · Firebase",
+    status: "Shipped",
+    url: "https://rdpl.vercel.app",
+  },
+  {
+    name: "Workplace Automation",
+    description:
+      "Internal workflow platform with role-based dashboards and approval flows",
+    tech: "Next.js · Firebase · Flutter · Supabase",
+    status: "Building",
+    url: "#",
+  },
 ];
 
+const SOCIALS = [
+  { icon: Github, href: "https://github.com/skittlegit", label: "GitHub" },
+  {
+    icon: Linkedin,
+    href: "https://linkedin.com/in/deepakaeleni",
+    label: "LinkedIn",
+  },
+  {
+    icon: Twitter,
+    href: "https://x.com/itsnotskittle",
+    label: "X / Twitter",
+  },
+  {
+    icon: Instagram,
+    href: "https://instagram.com/skittlllle",
+    label: "Instagram",
+  },
+  { icon: Mail, href: "mailto:deepakrdy7@gmail.com", label: "Email" },
+];
+
+/* ── Component ── */
 export default function Home() {
-  const { fg, fgMuted, isDark, toggle } = useTheme();
-  const [hovered, setHovered] = useState<HoverKey>(null);
-  const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
+  const { isDark, toggle } = useTheme();
+  const mainRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const aboutRef = useRef<HTMLElement>(null);
+  const projectsRef = useRef<HTMLElement>(null);
+  const footerRef = useRef<HTMLElement>(null);
+
+  /* ── GSAP Animations ── */
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // Hero text reveal
+      gsap.from("[data-hero-line]", {
+        y: 80,
+        opacity: 0,
+        duration: 1.2,
+        ease: "power4.out",
+        stagger: 0.15,
+        delay: 0.3,
+      });
+
+      // Hero subtitle
+      gsap.from("[data-hero-sub]", {
+        y: 30,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out",
+        delay: 0.9,
+      });
+
+      // Nav items
+      gsap.from("[data-nav-item]", {
+        y: -20,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out",
+        stagger: 0.1,
+        delay: 0.2,
+      });
+
+      // About section
+      gsap.from("[data-about-text]", {
+        scrollTrigger: {
+          trigger: aboutRef.current,
+          start: "top 80%",
+          end: "top 30%",
+          scrub: 1,
+        },
+        y: 60,
+        opacity: 0,
+      });
+
+      // About stats
+      gsap.from("[data-stat]", {
+        scrollTrigger: {
+          trigger: "[data-stats]",
+          start: "top 85%",
+        },
+        y: 40,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out",
+        stagger: 0.12,
+      });
+
+      // Projects section heading
+      gsap.from("[data-projects-heading]", {
+        scrollTrigger: {
+          trigger: projectsRef.current,
+          start: "top 80%",
+        },
+        y: 40,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out",
+      });
+
+      // Project cards
+      gsap.from("[data-project-card]", {
+        scrollTrigger: {
+          trigger: "[data-project-list]",
+          start: "top 85%",
+        },
+        y: 50,
+        opacity: 0,
+        duration: 0.7,
+        ease: "power3.out",
+        stagger: 0.1,
+      });
+
+      // Footer
+      gsap.from("[data-footer-item]", {
+        scrollTrigger: {
+          trigger: footerRef.current,
+          start: "top 90%",
+        },
+        y: 30,
+        opacity: 0,
+        duration: 0.7,
+        ease: "power3.out",
+        stagger: 0.08,
+      });
+    }, mainRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <>
-      <div
-        className="relative flex flex-col"
-        style={{
-          fontFamily: "var(--font-playfair), Georgia, serif",
-          color: fg,
-          transition: "color 0.3s",
-          minHeight: "100dvh",
-          overflowX: "clip",
-          position: "relative",
-          zIndex: 2,
-        }}
-      >
-        {/* Top nav */}
-        <div className="absolute top-7 left-0 right-0 z-[100] flex justify-between items-center px-6 sm:px-10 md:px-20">
+    <div
+      ref={mainRef}
+      className="relative min-h-screen"
+      style={{ background: "var(--bg)", color: "var(--fg)" }}
+    >
+      {/* ── Navigation ── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 sm:px-10 md:px-16 py-5">
+        <div className="flex items-center gap-8">
+          <Link
+            href="/"
+            data-nav-item
+            className="heading text-lg tracking-tight"
+            style={{ color: "var(--fg)", textDecoration: "none" }}
+          >
+            Deepak
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-6">
           <Link
             href="/tools"
-            className="text-sm tracking-widest uppercase"
+            data-nav-item
+            className="mono flex items-center gap-1.5 text-xs tracking-wider uppercase"
             style={{
-              color: fgMuted,
+              color: "var(--fg-muted)",
               textDecoration: "none",
               transition: "color 0.2s",
-              fontFamily: "var(--font-playfair), Georgia, serif",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = fg; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = fgMuted; }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = "var(--accent)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = "var(--fg-muted)")
+            }
           >
+            <Wrench size={13} strokeWidth={1.5} />
             Tools
           </Link>
           <button
             onClick={toggle}
-            aria-label="Toggle dark mode"
+            data-nav-item
+            aria-label="Toggle theme"
+            className="mono"
             style={{
-              background: "transparent",
+              background: "none",
               border: "none",
-              color: fg,
-              padding: "12px",
+              color: "var(--fg-muted)",
+              padding: 8,
               lineHeight: 0,
-              transition: "color 0.3s",
-              cursor: "pointer",
+              transition: "color 0.2s",
             }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = "var(--accent)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = "var(--fg-muted)")
+            }
           >
-            {isDark ? <Sun size={18} strokeWidth={1.5} /> : <Moon size={18} strokeWidth={1.5} />}
+            {isDark ? (
+              <Sun size={16} strokeWidth={1.5} />
+            ) : (
+              <Moon size={16} strokeWidth={1.5} />
+            )}
           </button>
         </div>
+      </nav>
 
-        {/* Main content — vertically centered */}
-        <div className="relative z-10 flex-1 flex flex-col justify-center px-6 sm:px-10 md:px-20 py-10 sm:py-16 md:py-0">
-          <div className="flex flex-col gap-4" style={{ alignItems: "flex-start" }}>
-            <p
-              className="text-2xl sm:text-3xl md:text-5xl font-normal leading-snug tracking-tight"
-              style={{ display: "inline-block" }}
+      {/* ── Hero ── */}
+      <section
+        ref={heroRef}
+        className="relative flex flex-col justify-center min-h-screen px-6 sm:px-10 md:px-16"
+      >
+        <div className="max-w-5xl pt-24">
+          {/* Overline */}
+          <div
+            data-hero-line
+            className="mono text-[10px] sm:text-xs tracking-[0.3em] uppercase mb-8 md:mb-10"
+            style={{ color: "var(--fg-muted)" }}
+          >
+            Builder &amp; Designer
+          </div>
+
+          {/* Name as hero */}
+          <div className="overflow-hidden">
+            <h1
+              data-hero-line
+              className="heading text-6xl sm:text-8xl md:text-9xl lg:text-[11rem] leading-[0.85] tracking-tighter"
             >
-              Hey, I am Deepak.
+              Deepak
+            </h1>
+          </div>
+          <div className="overflow-hidden mt-1 md:mt-2">
+            <h1
+              data-hero-line
+              className="heading text-6xl sm:text-8xl md:text-9xl lg:text-[11rem] leading-[0.85] tracking-tighter"
+            >
+              Aeleni
+              <span style={{ color: "var(--accent)" }}>.</span>
+            </h1>
+          </div>
+
+          {/* Bio row + CTA */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between mt-10 md:mt-16 gap-8">
+            <p
+              data-hero-sub
+              className="mono text-sm sm:text-base max-w-md leading-relaxed"
+              style={{ color: "var(--fg-muted)" }}
+            >
+              Internet generalist based in Hyderabad, India.
+              <br className="hidden sm:block" />
+              Building tools, crafting interfaces, and documenting the process.
             </p>
-            <p
-              className="text-2xl sm:text-3xl md:text-5xl font-normal leading-snug tracking-tight"
-              style={{ display: "inline-block" }}
+
+            <div
+              data-hero-sub
+              className="flex items-center gap-6"
             >
-              I like to{" "}
-              <Word
-                id="design"
-                hovered={hovered}
-                onEnter={setHovered}
-                onLeave={() => setHovered(null)}
-              >
-                design
-              </Word>
-              ,{" "}
-              <Word
-                id="build"
-                hovered={hovered}
-                onEnter={setHovered}
-                onLeave={() => setHovered(null)}
-              >
-                build
-              </Word>
-              , and{" "}
-              <Word
-                id="create"
-                hovered={hovered}
-                onEnter={setHovered}
-                onLeave={() => setHovered(null)}
-              >
-                create
-              </Word>{" "}
-              things that work.
-            </p>
-            <p
-              className="text-2xl sm:text-3xl md:text-5xl font-normal leading-snug tracking-tight"
-              style={{ display: "inline-block" }}
-            >
-              Here is my{" "}
-              <Word
-                id="resume"
-                hovered={hovered}
-                onEnter={setHovered}
-                onLeave={() => setHovered(null)}
+              <a
                 href="/resume.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cursor-hover
+                className="mono text-xs tracking-wider uppercase flex items-center gap-2"
+                style={{
+                  color: "var(--accent)",
+                  textDecoration: "none",
+                  transition: "opacity 0.2s",
+                }}
               >
-                Resume
-              </Word>
-              .
+                Resume <ArrowUpRight size={14} strokeWidth={1.5} />
+              </a>
+            </div>
+          </div>
+
+          {/* Availability indicator */}
+          <div
+            data-hero-sub
+            className="flex items-center gap-2.5 mt-8 mono text-xs tracking-wider"
+            style={{ color: "var(--fg-muted)" }}
+          >
+            <span className="relative flex h-2 w-2">
+              <span
+                className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                style={{ background: "var(--accent)" }}
+              />
+              <span
+                className="relative inline-flex rounded-full h-2 w-2"
+                style={{ background: "var(--accent)" }}
+              />
+            </span>
+            Available for projects
+          </div>
+
+          {/* Scroll indicator */}
+          <div
+            data-hero-sub
+            className="absolute bottom-10 left-6 sm:left-10 md:left-16 flex items-center gap-3 mono text-xs tracking-widest uppercase"
+            style={{ color: "var(--fg-muted)" }}
+          >
+            <span
+              className="inline-block w-6 h-px"
+              style={{ background: "var(--fg-muted)" }}
+            />
+            Scroll
+          </div>
+        </div>
+      </section>
+
+      {/* ── About ── */}
+      <section
+        ref={aboutRef}
+        className="relative px-6 sm:px-10 md:px-16 py-24 md:py-40"
+      >
+        {/* Section label */}
+        <div
+          className="mono text-xs tracking-widest uppercase mb-12"
+          style={{ color: "var(--fg-muted)" }}
+        >
+          About
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20">
+          <div data-about-text>
+            <p className="heading text-2xl sm:text-3xl md:text-4xl leading-snug tracking-tight">
+              CS undergrad at Mahindra University — I build useful tools and
+              design interfaces that feel good to use.
+            </p>
+          </div>
+          <div data-about-text>
+            <p
+              className="mono text-sm sm:text-base leading-relaxed"
+              style={{ color: "var(--fg-muted)" }}
+            >
+              Interned at Reddys Digital, where I revamped their website with
+              Next.js and Tailwind. I head tech &amp; design for the Mathematics
+              Society and served as design representative for AEON 2026 Tech
+              Fest.
+            </p>
+            <p
+              className="mono text-sm sm:text-base leading-relaxed mt-6"
+              style={{ color: "var(--fg-muted)" }}
+            >
+              Currently building workplace automation tools and contributing to
+              open-source. When I&apos;m not coding, you&apos;ll find me
+              reading, watching F1, or on a long train ride somewhere.
             </p>
           </div>
         </div>
 
-        {/* Bottom contact + socials */}
+        {/* Stats strip */}
         <div
-          className="relative z-10 px-6 sm:px-10 md:px-20"
-          style={{ paddingBottom: "max(2rem, calc(1.75rem + env(safe-area-inset-bottom, 0px)))" }}
+          data-stats
+          className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-20 pt-12"
+          style={{ borderTop: "1px solid var(--border)" }}
         >
-          <p
-            className="text-xs tracking-widest uppercase mb-2"
-            style={{ color: fgMuted }}
-          >
-            email&nbsp;&nbsp;|&nbsp;&nbsp;contact
-          </p>
-          <div
-            className="text-base tracking-wide mb-6 flex flex-wrap items-center gap-x-2 gap-y-1"
-          >
+          {[
+            { number: "11+", label: "Public repos" },
+            { number: "3+", label: "Years building" },
+            { number: "400+", label: "Users served" },
+            { number: "∞", label: "Cups of coffee" },
+          ].map((stat) => (
+            <div key={stat.label} data-stat>
+              <div
+                className="heading text-3xl sm:text-4xl tracking-tight"
+                style={{ color: "var(--accent)" }}
+              >
+                {stat.number}
+              </div>
+              <div
+                className="mono text-xs tracking-wider uppercase mt-2"
+                style={{ color: "var(--fg-muted)" }}
+              >
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Projects ── */}
+      <section
+        ref={projectsRef}
+        className="relative px-6 sm:px-10 md:px-16 py-24 md:py-40"
+      >
+        <div
+          className="mono text-xs tracking-widest uppercase mb-4"
+          style={{ color: "var(--fg-muted)" }}
+        >
+          Projects
+        </div>
+        <h2
+          data-projects-heading
+          className="heading text-3xl sm:text-4xl md:text-5xl tracking-tight mb-16"
+        >
+          What I&apos;m working on
+        </h2>
+
+        <div
+          data-project-list
+          className="space-y-0"
+          style={{ borderTop: "1px solid var(--border)" }}
+        >
+          {PROJECTS.map((project) => (
             <a
-              href="mailto:deepakrdy7@gmail.com"
+              key={project.name}
+              href={project.url}
+              target={project.url !== "#" ? "_blank" : undefined}
+              rel={project.url !== "#" ? "noopener noreferrer" : undefined}
+              data-project-card
+              data-cursor-hover
+              className="group block py-8 md:py-10"
               style={{
-                color: fg,
-                textDecoration: "underline",
-                textUnderlineOffset: 4,
-                textDecorationColor: fgMuted,
+                borderBottom: "1px solid var(--border)",
+                textDecoration: "none",
+                color: "inherit",
+                transition: "padding-left 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.paddingLeft = "16px";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.paddingLeft = "0px";
               }}
             >
-              deepakrdy7@gmail.com
-            </a>
-            <span style={{ color: fgMuted }}>|</span>
-            <span>+918885015899</span>
-          </div>
-          <div
-            style={{ display: "flex", flexWrap: "wrap", gap: 16 }}
-          >
-            {socials.map(({ href, Icon, label }) => {
-              const isHov = hoveredSocial === label;
-              return (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onMouseEnter={() => setHoveredSocial(label)}
-                  onMouseLeave={() => setHoveredSocial(null)}
-                  style={{
-                    color: isHov ? fg : fgMuted,
-                    textDecoration: "none",
-                    transition: "color 0.2s",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    position: "relative",
-                    width: 50,
-                  }}
-                >
-                  <Icon size={18} strokeWidth={1.5} />
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: "calc(100% + 4px)",
-                      left: "50%",
-                      transform: isHov ? "translateX(-50%) translateY(0px)" : "translateX(-50%) translateY(3px)",
-                      fontSize: 9,
-                      letterSpacing: "0.1em",
-                      textTransform: "uppercase",
-                      opacity: isHov ? 1 : 0,
-                      transition: "opacity 0.2s ease, transform 0.2s ease",
-                      whiteSpace: "nowrap",
-                      pointerEvents: "none",
-                    }}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-2">
+                    <span className="heading text-xl sm:text-2xl md:text-3xl tracking-tight">
+                      {project.name}
+                    </span>
+                    <span
+                      className="mono text-[10px] tracking-widest uppercase px-3 py-1 rounded-full"
+                      style={{
+                        border: "1px solid var(--border)",
+                        color:
+                          project.status === "Building"
+                            ? "var(--accent)"
+                            : "var(--fg-muted)",
+                      }}
+                    >
+                      {project.status}
+                    </span>
+                  </div>
+                  <p
+                    className="mono text-xs sm:text-sm"
+                    style={{ color: "var(--fg-muted)" }}
                   >
+                    {project.description}
+                  </p>
+                  <p
+                    className="mono text-[10px] sm:text-xs mt-2"
+                    style={{ color: "var(--fg-muted)", opacity: 0.6 }}
+                  >
+                    {project.tech}
+                  </p>
+                </div>
+                <ArrowUpRight
+                  size={18}
+                  strokeWidth={1.5}
+                  className="mt-2 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  style={{ color: "var(--fg-muted)" }}
+                />
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Tools CTA Banner ── */}
+      <section className="relative px-6 sm:px-10 md:px-16 py-16 md:py-24">
+        <Link
+          href="/tools"
+          data-cursor-hover
+          className="group block rounded-2xl p-8 md:p-14 transition-colors duration-300"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            textDecoration: "none",
+            color: "inherit",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "var(--accent)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "var(--border)";
+          }}
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <div
+                className="mono text-xs tracking-widest uppercase mb-4"
+                style={{ color: "var(--fg-muted)" }}
+              >
+                Free & Open
+              </div>
+              <h3 className="heading text-2xl sm:text-3xl md:text-4xl tracking-tight">
+                Design & Dev Tools
+              </h3>
+              <p
+                className="mono text-sm mt-3 max-w-md"
+                style={{ color: "var(--fg-muted)" }}
+              >
+                QR codes, color palettes, gradient generators, image
+                compressors, and more — all in your browser.
+              </p>
+            </div>
+            <div
+              className="flex items-center gap-2 mono text-sm"
+              style={{ color: "var(--accent)" }}
+            >
+              Explore tools
+              <ArrowUpRight size={16} strokeWidth={1.5} />
+            </div>
+          </div>
+        </Link>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer
+        ref={footerRef}
+        className="relative px-6 sm:px-10 md:px-16 pt-20 md:pt-32 pb-12"
+      >
+        <div
+          style={{ borderTop: "1px solid var(--border)" }}
+          className="pt-16"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {/* Contact */}
+            <div data-footer-item>
+              <div
+                className="mono text-xs tracking-widest uppercase mb-4"
+                style={{ color: "var(--fg-muted)" }}
+              >
+                Get in touch
+              </div>
+              <a
+                href="mailto:deepakrdy7@gmail.com"
+                className="heading text-xl sm:text-2xl tracking-tight"
+                style={{
+                  color: "var(--fg)",
+                  textDecoration: "none",
+                  transition: "color 0.2s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "var(--accent)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = "var(--fg)")
+                }
+              >
+                deepakrdy7@gmail.com
+              </a>
+            </div>
+
+            {/* Socials */}
+            <div data-footer-item>
+              <div
+                className="mono text-xs tracking-widest uppercase mb-4"
+                style={{ color: "var(--fg-muted)" }}
+              >
+                Connect
+              </div>
+              <div className="flex flex-wrap gap-4">
+                {SOCIALS.map(({ icon: Icon, href, label }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    className="flex items-center gap-2 mono text-sm transition-colors duration-200"
+                    style={{
+                      color: "var(--fg-muted)",
+                      textDecoration: "none",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.color = "var(--accent)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.color = "var(--fg-muted)")
+                    }
+                  >
+                    <Icon size={15} strokeWidth={1.5} />
                     {label}
-                  </span>
-                </a>
-              );
-            })}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Status */}
+            <div data-footer-item>
+              <div
+                className="mono text-xs tracking-widest uppercase mb-4"
+                style={{ color: "var(--fg-muted)" }}
+              >
+                Currently
+              </div>
+              <p
+                className="mono text-sm leading-relaxed"
+                style={{ color: "var(--fg-muted)" }}
+              >
+                Building workplace automation tools.
+                <br />
+                Open to new projects and collaborations.
+              </p>
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div
+            data-footer-item
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-16 pt-8 gap-4"
+            style={{ borderTop: "1px solid var(--border)" }}
+          >
+            <div
+              className="mono text-xs"
+              style={{ color: "var(--fg-muted)" }}
+            >
+              &copy; {new Date().getFullYear()} Deepak. All rights reserved.
+            </div>
+            <div
+              className="mono text-xs"
+              style={{ color: "var(--fg-muted)" }}
+            >
+              Built with Next.js, GSAP & good taste.
+            </div>
           </div>
         </div>
-      </div>
-    </>
+      </footer>
+
+      {/* ── Noise texture overlay ── */}
+      <div
+        className="pointer-events-none fixed inset-0 z-[60] opacity-[0.03]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+        }}
+      />
+    </div>
   );
 }
+

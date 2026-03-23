@@ -13,30 +13,26 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
+  const [isDark, setIsDark] = useState<boolean>(true); // Default dark
+
+  useEffect(() => {
     const stored = localStorage.getItem("theme");
-    if (stored === "dark") return true;
-    if (stored === "light") return false;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
+    if (stored === "light") setIsDark(false);
+    else if (stored === "dark") setIsDark(true);
+    // else keep dark as default
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
     root.setAttribute("data-theme", isDark ? "dark" : "light");
-    root.style.setProperty("--background", isDark ? "#000000" : "#ffffff");
-    root.style.setProperty("--foreground", isDark ? "#ffffff" : "#000000");
-    root.style.setProperty("--foreground-muted", isDark ? "#71717a" : "#a1a1aa");
-    root.style.setProperty("--border", isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)");
-    root.style.setProperty("--border-subtle", isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)");
     localStorage.setItem("theme", isDark ? "dark" : "light");
   }, [isDark]);
 
   const toggle = () => setIsDark((d) => !d);
 
-  const bg = isDark ? "#000000" : "#ffffff";
-  const fg = isDark ? "#ffffff" : "#000000";
-  const fgMuted = isDark ? "#71717a" : "#a1a1aa";
+  const bg = isDark ? "#0c0c0c" : "#faf8f5";
+  const fg = isDark ? "#f0ece8" : "#1a1816";
+  const fgMuted = isDark ? "#7a7670" : "#8a8580";
 
   return (
     <ThemeContext.Provider value={{ isDark, toggle, bg, fg, fgMuted }}>

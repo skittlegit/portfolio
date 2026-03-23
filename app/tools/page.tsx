@@ -17,7 +17,6 @@ import {
   Stamp,
 } from "lucide-react";
 import ToolLayout from "../components/ToolLayout";
-import { useTheme } from "../context/ThemeContext";
 
 const tools = [
   {
@@ -95,7 +94,6 @@ const tools = [
 ];
 
 export default function ToolsPage() {
-  const { fg, fgMuted, isDark } = useTheme();
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   return (
@@ -115,25 +113,15 @@ export default function ToolsPage() {
               style={{
                 textDecoration: "none",
                 color: "inherit",
-                border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+                border: "1px solid var(--border)",
                 borderRadius: 12,
                 padding: "24px",
                 display: "flex",
                 flexDirection: "column",
                 gap: 12,
                 transition: "border-color 0.2s, background-color 0.2s",
-                backgroundColor: isHov
-                  ? isDark
-                    ? "rgba(255,255,255,0.03)"
-                    : "rgba(0,0,0,0.02)"
-                  : "transparent",
-                borderColor: isHov
-                  ? isDark
-                    ? "rgba(255,255,255,0.2)"
-                    : "rgba(0,0,0,0.2)"
-                  : isDark
-                    ? "rgba(255,255,255,0.08)"
-                    : "rgba(0,0,0,0.08)",
+                backgroundColor: isHov ? "var(--surface-hover)" : "transparent",
+                borderColor: isHov ? "var(--border-hover)" : "var(--border)",
               }}
               onMouseEnter={() => setHoveredCard(slug)}
               onMouseLeave={() => setHoveredCard(null)}
@@ -141,13 +129,16 @@ export default function ToolsPage() {
               <Icon
                 size={22}
                 strokeWidth={1.5}
-                style={{ color: isHov ? fg : fgMuted, transition: "color 0.2s" }}
+                style={{
+                  color: isHov ? "var(--accent)" : "var(--fg-muted)",
+                  transition: "color 0.2s",
+                }}
               />
               <div>
-                <p className="text-base font-normal tracking-tight">{name}</p>
+                <p className="text-base tracking-tight">{name}</p>
                 <p
-                  className="text-xs mt-1 tracking-wide"
-                  style={{ color: fgMuted }}
+                  className="mono text-xs mt-1 tracking-wide"
+                  style={{ color: "var(--fg-muted)" }}
                 >
                   {description}
                 </p>
