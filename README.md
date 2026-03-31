@@ -1,90 +1,69 @@
 # Portfolio
 
-A modern, responsive portfolio website built with [Next.js](https://nextjs.org), bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Personal portfolio and creative tools site � built with Next.js 16, React 19, and Tailwind CSS v4.
 
-## 📋 Table of Contents
+## Stack
 
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Development](#development)
-- [Project Structure](#project-structure)
-- [Customization](#customization)
-- [Resources](#resources)
-- [Deployment](#deployment)
+- **Framework:** Next.js 16 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS v4
+- **Animation:** GSAP + Framer Motion + Lenis (smooth scroll)
+- **Auth & DB:** Supabase
+- **Analytics:** Vercel Analytics + Speed Insights
+- **Deployment:** Vercel
 
-## ✨ Features
-
-- Built with **Next.js** for optimal performance
-- Responsive design with **Tailwind CSS**
-- Automatic font optimization using **Geist** font family
-- Fast refresh during development
-- Production-ready build system
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js 18+ installed
-- npm, yarn, pnpm, or bun package manager
-
-### Installation & Development
-
-Run the development server using one of the following commands:
-
-| Package Manager | Command |
-|-----------------|---------|
-| npm | `npm run dev` |
-| yarn | `yarn dev` |
-| pnpm | `pnpm dev` |
-| bun | `bun dev` |
-
-Then, open [http://localhost:3000](http://localhost:3000) in your browser to view the site.
-
-## 💻 Development
-
-### Project Structure
+## Project Structure
 
 ```
-├── app/
-│   ├── globals.css       # Global styles
-│   ├── layout.tsx        # Root layout component
-│   └── page.tsx          # Home page
-├── public/               # Static assets
-├── package.json
-├── tsconfig.json
-└── next.config.ts
+app/
++-- page.tsx              # Home � hero, projects, about, contact
++-- layout.tsx            # Root layout with theme & auth providers
++-- globals.css           # Global styles
++-- context/
+�   +-- ThemeContext.tsx  # Dark/light mode
+�   +-- AuthContext.tsx   # Supabase auth state
++-- components/           # Shared UI components
++-- tools/                # Creative tools suite
+    +-- ascii-art/
+    +-- color-converter/
+    +-- generative-art/
+    +-- gradient-generator/
+    +-- halftone/
+    +-- image-compressor/
+    +-- images-to-pdf/
+    +-- logo-maker/
+    +-- palette-generator/
+    +-- pattern-library/
+    +-- qr-code/
+    +-- vector-art/
+lib/                      # Supabase helpers, utilities
+public/                   # Static assets
+proxy.ts                  # Dev proxy config
 ```
 
-### Editing
+## Getting Started
 
-- Start editing by modifying `app/page.tsx`
-- Changes auto-update in the browser thanks to Next.js' fast refresh feature
-- Global styles can be updated in `app/globals.css`
+```bash
+npm install
+npm run dev
+```
 
-## 🎨 Customization
+Open [http://localhost:3000](http://localhost:3000).
 
-### Fonts
+### Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) for automatic font optimization and loading. The [Geist](https://vercel.com/font) font family is pre-configured as the default font.
+Create a `.env.local` file with your Supabase credentials:
 
-To change fonts, update the font imports in `app/layout.tsx`.
+```
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
 
-## 📚 Resources
+## Scripts
 
-Learn more and explore additional resources:
-
-- **[Next.js Documentation](https://nextjs.org/docs)** - Core features and API reference
-- **[Next.js Tutorial](https://nextjs.org/learn)** - Interactive learning guide
-- **[Next.js GitHub](https://github.com/vercel/next.js)** - Source code and community contributions
-
-## 🌐 Deployment
-
-### Vercel (Recommended)
-
-The easiest way to deploy is using the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) - created by the Next.js team.
-
-For detailed deployment instructions, see the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying).
-
----
-
-**Built with ❤️ using Next.js**
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
