@@ -7,7 +7,7 @@ export async function GET() {
   )
 
   const { data, error } = await supabase
-    .from('your_table')
+    .from('user_follows')
     .select('*')
     .limit(1)
 
