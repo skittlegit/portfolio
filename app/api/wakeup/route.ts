@@ -8,7 +8,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('user_follows')
-    .select('*')
+    .select('id')
     .limit(1)
 
   if (error) {
