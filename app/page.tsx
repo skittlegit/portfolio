@@ -22,36 +22,52 @@ gsap.registerPlugin(ScrollTrigger);
 /* ── Data ── */
 const PROJECTS = [
   {
-    name: "Stock Trading Sim",
+    name: "MCSE — Stock Trading Sim",
     description:
-      "Real-time trading simulator for 400+ users with matching engine & WebSocket updates",
-    tech: "Next.js · Firebase · Google Scripts",
+      "Real-time trading simulator with 400+ participants and 250+ concurrent users — order execution, screener, watchlist, IPO module, packaged as PWA + TWA",
+    tech: "Next.js · Convex · TypeScript",
     status: "Shipped",
     url: "https://mcse.in",
   },
   {
-    name: "F1 Prediction",
+    name: "Vellum Health",
     description:
-      "ML-powered race predictions achieving 85% accuracy on 10K+ race records",
-    tech: "Python · scikit-learn · FastF1",
+      "Telemedicine platform with WebRTC + Socket.IO video, Stripe booking, AES-256-GCM encryption, multi-role NextAuth, edge role-gating, audit logs",
+    tech: "Next.js · MongoDB · Stripe · WebRTC",
     status: "Shipped",
-    url: "https://github.com/skittlegit/F1_Prediction",
+    url: "https://vellumhealth.vercel.app/dashboard",
+  },
+  {
+    name: "Lightsout — F1 Prediction",
+    description:
+      "Full-stack F1 dashboard — 3 LightGBM quantile-regression models on 8 seasons, Monte Carlo simulation (~10K orderings) for win/podium/points probabilities",
+    tech: "Next.js · FastAPI · LightGBM · FastF1",
+    status: "Shipped",
+    url: "https://lightsout-web.vercel.app/",
+  },
+  {
+    name: "Chunks — Satellite Scheduler",
+    description:
+      "Full-stack imaging scheduler for the Lost in Space hackathon — two-pass attitude planner, composite mission score 1.18 across all 3 test cases",
+    tech: "Next.js · FastAPI · Zustand",
+    status: "Shipped",
+    url: "https://chunkyweb.vercel.app/",
   },
   {
     name: "Reddys Digital",
     description:
-      "Full company website redesign — 10+ pages revamped, 20+ bugs fixed",
-    tech: "Next.js · Tailwind CSS · Firebase",
+      "Corporate website built from scratch — 6 pages end-to-end for a firm serving 100+ clients across 50+ cities",
+    tech: "Next.js · TypeScript · Tailwind · Framer Motion",
     status: "Shipped",
     url: "https://rdpl.vercel.app",
   },
   {
-    name: "Workplace Automation",
+    name: "Crossmint — Workplace Automation",
     description:
-      "Internal workflow platform with role-based dashboards and approval flows",
-    tech: "Next.js · Firebase · Flutter · Supabase",
+      "Field-ops app — on-site capture with photos & metadata, role-based access across 3 tiers, offline-first storage, admin dashboard with exports",
+    tech: "Flutter · Supabase · Riverpod · Hive",
     status: "Building",
-    url: "#",
+    url: "https://github.com/skittlegit/crossmint",
   },
 ];
 
@@ -429,10 +445,10 @@ export default function Home() {
               className="mono text-sm sm:text-base leading-relaxed"
               style={{ color: "var(--fg-muted)" }}
             >
-              Interned at Reddys Digital, where I revamped their website with
-              Next.js and Tailwind. I head tech &amp; design for the Mathematics
-              Society and served as design representative for AEON 2026 Tech
-              Fest.
+              Interned at Reddys Digital, where I built their corporate website
+              from scratch with Next.js, TypeScript, and Tailwind. I head tech
+              &amp; design for the Mathematics Society and served as design
+              representative for AEON 2026 Tech Fest.
             </p>
             <p
               className="mono text-sm sm:text-base leading-relaxed mt-6"
