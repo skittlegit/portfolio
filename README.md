@@ -1,65 +1,99 @@
+<div align="center">
+
 # bydeepak.com
 
-Personal portfolio + creative tools — a radical angular/editorial redesign built with Next.js 16, React 19, and Tailwind CSS v4.
+**Deepak Aeleni — internet generalist · UI/UX-focused full-stack & app developer**
 
-The site **is** the portfolio piece: a near-brutalist, near-monochrome system with a single violet accent and a custom motion language ("TELEMETRY") — a schematic/instrumentation concept applied to the preloader, cursor, background, reveals, and interaction states. The motion concept is documented in the comment block at the top of [`app/globals.css`](app/globals.css), which is also the central design-token file (colour, type, spacing, motion easings/durations).
+A personal portfolio and a suite of free, client-side design tools.
+The site *is* the portfolio piece — craft, motion, and detail are the deliverable.
+
+</div>
+
+---
+
+## Design
+
+A near-monochrome **paper gallery**: warm off-white + near-black ink, with a single
+muted electric-violet accent on well under 5% of the surface. Angular and editorial —
+sharp corners, hard rules, oversized display type, generous negative space.
+
+The motion language is **“DECODE”** (documented at the top of
+[`app/globals.css`](app/globals.css), which is also the single source of truth for
+every token — colour, type, spacing, motion easings/durations):
+
+- **Type decodes** — the hero name resolves out of random glyphs and locks in (`Scramble`).
+- **Custom cursor** — a precise dot + a lagging ring that fills violet and labels itself over targets.
+- **Background** — a soft, slow-drifting violet/warm colour mesh under fine grain (no grid lines).
+- **Reveals plot in** — clip / mask wipes, staggered (`Reveal`), with magnetic CTAs (`Magnetic`).
+- **Preloader** — a once-per-session boot counter that wipes away.
+
+Type: **Space Grotesk** (display/body) · **Instrument Serif** (accents & numerals) ·
+**Space Mono** (data/labels). Full **light / dark** support and complete
+`prefers-reduced-motion` and touch fallbacks throughout.
 
 ## Stack
 
-- **Framework:** Next.js 16 (App Router) + TypeScript
-- **Styling:** Tailwind CSS v4, centralized CSS design tokens
-- **Type:** Space Grotesk (display/body) · Space Mono (data/labels) · Instrument Serif (accents)
-- **Animation:** Framer Motion (primary) · Lenis (smooth scroll) · GSAP (ScrollTrigger helper)
-- **Analytics:** Vercel Analytics + Speed Insights
-- **Deployment:** Vercel
+| | |
+|---|---|
+| **Framework** | Next.js 16 (App Router) + React 19 |
+| **Language** | TypeScript (strict) |
+| **Styling** | Tailwind CSS v4 + centralized CSS design tokens |
+| **Motion** | Framer Motion (primary) · Lenis (smooth scroll) · GSAP (ScrollTrigger) |
+| **Tooling libs** | `qrcode`, `jspdf`, `lucide-react` (icons) |
+| **Analytics** | Vercel Analytics + Speed Insights |
+| **Deploy** | Vercel · no environment variables required |
 
 ## Architecture
 
 ```
 app/
-├─ layout.tsx              # Root: fonts, metadata/OG, providers + global shell
-├─ template.tsx            # Route transition (opacity crossfade)
-├─ page.tsx                # Home — hero, about, stats, work×6, tools teaser, contact
-├─ globals.css             # Design tokens + TELEMETRY motion language
-├─ opengraph-image.tsx     # Dynamic OG card
-├─ sitemap.ts / robots.ts  # SEO
+├─ layout.tsx              # root — fonts, metadata/OG, providers, global shell
+├─ template.tsx            # route transition (opacity crossfade)
+├─ page.tsx                # home — hero, profile, stats, work ×6, tools teaser, contact
+├─ globals.css             # design tokens + "DECODE" motion language
+├─ opengraph-image.tsx     # dynamic OG card
+├─ sitemap.ts · robots.ts  # SEO
 ├─ not-found.tsx           # 404
 ├─ resume/                 # /resume — inline PDF + download (public/resume.pdf)
 ├─ context/ThemeContext.tsx
-├─ components/             # Nav, Cursor, Preloader, Background, Reveal, Magnetic, …
-└─ tools/                  # 10 client-side tools, restyled via ToolLayout
+├─ components/             # Nav, Cursor, Preloader, Background, Reveal, Magnetic,
+│                          #   Scramble, SmoothScroll, ToolLayout, ColorPicker, …
+└─ tools/                  # the 10 tools + ToolLayout chrome (layout.tsx supplies metadata)
+public/work/              # project screenshots (statically imported → content-hashed)
 ```
 
-## Removed in the redesign — Supabase (dead infra)
+## Tools
 
-The site was wired to a Supabase project that nothing actually used. The only
-consumers were "Save" buttons in a few tools, all gated behind a logged-in user —
-but there is **no login route** in the live app (it lived in `_archive/`), so those
-buttons could never persist anything. Per the "no sign-up, no tracking" promise,
-all of it was ripped out:
+Ten **100% client-side** utilities — no sign-up, no tracking, nothing leaves the browser:
 
-- deps: `@supabase/ssr`, `@supabase/supabase-js`
-- files: `lib/` (supabase client/server, `saved-items`, `profile`, `whitelist`, `chat`, `currency`, `env`, `site-url`), `app/context/AuthContext.tsx`, `app/api/wakeup` (DB keep-alive), `proxy.ts` (auth-refresh middleware), the entire `_archive/`
-- the Save buttons + `useAuth`/`saveItem` wiring in the 6 tools that referenced them
-- Supabase env vars, the `.env.local.example`, and the Supabase image `remotePattern` in `next.config.ts`
+`QR Code` · `Color Palette` · `CSS Gradient` · `ASCII Art` · `Halftone` ·
+`Image Compressor` · `Images → PDF` · `Pattern Library` · `Generative Bio Art` · `Vector Art`
 
-Tools remain **100% client-side** (no network, no accounts). The `color-converter`
-and `logo-maker` routes still exist and work but aren't featured on `/tools`.
+(`color-converter` and `logo-maker` routes also exist and work, but aren’t featured on `/tools`.)
 
-## Getting Started
+## Getting started
 
 ```bash
 npm install
-npm run dev   # http://localhost:3000
+npm run dev      # http://localhost:3000
 ```
-
-No environment variables are required.
-
-## Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server |
+| `npm run dev` | Start the dev server |
 | `npm run build` | Production build |
-| `npm run start` | Start production server |
+| `npm run start` | Serve the production build |
 | `npm run lint` | Run ESLint |
+
+## Notes
+
+- **No backend.** The site was previously wired to a Supabase project that nothing
+  actually used (the only consumers were “Save” buttons gated behind a login route
+  that didn’t exist). It was fully removed — deps, `lib/`, auth context, the DB
+  keep-alive route, the auth middleware, and the archived code. The tools are
+  serverless and run entirely in the browser.
+- **Updating a project screenshot:** drop a new PNG in `public/work/<name>.png` and
+  rebuild. Images are statically imported, so each gets a content-hashed URL that
+  busts caches automatically — no hard refresh needed.
+- **Tweaking the look:** everything is driven from the token block at the top of
+  [`app/globals.css`](app/globals.css).

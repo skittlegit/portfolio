@@ -58,7 +58,17 @@ export default function Cursor() {
 
     const onDown = () => { down = true; setState(); };
     const onUp = () => { down = false; setState(); };
-    const onLeave = () => { visible = false; dot.style.opacity = ring.style.opacity = "0"; };
+    // Fully hide + reset on any exit so the ring never re-appears stale — old
+    // position or leftover violet hover state — when the pointer returns or the
+    // tab/window regains focus. The next mousemove snaps it back to the cursor.
+    const hide = () => {
+      visible = false;
+      hovering = false;
+      down = false;
+      setState();
+      dot.style.opacity = ring.style.opacity = "0";
+    };
+    const onVisibility = () => { if (document.hidden) hide(); };
 
     const loop = () => {
       // tighter follow while hovering so the filled ring locks onto targets
@@ -73,14 +83,18 @@ export default function Cursor() {
     window.addEventListener("mousemove", onMove, { passive: true });
     window.addEventListener("mousedown", onDown);
     window.addEventListener("mouseup", onUp);
-    document.documentElement.addEventListener("mouseleave", onLeave);
+    window.addEventListener("blur", hide);
+    document.addEventListener("visibilitychange", onVisibility);
+    document.documentElement.addEventListener("mouseleave", hide);
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mousedown", onDown);
       window.removeEventListener("mouseup", onUp);
-      document.documentElement.removeEventListener("mouseleave", onLeave);
+      window.removeEventListener("blur", hide);
+      document.removeEventListener("visibilitychange", onVisibility);
+      document.documentElement.removeEventListener("mouseleave", hide);
     };
   }, []);
 

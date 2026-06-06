@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
-import { ArrowLeft, Sun, Moon } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useTheme } from "../context/ThemeContext";
+import Nav from "./Nav";
 
-// Shared chrome for every tool page — header, editorial title block, footer.
-// Tool logic lives in each page and is untouched. Background is transparent so
-// the global colour mesh + grain show through. Sets a per-tool document title
-// (the tool pages are client components and can't export metadata themselves).
+// Shared chrome for every tool page. Uses the same site Nav as every other page
+// (so the mobile hamburger/menu is consistent), then an editorial title block,
+// the tool's content, and a footer. Sets a per-tool document title (tool pages
+// are client components and can't export metadata themselves).
 export default function ToolLayout({
   title,
   description,
@@ -24,58 +24,31 @@ export default function ToolLayout({
   hideBack?: boolean;
   children: React.ReactNode;
 }) {
-  const { isDark, toggle } = useTheme();
-
   useEffect(() => {
     document.title = `${title} · Deepak Aeleni`;
   }, [title]);
+
+  const showBack = !hideBack && backHref !== "/";
 
   return (
     <div
       className="tools-layout relative flex flex-col"
       style={{ color: "var(--fg)", minHeight: "100dvh", position: "relative", zIndex: 2 }}
     >
-      {/* sticky frosted header */}
-      <header
-        className="flex items-center justify-between"
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-          padding: "13px clamp(20px,5vw,64px)",
-          borderBottom: "1px solid var(--line)",
-          background: isDark ? "rgba(10,10,11,0.66)" : "rgba(244,242,234,0.72)",
-          backdropFilter: "blur(16px) saturate(150%)",
-          WebkitBackdropFilter: "blur(16px) saturate(150%)",
-        }}
-      >
-        {hideBack ? (
-          <span className="mono" style={{ fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--fg-muted)" }}>
-            bydeepak / tools
-          </span>
-        ) : (
+      <Nav />
+
+      {/* editorial title block — top padding clears the fixed nav */}
+      <div style={{ padding: "calc(62px + clamp(26px,5vw,52px)) clamp(20px,5vw,64px) clamp(18px,3vw,28px)" }}>
+        {showBack && (
           <Link
             href={backHref}
             data-cursor={backLabel}
             className="link-trace mono inline-flex items-center gap-2"
-            style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fg-muted)" }}
+            style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fg-muted)", marginBottom: 18 }}
           >
-            <ArrowLeft size={14} strokeWidth={1.5} />
-            {backLabel}
+            <ArrowLeft size={14} strokeWidth={1.5} /> Back to {backLabel}
           </Link>
         )}
-        <button
-          onClick={toggle}
-          data-cursor={isDark ? "light" : "dark"}
-          aria-label="Toggle theme"
-          style={{ background: "transparent", border: "none", color: "var(--fg-muted)", padding: 8, lineHeight: 0 }}
-        >
-          {isDark ? <Sun size={17} strokeWidth={1.5} /> : <Moon size={17} strokeWidth={1.5} />}
-        </button>
-      </header>
-
-      {/* editorial title block — mirrors the home section headers */}
-      <div style={{ padding: "clamp(28px,5vw,52px) clamp(20px,5vw,64px) clamp(18px,3vw,28px)" }}>
         <div className="flex items-end justify-between" style={{ borderTop: "1px solid var(--fg)", paddingTop: 16, marginBottom: description ? 18 : 0, gap: 16 }}>
           <h1 className="display" style={{ fontSize: "clamp(2.2rem,6vw,4.2rem)", color: "var(--fg)", lineHeight: 0.92, letterSpacing: "-0.03em" }}>
             {title}
