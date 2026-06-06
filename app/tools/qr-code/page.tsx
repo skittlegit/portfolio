@@ -2,24 +2,18 @@
 
 import { useState, useEffect } from "react";
 import QRCode from "qrcode";
-import { Download, Bookmark, Check } from "lucide-react";
+import { Download } from "lucide-react";
 import Image from "next/image";
 import ToolLayout from "../../components/ToolLayout";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
-import { useRouter } from "next/navigation";
-import { useAuth } from "../../context/AuthContext";
-import { saveItem } from "@/lib/saved-items";
 
 type ErrorLevel = "L" | "M" | "Q" | "H";
 type ImageFormat = "png" | "svg";
 
 export default function QrCodePage() {
   const { fg, fgMuted, isDark } = useTheme();
-  const { user } = useAuth();
-  const router = useRouter();
   const [text, setText] = useState("https://example.com");
-  const [saved, setSaved] = useState(false);
   const [size, setSize] = useState(300);
   const [errorLevel, setErrorLevel] = useState<ErrorLevel>("M");
   const [fgColor, setFgColor] = useState(isDark ? "#ffffff" : "#000000");
@@ -232,24 +226,6 @@ export default function QrCodePage() {
             >
               <Download size={14} strokeWidth={1.5} />
               Download {format.toUpperCase()}
-            </button>
-            <button
-              onClick={async () => {
-                if (!user) { router.push("/login?next=/tools/qr-code"); return; }
-                await saveItem(
-                  "qr-code",
-                  text.slice(0, 50) || "QR Code",
-                  { text, size, errorLevel, fgColor, bgColor, transparent, margin, format },
-                  qrDataUrl ?? undefined
-                );
-                setSaved(true);
-                setTimeout(() => setSaved(false), 2000);
-              }}
-              className="tool-btn"
-              style={saved ? { color: fg } : undefined}
-            >
-              {saved ? <Check size={14} strokeWidth={1.5} /> : <Bookmark size={14} strokeWidth={1.5} />}
-              {saved ? "Saved!" : "Save"}
             </button>
           </div>
         </div>

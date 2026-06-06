@@ -13,13 +13,19 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [isDark, setIsDark] = useState<boolean>(true); // Default dark
+  const [isDark, setIsDark] = useState<boolean>(false); // Default light (paper)
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    if (stored === "light") setIsDark(false);
-    else if (stored === "dark") setIsDark(true);
-    // else keep dark as default
+    // Sync React state with the stored theme. Deferred to the next frame so the
+    // update runs from a callback rather than synchronously in the effect body.
+    // The pre-paint inline script in layout.tsx already applied the correct
+    // data-theme to <html>, so this only catches up the toggle icon / tool colors.
+    const id = requestAnimationFrame(() => {
+      const stored = localStorage.getItem("theme");
+      if (stored === "light") setIsDark(false);
+      else if (stored === "dark") setIsDark(true);
+    });
+    return () => cancelAnimationFrame(id);
   }, []);
 
   useEffect(() => {
@@ -30,9 +36,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const toggle = () => setIsDark((d) => !d);
 
-  const bg = isDark ? "#0c0c0c" : "#faf8f5";
-  const fg = isDark ? "#f0ece8" : "#1a1816";
-  const fgMuted = isDark ? "#7a7670" : "#8a8580";
+  // Mirror of the CSS palette tokens in globals.css (tool pages read these inline).
+  const bg = isDark ? "#0a0a0b" : "#f4f2ea";
+  const fg = isDark ? "#f1efea" : "#14130f";
+  const fgMuted = isDark ? "#8b8884" : "#5f5c54";
 
   return (
     <ThemeContext.Provider value={{ isDark, toggle, bg, fg, fgMuted }}>

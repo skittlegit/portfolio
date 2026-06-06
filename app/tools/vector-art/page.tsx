@@ -1,13 +1,10 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { RefreshCw, Download, Copy, Check, Plus, X, Lock, Unlock, Bookmark } from "lucide-react";
+import { RefreshCw, Download, Copy, Check, Plus, X, Lock, Unlock } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
-import { useRouter } from "next/navigation";
-import { useAuth } from "../../context/AuthContext";
-import { saveItem } from "@/lib/saved-items";
 
 type Style =
   | "geometric"
@@ -299,10 +296,7 @@ function generateSvg(
 
 export default function VectorArtPage() {
   const { fg, isDark } = useTheme();
-  const { user } = useAuth();
-  const router = useRouter();
   const [style, setStyle] = useState<Style>("geometric");
-  const [saved, setSaved] = useState(false);
   const [seed, setSeed] = useState(42);
   const [bg, setBg] = useState(isDark ? "#0a0a0a" : "#fafafa");
   const [transparentBg, setTransparentBg] = useState(false);
@@ -501,24 +495,6 @@ export default function VectorArtPage() {
           </button>
           <button onClick={downloadPng} className="tool-btn" style={{ color: fg }}>
             <Download size={14} /> PNG
-          </button>
-          <button
-            onClick={async () => {
-              if (!user) { router.push("/login?next=/tools/vector-art"); return; }
-              await saveItem(
-                "vector-art",
-                `${style.charAt(0).toUpperCase() + style.slice(1)} Vector`,
-                { style, seed, bg, transparentBg, palette, locked },
-                exportSvg
-              );
-              setSaved(true);
-              setTimeout(() => setSaved(false), 2000);
-            }}
-            className="tool-btn"
-            style={saved ? { color: fg } : undefined}
-          >
-            {saved ? <Check size={14} strokeWidth={1.5} /> : <Bookmark size={14} strokeWidth={1.5} />}
-            {saved ? "Saved!" : "Save"}
           </button>
         </div>
       </div>

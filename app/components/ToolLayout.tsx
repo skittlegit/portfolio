@@ -1,9 +1,14 @@
 "use client";
 
+import { useEffect } from "react";
 import { ArrowLeft, Sun, Moon } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "../context/ThemeContext";
 
+// Shared chrome for every tool page — header, editorial title block, footer.
+// Tool logic lives in each page and is untouched. Background is transparent so
+// the global colour mesh + grain show through. Sets a per-tool document title
+// (the tool pages are client components and can't export metadata themselves).
 export default function ToolLayout({
   title,
   description,
@@ -21,127 +26,92 @@ export default function ToolLayout({
 }) {
   const { isDark, toggle } = useTheme();
 
+  useEffect(() => {
+    document.title = `${title} · Deepak Aeleni`;
+  }, [title]);
+
   return (
     <div
       className="tools-layout relative flex flex-col"
-      style={{
-        color: "var(--fg)",
-        background: "var(--bg)",
-        minHeight: "100dvh",
-        overflowX: "clip",
-        position: "relative",
-        zIndex: 2,
-      }}
+      style={{ color: "var(--fg)", minHeight: "100dvh", position: "relative", zIndex: 2 }}
     >
-      {/* Ambient background gradient (matching home) */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0"
+      {/* sticky frosted header */}
+      <header
+        className="flex items-center justify-between"
         style={{
-          background: isDark
-            ? "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(167,139,250,0.06) 0%, transparent 70%)"
-            : "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124,58,237,0.04) 0%, transparent 70%)",
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+          padding: "13px clamp(20px,5vw,64px)",
+          borderBottom: "1px solid var(--line)",
+          background: isDark ? "rgba(10,10,11,0.66)" : "rgba(244,242,234,0.72)",
+          backdropFilter: "blur(16px) saturate(150%)",
+          WebkitBackdropFilter: "blur(16px) saturate(150%)",
         }}
-      />
-
-      {/* Noise texture overlay (matching home) */}
-      <div
-        className="pointer-events-none fixed inset-0 z-[60] opacity-[0.03]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          backgroundRepeat: "repeat",
-        }}
-      />
-
-      {/* Header */}
-      <header className="relative z-[100] flex items-center justify-between px-6 sm:px-10 md:px-16 pt-7 pb-4">
+      >
         {hideBack ? (
-          <div />
+          <span className="mono" style={{ fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--fg-muted)" }}>
+            bydeepak / tools
+          </span>
         ) : (
           <Link
             href={backHref}
-            data-cursor-hover
-            className="flex items-center gap-2 mono text-xs tracking-wider uppercase"
-            style={{
-              color: "var(--fg-muted)",
-              textDecoration: "none",
-              transition: "color 0.2s",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "var(--accent)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "var(--fg-muted)")
-            }
+            data-cursor={backLabel}
+            className="link-trace mono inline-flex items-center gap-2"
+            style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fg-muted)" }}
           >
-            <ArrowLeft size={16} strokeWidth={1.5} />
+            <ArrowLeft size={14} strokeWidth={1.5} />
             {backLabel}
           </Link>
         )}
         <button
           onClick={toggle}
-          data-cursor-hover
-          aria-label="Toggle dark mode"
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "var(--fg-muted)",
-            padding: "12px",
-            lineHeight: 0,
-            transition: "color 0.2s",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.color = "var(--accent)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.color = "var(--fg-muted)")
-          }
+          data-cursor={isDark ? "light" : "dark"}
+          aria-label="Toggle theme"
+          style={{ background: "transparent", border: "none", color: "var(--fg-muted)", padding: 8, lineHeight: 0 }}
         >
-          {isDark ? (
-            <Sun size={18} strokeWidth={1.5} />
-          ) : (
-            <Moon size={18} strokeWidth={1.5} />
-          )}
+          {isDark ? <Sun size={17} strokeWidth={1.5} /> : <Moon size={17} strokeWidth={1.5} />}
         </button>
       </header>
 
-      {/* Page title */}
-      <div className="relative z-10 px-6 sm:px-10 md:px-16 pt-4 pb-10">
-        <h1 className="heading text-3xl sm:text-4xl md:text-5xl tracking-tight">
-          {title}
-          <span style={{ color: "var(--accent)" }}>.</span>
-        </h1>
+      {/* editorial title block — mirrors the home section headers */}
+      <div style={{ padding: "clamp(28px,5vw,52px) clamp(20px,5vw,64px) clamp(18px,3vw,28px)" }}>
+        <div className="flex items-end justify-between" style={{ borderTop: "1px solid var(--fg)", paddingTop: 16, marginBottom: description ? 18 : 0, gap: 16 }}>
+          <h1 className="display" style={{ fontSize: "clamp(2.2rem,6vw,4.2rem)", color: "var(--fg)", lineHeight: 0.92, letterSpacing: "-0.03em" }}>
+            {title}
+            <span style={{ color: "var(--accent)" }}>.</span>
+          </h1>
+          <span className="eyebrow" style={{ whiteSpace: "nowrap", paddingBottom: 8 }}>Free · client-side</span>
+        </div>
         {description && (
-          <p
-            className="mono mt-3 text-sm sm:text-base leading-relaxed max-w-lg"
-            style={{ color: "var(--fg-muted)" }}
-          >
+          <p className="mono" style={{ fontSize: 13.5, lineHeight: 1.7, color: "var(--fg-muted)", maxWidth: 580 }}>
             {description}
           </p>
         )}
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex-1 px-6 sm:px-10 md:px-16 pb-16">
+      {/* content */}
+      <div className="flex-1" style={{ padding: "0 clamp(20px,5vw,64px) 80px" }}>
         {children}
       </div>
 
-      {/* Footer */}
-      <footer className="relative z-10 px-6 sm:px-10 md:px-16 py-8" style={{ borderTop: "1px solid var(--border)" }}>
-        <div className="flex items-center justify-between">
-          <span className="mono text-xs" style={{ color: "var(--fg-muted)" }}>
-            &copy; {new Date().getFullYear()} Deepak
-          </span>
-          <Link
-            href="/"
-            data-cursor-hover
-            className="mono text-xs"
-            style={{ color: "var(--fg-muted)", textDecoration: "none", transition: "color 0.2s" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent)")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--fg-muted)")}
-          >
-            bydeepak.com
-          </Link>
-        </div>
+      {/* footer */}
+      <footer
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between mono"
+        style={{
+          padding: "20px clamp(20px,5vw,64px)",
+          borderTop: "1px solid var(--line)",
+          fontSize: 11,
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          color: "var(--fg-faint)",
+          gap: 8,
+        }}
+      >
+        <span>© {new Date().getFullYear()} Deepak Aeleni</span>
+        <Link href="/" data-cursor="home" className="link-trace" style={{ color: "var(--fg-faint)" }}>
+          bydeepak.com
+        </Link>
       </footer>
     </div>
   );

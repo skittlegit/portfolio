@@ -25,7 +25,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            fontFamily: "var(--font-playfair), Georgia, serif",
+            fontFamily: "var(--font-display), sans-serif",
             padding: "2rem",
             textAlign: "center",
           }}

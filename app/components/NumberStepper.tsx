@@ -41,7 +41,7 @@ export default function NumberStepper({
             color: value <= min ? dimmed : fg,
             padding: "8px 10px",
             fontSize: 15,
-            fontFamily: "var(--font-playfair), Georgia, serif",
+            fontFamily: "var(--font-mono), monospace",
             lineHeight: 1,
           }}
         >
@@ -52,8 +52,9 @@ export default function NumberStepper({
             minWidth: 24,
             textAlign: "center",
             fontSize: 13,
-            fontFamily: "var(--font-playfair), Georgia, serif",
+            fontFamily: "var(--font-mono), monospace",
             color: fg,
+            fontWeight: 500,
           }}
         >
           {value}
@@ -66,7 +67,7 @@ export default function NumberStepper({
             color: value >= max ? dimmed : fg,
             padding: "8px 10px",
             fontSize: 15,
-            fontFamily: "var(--font-playfair), Georgia, serif",
+            fontFamily: "var(--font-mono), monospace",
             lineHeight: 1,
           }}
         >

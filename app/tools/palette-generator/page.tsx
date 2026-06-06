@@ -1,13 +1,10 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Copy, Check, RefreshCw, Lock, Unlock, Bookmark } from "lucide-react";
+import { Copy, Check, RefreshCw, Lock, Unlock } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
 import NumberStepper from "../../components/NumberStepper";
 import { useTheme } from "../../context/ThemeContext";
-import { useRouter } from "next/navigation";
-import { useAuth } from "../../context/AuthContext";
-import { saveItem } from "@/lib/saved-items";
 
 function hslToHex(h: number, s: number, l: number): string {
   s /= 100;
@@ -110,15 +107,12 @@ function generateHarmony(
 
 export default function PaletteGeneratorPage() {
   const { fg, fgMuted, isDark } = useTheme();
-  const { user } = useAuth();
-  const router = useRouter();
   const [count, setCount] = useState(5);
   const [colors, setColors] = useState<PaletteColor[]>(() =>
     Array.from({ length: 5 }, () => ({ hex: randomColor(), locked: false }))
   );
   const [copied, setCopied] = useState<number | null>(null);
   const [harmony, setHarmony] = useState<string>("random");
-  const [paletteSaved, setPaletteSaved] = useState(false);
 
   const regenerate = useCallback(() => {
     if (harmony === "random") {
@@ -201,24 +195,6 @@ export default function PaletteGeneratorPage() {
             style={copied === -1 ? { color: fg } : undefined}
           >
             {copied === -1 ? "Copied CSS!" : "Export CSS"}
-          </button>
-          <button
-            onClick={async () => {
-              if (!user) { router.push("/login?next=/tools/palette-generator"); return; }
-              const name = colors.map((c) => c.hex.slice(1, 4)).join("-");
-              await saveItem(
-                "palette",
-                name,
-                { colors, harmony, count },
-              );
-              setPaletteSaved(true);
-              setTimeout(() => setPaletteSaved(false), 2000);
-            }}
-            className="tool-btn"
-            style={paletteSaved ? { color: fg } : undefined}
-          >
-            {paletteSaved ? <Check size={14} strokeWidth={1.5} /> : <Bookmark size={14} strokeWidth={1.5} />}
-            {paletteSaved ? "Saved!" : "Save"}
           </button>
         </div>
 
