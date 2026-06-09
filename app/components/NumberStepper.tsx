@@ -31,7 +31,7 @@ export default function NumberStepper({
       )}
       <div
         className="flex items-center"
-        style={{ border: `1px solid ${border}`, borderRadius: 8, overflow: "hidden" }}
+        style={{ border: `1px solid ${border}`, borderRadius: 0, overflow: "hidden" }}
       >
         <button
           onClick={() => value > min && onChange(value - 1)}

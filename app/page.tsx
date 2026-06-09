@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import Image, { type StaticImageData } from "next/image";
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ArrowDown } from "lucide-react";
 import Nav from "./components/Nav";
 import Reveal from "./components/Reveal";
 import Magnetic from "./components/Magnetic";
@@ -43,6 +44,7 @@ type Project = {
   stack: string[];
   href: string;
   span: string;
+  feature?: boolean;
 };
 
 const PROJECTS: Project[] = [
@@ -54,7 +56,8 @@ const PROJECTS: Project[] = [
     desc: "Real-time trading simulator — 400+ participants, 250+ concurrent users. Order execution, screener, watchlist, IPO module, packaged as PWA + TWA.",
     stack: ["Next.js", "Convex", "TypeScript"],
     href: "https://mcse.in",
-    span: "md:col-span-8",
+    span: "md:col-span-12",
+    feature: true,
   },
   {
     idx: "02",
@@ -64,7 +67,7 @@ const PROJECTS: Project[] = [
     desc: "Telemedicine platform — WebRTC + Socket.IO video, Stripe booking, AES-256-GCM encryption, multi-role NextAuth, edge role-gating, audit logs.",
     stack: ["Next.js", "MongoDB", "Stripe", "WebRTC"],
     href: "https://vellumhealth.vercel.app/",
-    span: "md:col-span-4",
+    span: "md:col-span-6",
   },
   {
     idx: "03",
@@ -103,7 +106,8 @@ const PROJECTS: Project[] = [
     desc: "Field-ops app — on-site capture with photos & metadata, role-based access across 3 tiers, offline-first storage, admin dashboard with exports.",
     stack: ["Flutter", "Supabase", "Riverpod", "Hive"],
     href: "https://github.com/skittlegit/crossmint",
-    span: "md:col-span-6",
+    span: "md:col-span-12",
+    feature: true,
   },
 ];
 
@@ -117,12 +121,35 @@ const SOCIALS = [
 const TOOLNAMES = [
   "QR Code", "Color Palette", "CSS Gradient", "ASCII Art", "Halftone",
   "Image Compressor", "Images → PDF", "Pattern Library", "Generative Art", "Vector Art",
+  "Color Converter", "Shape Maker",
 ];
 
 const PAD = "px-5 sm:px-8 md:px-12 lg:px-16";
 
+/* live Hyderabad clock — instrument readout in the hero meta row */
+const IST_FMT = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Asia/Kolkata",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+});
+
+function ClockIST() {
+  const [time, setTime] = useState("--:--:--");
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setTime(IST_FMT.format(new Date())));
+    const id = setInterval(() => setTime(IST_FMT.format(new Date())), 1000);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearInterval(id);
+    };
+  }, []);
+  return <span suppressHydrationWarning>{time}</span>;
+}
+
 /* bold editorial section header */
-function SectionHead({ n, title, meta }: { n: string; title: string; meta?: string }) {
+function SectionHead({ n, title, meta }: { n: string; title: React.ReactNode; meta?: string }) {
   return (
     <div className="flex items-end justify-between" style={{ borderTop: "1px solid var(--fg)", paddingTop: 18, marginBottom: 48, gap: 16 }}>
       <h2 className="display" style={{ fontSize: "clamp(1.9rem,5vw,3.4rem)", lineHeight: 0.9, letterSpacing: "-0.03em", color: "var(--fg)", display: "flex", alignItems: "baseline", gap: 14 }}>
@@ -140,7 +167,7 @@ export default function Home() {
   const reduce = useReducedMotion();
 
   return (
-    <main style={{ position: "relative", zIndex: 2 }}>
+    <main id="main" style={{ position: "relative", zIndex: 2 }}>
       <Nav />
 
       {/* ════ HERO ════ */}
@@ -157,21 +184,35 @@ export default function Home() {
             <span className="lamp" /> Available for projects
           </span>
           <span className="hidden sm:block mono" style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--fg-faint)" }}>
-            Folio — 2026 · Hyderabad, IN
+            Folio 2026 · Hyderabad — <ClockIST /> IST
           </span>
         </motion.div>
 
         {/* centrepiece — giant name + right-aligned role column */}
         <div className="flex items-end justify-between" style={{ gap: 24 }}>
-          <h1 className="display" style={{ color: "var(--fg)", fontSize: "clamp(3.4rem, 18vw, 16rem)", lineHeight: 0.8, letterSpacing: "-0.045em" }}>
-            <span style={{ display: "block", overflow: "hidden" }}>
-              <Scramble text="DEEPAK" speed={1.3} />
-            </span>
-            <span style={{ display: "block", overflow: "hidden" }}>
-              <Scramble text="AELENI" speed={1.3} delay={140} />
-              <span style={{ color: "var(--accent)" }}>.</span>
-            </span>
-          </h1>
+          <div>
+            <h1 className="display" style={{ color: "var(--fg)", fontSize: "clamp(3.4rem, 18vw, 16rem)", lineHeight: 0.8, letterSpacing: "-0.045em" }}>
+              <span style={{ display: "block", overflow: "hidden" }}>
+                <Scramble text="DEEPAK" speed={1.3} />
+              </span>
+              <span className="hero-outline" style={{ display: "block", overflow: "hidden" }}>
+                <Scramble text="AELENI" speed={1.3} delay={140} />
+                <span style={{ color: "var(--accent)", WebkitTextStrokeWidth: 0 }}>.</span>
+              </span>
+            </h1>
+            {/* compact role line — stands in for the right column below lg */}
+            <motion.div
+              initial={reduce ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7, duration: 0.7 }}
+              className="lg:hidden mono flex flex-wrap items-center"
+              style={{ marginTop: 22, gap: 10, fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)" }}
+            >
+              <span style={{ color: "var(--fg)" }}>UI/UX × Full-stack</span>
+              <span aria-hidden style={{ color: "var(--fg-faint)" }}>/</span>
+              <span>App developer</span>
+            </motion.div>
+          </div>
           <motion.div
             aria-hidden
             initial={reduce ? false : { opacity: 0 }}
@@ -201,7 +242,8 @@ export default function Home() {
                   View Résumé <ArrowUpRight size={15} strokeWidth={2} />
                 </Link>
               </Magnetic>
-              <Link href="/#work" data-cursor="scroll" className="link-trace mono" style={{ fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--fg-muted)" }}>
+              <Link href="/#work" data-cursor="scroll" className="link-trace mono inline-flex items-center" style={{ gap: 8, fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--fg-muted)" }}>
+                <span className="bob" aria-hidden><ArrowDown size={13} strokeWidth={1.75} /></span>
                 Selected Work
               </Link>
             </div>
@@ -263,7 +305,7 @@ export default function Home() {
 
       {/* ════ WORK — image-forward gallery ════ */}
       <section id="work" className={PAD} style={{ paddingTop: 64, paddingBottom: 112 }}>
-        <SectionHead n="02" title="Selected Work" meta="06 projects" />
+        <SectionHead n="02" title={<>Selected <span className="italic-serif" style={{ fontSize: "1.06em" }}>Work</span></>} meta="06 projects" />
         <div className="grid grid-cols-1 md:grid-cols-12" style={{ gap: 18 }}>
           {PROJECTS.map((p, i) => (
             <Reveal key={p.idx} className={p.span} delay={(i % 2) * 0.08}>
@@ -280,7 +322,7 @@ export default function Home() {
             <div className="eyebrow" style={{ marginBottom: 24 }}>Free &amp; Open — Design &amp; Dev Tools</div>
             <div className="flex flex-col md:flex-row md:items-end md:justify-between" style={{ gap: 24 }}>
               <h2 className="display" style={{ fontSize: "clamp(2.4rem,7vw,6rem)", lineHeight: 0.9, letterSpacing: "-0.03em", color: "var(--fg)", maxWidth: "12ch" }}>
-                Ten tools<span style={{ color: "var(--accent)" }}>.</span> Zero sign-ups.
+                Twelve <span className="italic-serif" style={{ fontSize: "1.06em" }}>tools</span><span style={{ color: "var(--accent)" }}>.</span> Zero sign-ups.
               </h2>
               <div style={{ maxWidth: 320 }}>
                 <p className="mono" style={{ fontSize: 13, lineHeight: 1.7, color: "var(--fg-muted)" }}>
@@ -309,10 +351,10 @@ export default function Home() {
         <div className="grid md:grid-cols-12" style={{ gap: 32, rowGap: 48 }}>
           <div className="md:col-span-7">
             <Reveal>
-              <h3 className="display" style={{ fontSize: "clamp(2.6rem,8vw,6.5rem)", lineHeight: 0.85, letterSpacing: "-0.03em", color: "var(--fg)", marginBottom: 32 }}>
-                Let&apos;s build<br />something<span style={{ color: "var(--accent)" }}>.</span>
+              <h3 className="display" style={{ fontSize: "clamp(2.8rem,9vw,7.5rem)", lineHeight: 0.85, letterSpacing: "-0.03em", color: "var(--fg)", marginBottom: 36 }}>
+                Let&apos;s <span className="italic-serif" style={{ fontSize: "1.06em" }}>build</span><br />something<span style={{ color: "var(--accent)" }}>.</span>
               </h3>
-              <a href="mailto:deepakrdy7@gmail.com" data-cursor="email" className="link-trace serif" style={{ fontSize: "clamp(1.5rem,3.4vw,2.6rem)", color: "var(--fg)", display: "inline-block" }}>
+              <a href="mailto:deepakrdy7@gmail.com" data-cursor="email" className="link-trace serif" style={{ fontSize: "clamp(1.8rem,4.4vw,3.4rem)", color: "var(--fg)", display: "inline-block", letterSpacing: "-0.01em" }}>
                 deepakrdy7@gmail.com
               </a>
               <div className="mono" style={{ fontSize: 14, color: "var(--fg-muted)", marginTop: 14 }}>
@@ -350,7 +392,7 @@ export default function Home() {
 
 /* ── Project card (image-forward) ───────────────────────────────────────── */
 
-function ProjectCard({ idx, img, title, status, desc, stack, href }: Project) {
+function ProjectCard({ idx, img, title, status, desc, stack, href, feature }: Project) {
   const building = status === "Building";
   const shortName = title.split("—")[0].trim();
   const host = (() => {
@@ -368,11 +410,11 @@ function ProjectCard({ idx, img, title, status, desc, stack, href }: Project) {
     </span>
   );
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" data-cursor="visit" className="work-card" style={{ display: "flex", flexDirection: "column", height: "100%", border: "1px solid var(--line)", background: "var(--bg-raised)", textDecoration: "none", position: "relative", overflow: "hidden" }}>
+    <a href={href} target="_blank" rel="noopener noreferrer" data-cursor="visit" className={`work-card${feature ? " work-feature" : ""}`}>
       {/* cover — angular browser frame + screenshot (or designed fallback) */}
-      <div className="work-shot" style={{ borderBottom: "1px solid var(--line)", overflow: "hidden" }}>
+      <div className="work-shot">
         {/* chrome bar — unifies dark & light screenshots into one gallery */}
-        <div style={{ height: 32, display: "flex", alignItems: "center", gap: 12, padding: "0 12px", borderBottom: "1px solid var(--line)", background: "var(--bg-raised)" }}>
+        <div style={{ height: 32, flexShrink: 0, display: "flex", alignItems: "center", gap: 12, padding: "0 12px", borderBottom: "1px solid var(--line)", background: "var(--bg-raised)" }}>
           <span aria-hidden style={{ display: "flex", gap: 5 }}>
             {[0, 1, 2].map((d) => (
               <span key={d} style={{ width: 7, height: 7, background: d === 0 ? "var(--accent)" : "var(--line-strong)" }} />
@@ -380,9 +422,9 @@ function ProjectCard({ idx, img, title, status, desc, stack, href }: Project) {
           </span>
           <span className="mono" style={{ fontSize: 10.5, letterSpacing: "0.03em", color: "var(--fg-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{host}</span>
         </div>
-        <div style={{ position: "relative", aspectRatio: "16 / 10", overflow: "hidden", background: "var(--bg-sunk)" }}>
+        <div className="work-img">
         {img ? (
-          <Image src={img} alt={`${title} — screenshot`} fill placeholder="blur" sizes="(max-width: 768px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "top center" }} />
+          <Image src={img} alt={`${title} — screenshot`} fill placeholder="blur" sizes={feature ? "(max-width: 768px) 100vw, 62vw" : "(max-width: 768px) 100vw, 50vw"} style={{ objectFit: "cover", objectPosition: "top center" }} />
         ) : (
           <div className="work-cover" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: "clamp(14px,3vw,40px)", padding: "clamp(16px,3vw,34px)" }}>
             {/* texture + wash */}
@@ -426,18 +468,18 @@ function ProjectCard({ idx, img, title, status, desc, stack, href }: Project) {
       </div>
 
       {/* meta */}
-      <div style={{ padding: "clamp(18px,2vw,26px)", display: "flex", flexDirection: "column", flex: 1 }}>
+      <div className="work-meta">
         <div className="flex items-start justify-between" style={{ gap: 12, marginBottom: 10 }}>
           <div className="flex items-baseline" style={{ gap: 12 }}>
             <span className="numeral" style={{ fontSize: "clamp(1.6rem,2.4vw,2.4rem)", color: "var(--fg-faint)" }}>{idx}</span>
-            <h3 className="heading" style={{ fontSize: "clamp(1.15rem,1.7vw,1.5rem)", color: "var(--fg)", lineHeight: 1.04 }}>{title}</h3>
+            <h3 className="heading work-title" style={{ color: "var(--fg)", lineHeight: 1.04 }}>{title}</h3>
           </div>
           <span className="work-arrow" aria-hidden style={{ color: "var(--accent)", flexShrink: 0 }}>
             <ArrowUpRight size={20} strokeWidth={1.75} />
           </span>
         </div>
-        <p style={{ fontSize: 13, lineHeight: 1.6, color: "var(--fg-muted)", marginBottom: 18 }}>{desc}</p>
-        <div className="flex flex-wrap" style={{ gap: 6, marginTop: "auto" }}>
+        <p className="work-desc" style={{ lineHeight: 1.6, color: "var(--fg-muted)", marginBottom: 18 }}>{desc}</p>
+        <div className="flex flex-wrap work-stack" style={{ gap: 6 }}>
           {stack.map((s) => (
             <span key={s} className="mono" style={{ fontSize: 10.5, letterSpacing: "0.04em", color: "var(--fg-muted)", border: "1px solid var(--line)", padding: "3px 8px" }}>{s}</span>
           ))}

@@ -134,6 +134,23 @@ body {
 }
 :focus:not(:focus-visible) { outline: none; }
 
+/* Skip link — hidden offscreen until keyboard focus */
+.skip-link {
+  position: fixed;
+  top: 14px; left: 14px;
+  z-index: 10001;
+  transform: translateY(calc(-100% - 20px));
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 12px 18px;
+  text-decoration: none;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.skip-link:focus-visible { transform: translateY(0); }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -173,6 +190,8 @@ body, .tools-layout, nav, header, footer, .tele-panel {
 .italic-serif {
   font-family: var(--font-instrument-serif), Georgia, serif;
   font-style: italic;
+  font-weight: 400; /* Instrument Serif has no bold — stop synthetic bolding inside .display */
+  letter-spacing: -0.01em;
 }
 .mono {
   font-family: var(--font-space-mono), ui-monospace, monospace;
@@ -312,6 +331,24 @@ body, .tools-layout, nav, header, footer, .tele-panel {
 .link-trace:hover::after,
 .link-trace:focus-visible::after { transform: scaleX(1); }
 
+/* hero second line — unfilled letterform that inks in on hover (letterpress before
+   the press hits; pairs with the scramble replay on the same hover) */
+.hero-outline {
+  color: transparent;
+  -webkit-text-stroke: clamp(1.6px, 0.2vw, 3px) var(--fg);
+  transition: color var(--dur-slow) var(--ease-out);
+}
+@media (hover: hover) {
+  .hero-outline:hover { color: var(--fg); }
+}
+
+/* gentle vertical bob for scroll cues */
+@keyframes bob {
+  0%, 100% { transform: translateY(-1px); }
+  50% { transform: translateY(3px); }
+}
+.bob { display: inline-flex; animation: bob 1.8s var(--ease-inout) infinite; }
+
 /* status lamp */
 .lamp {
   display: inline-block;
@@ -431,14 +468,63 @@ body, .tools-layout, nav, header, footer, .tele-panel {
 /* base colours/borders are set inline on these nodes, so hover affordances use
    box-shadow / transform / child opacity (which inline style does not set). */
 
-/* image-forward work cards */
+/* image-forward work cards — layout lives here (not inline) so the full-width
+   feature variant can restructure at the md breakpoint */
 .work-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
   transition: box-shadow var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
 }
 .work-card:hover {
   box-shadow: inset 0 0 0 1px var(--accent), 0 30px 60px -34px rgba(20, 19, 15, 0.5);
   transform: translateY(-5px);
 }
+.work-shot {
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+.work-img {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--bg-sunk);
+}
+.work-meta {
+  padding: clamp(18px, 2vw, 26px);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.work-title { font-size: clamp(1.15rem, 1.7vw, 1.5rem); }
+.work-desc { font-size: 13px; }
+.work-stack { margin-top: auto; }
+
+/* full-width feature card — shot left, meta right, editorial split */
+@media (min-width: 768px) {
+  .work-feature { display: grid; grid-template-columns: 5fr 3fr; }
+  .work-feature .work-shot {
+    border-bottom: none;
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+  }
+  .work-feature .work-shot .work-img {
+    flex: 1;
+    aspect-ratio: auto;
+    min-height: 420px;
+  }
+  .work-feature .work-meta { justify-content: center; padding: clamp(24px, 3.2vw, 48px); }
+  .work-feature .work-title { font-size: clamp(1.5rem, 2.3vw, 2.1rem); }
+  .work-feature .work-desc { font-size: 14px; max-width: 52ch; }
+  .work-feature .work-stack { margin-top: 26px; }
+}
+
 .work-shot img {
   transition: transform var(--dur-slow) var(--ease-out);
 }

@@ -23,7 +23,7 @@ export default function GradientGeneratorPage() {
   const [type, setType] = useState<GradientType>("linear");
   const [angle, setAngle] = useState(135);
   const [stops, setStops] = useState<GradientStop[]>([
-    { color: "#6366f1", position: 0 },
+    { color: "#5a3cf0", position: 0 },
     { color: "#ec4899", position: 50 },
     { color: "#f59e0b", position: 100 },
   ]);
@@ -67,7 +67,7 @@ export default function GradientGeneratorPage() {
 
   const addStop = () => {
     const pos = stops.length > 0 ? Math.min(100, stops[stops.length - 1].position + 20) : 50;
-    setStops((prev) => [...prev, { color: "#8b5cf6", position: pos }]);
+    setStops((prev) => [...prev, { color: "#7c5cff", position: pos }]);
   };
 
   const removeStop = (i: number) => {
@@ -235,7 +235,7 @@ export default function GradientGeneratorPage() {
             style={{
               width: "100%",
               height: 200,
-              borderRadius: 14,
+              borderRadius: 0,
               background: activeGradient || (isDark ? "#111" : "#eee"),
               border: "1px solid var(--border-subtle)",
               marginBottom: 24,
@@ -253,7 +253,7 @@ export default function GradientGeneratorPage() {
                   padding: "12px 14px",
                   fontFamily: "monospace",
                   fontSize: 13,
-                  borderRadius: 8,
+                  borderRadius: 0,
                   border: "1px solid var(--border-subtle)",
                   overflow: "auto",
                   whiteSpace: "nowrap",
@@ -405,7 +405,7 @@ export default function GradientGeneratorPage() {
                         style={{
                           width: 40,
                           height: 40,
-                          borderRadius: 8,
+                          borderRadius: 0,
                           backgroundColor: c,
                           border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
                         }}
@@ -423,7 +423,7 @@ export default function GradientGeneratorPage() {
                       padding: "12px 14px",
                       fontFamily: "monospace",
                       fontSize: 12,
-                      borderRadius: 8,
+                      borderRadius: 0,
                       border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
                       overflow: "auto",
                       whiteSpace: "nowrap",
@@ -448,7 +448,7 @@ export default function GradientGeneratorPage() {
                 onClick={() => fileRef.current?.click()}
                 style={{
                   border: `2px dashed ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-                  borderRadius: 14,
+                  borderRadius: 0,
                   padding: "60px 20px",
                   textAlign: "center",
                   color: fgMuted,

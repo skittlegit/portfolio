@@ -237,7 +237,7 @@ export default function AsciiArtPage() {
                 fontSize: mode === "image" ? 5 : 10,
                 lineHeight: mode === "image" ? 1 : 1.2,
                 padding: 16,
-                borderRadius: 10,
+                borderRadius: 0,
                 border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
                 overflow: "auto",
                 maxHeight: 500,

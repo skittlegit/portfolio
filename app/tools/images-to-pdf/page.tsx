@@ -215,7 +215,7 @@ export default function ImagesToPdfPage() {
           onClick={() => fileRef.current?.click()}
           style={{
             border: `2px dashed ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-            borderRadius: 14,
+            borderRadius: 0,
             padding: "40px 20px",
             textAlign: "center",
             color: fgMuted,
@@ -248,7 +248,7 @@ export default function ImagesToPdfPage() {
                     alignItems: "center",
                     gap: 10,
                     padding: "10px 12px",
-                    borderRadius: 10,
+                    borderRadius: 0,
                     border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
                     cursor: "grab",
                   }}
@@ -261,7 +261,7 @@ export default function ImagesToPdfPage() {
                     style={{
                       width: 40,
                       height: 40,
-                      borderRadius: 6,
+                      borderRadius: 0,
                       overflow: "hidden",
                       flexShrink: 0,
                       backgroundImage: `url(${item.url})`,

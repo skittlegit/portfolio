@@ -76,7 +76,7 @@ export default function BiomPage() {
   const [preset, setPreset] = useState<Preset>("flow");
   const [colors, setColors] = useState<string[]>(() => [
     isDark ? "#ffffff" : "#000000",
-    isDark ? "#4a9eff" : "#2563eb",
+    isDark ? "#7c5cff" : "#5a3cf0",
   ]);
   const [locked, setLocked] = useState<boolean[]>(() => [false, false]);
   const [bgColor, setBgColor] = useState(isDark ? "#000000" : "#ffffff");
@@ -224,9 +224,15 @@ export default function BiomPage() {
   };
 
   useEffect(() => {
+    // Auto-start on mount so visitors see the art immediately instead of a
+    // blank canvas. Deferred a frame so the canvas has its laid-out size.
+    const id = requestAnimationFrame(() => start());
     return () => {
+      cancelAnimationFrame(id);
       if (animRef.current) cancelAnimationFrame(animRef.current);
     };
+    // start is recreated each render but only the mount-time one should run
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const togglePlay = () => {
@@ -393,7 +399,7 @@ export default function BiomPage() {
           style={{
             width: "100%",
             height: 450,
-            borderRadius: 14,
+            borderRadius: 0,
             border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
             backgroundColor: bgColor,
           }}

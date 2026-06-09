@@ -87,11 +87,7 @@ npm run dev      # http://localhost:3000
 
 ## Notes
 
-- **No backend.** The site was previously wired to a Supabase project that nothing
-  actually used (the only consumers were “Save” buttons gated behind a login route
-  that didn’t exist). It was fully removed — deps, `lib/`, auth context, the DB
-  keep-alive route, the auth middleware, and the archived code. The tools are
-  serverless and run entirely in the browser.
+- **No backend.** The tools are serverless and run entirely in the browser.
 - **Updating a project screenshot:** drop a new PNG in `public/work/<name>.png` and
   rebuild. Images are statically imported, so each gets a content-hashed URL that
   busts caches automatically — no hard refresh needed.

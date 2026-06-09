@@ -23,6 +23,9 @@
 .DS_Store
 *.pem
 
+# local screenshot output (scripts/shot.mjs)
+/scripts/shots/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

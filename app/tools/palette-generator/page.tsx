@@ -202,7 +202,7 @@ export default function PaletteGeneratorPage() {
         <div
           className="flex flex-col sm:flex-row"
           style={{
-            borderRadius: 14,
+            borderRadius: 0,
             overflow: "hidden",
             border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
             minHeight: 340,
@@ -316,7 +316,7 @@ export default function PaletteGeneratorPage() {
 
         {/* Keyboard hint */}
         <p className="text-xs mt-4 tracking-wide" style={{ color: fgMuted }}>
-          Press <kbd style={{ padding: "2px 6px", borderRadius: 4, border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`, fontSize: 11 }}>Space</kbd> to generate new colors. Lock colors to keep them.
+          Press <kbd style={{ padding: "2px 6px", borderRadius: 0, border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`, fontSize: 11 }}>Space</kbd> to generate new colors. Lock colors to keep them.
         </p>
       </div>
 

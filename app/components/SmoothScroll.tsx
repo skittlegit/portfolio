@@ -2,10 +2,6 @@
 
 import { useEffect } from "react";
 import Lenis from "lenis";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -19,16 +15,16 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       touchMultiplier: 1.6,
     });
 
-    lenis.on("scroll", ScrollTrigger.update);
-    const onTick = (time: number) => lenis.raf(time * 1000);
-    gsap.ticker.add(onTick);
-    gsap.ticker.lagSmoothing(0);
+    let raf = requestAnimationFrame(function loop(time) {
+      lenis.raf(time);
+      raf = requestAnimationFrame(loop);
+    });
 
     // expose for nav anchor jumps
     (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
 
     return () => {
-      gsap.ticker.remove(onTick);
+      cancelAnimationFrame(raf);
       lenis.destroy();
       delete (window as unknown as { __lenis?: Lenis }).__lenis;
     };

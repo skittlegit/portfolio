@@ -226,7 +226,7 @@ export default function HalftonePage() {
           className={transparentBg ? (isDark ? "tool-checker-dark" : "tool-checker-light") : undefined}
           style={{
             maxWidth: "100%",
-            borderRadius: 10,
+            borderRadius: 0,
             border: hasImage
               ? `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
               : "none",
@@ -249,7 +249,7 @@ export default function HalftonePage() {
             onClick={() => fileRef.current?.click()}
             style={{
               border: `2px dashed ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-              borderRadius: 14,
+              borderRadius: 0,
               padding: "60px 20px",
               textAlign: "center",
               color: fgMuted,

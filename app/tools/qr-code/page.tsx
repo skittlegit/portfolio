@@ -194,7 +194,7 @@ export default function QrCodePage() {
           <div
             style={{
               padding: 24,
-              borderRadius: 14,
+              borderRadius: 0,
               border: `1px solid ${borderSubtle}`,
               background: transparent
                 ? `repeating-conic-gradient(${isDark ? "#222" : "#e5e5e5"} 0% 25%, transparent 0% 50%) 0 0 / 16px 16px`

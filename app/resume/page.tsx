@@ -13,7 +13,7 @@ const PAD = "px-5 sm:px-8 md:px-12 lg:px-16";
 
 export default function ResumePage() {
   return (
-    <main style={{ position: "relative", zIndex: 2, minHeight: "100svh" }}>
+    <main id="main" style={{ position: "relative", zIndex: 2, minHeight: "100svh" }}>
       <Nav />
 
       <section className={PAD} style={{ paddingTop: 120, paddingBottom: 64 }}>

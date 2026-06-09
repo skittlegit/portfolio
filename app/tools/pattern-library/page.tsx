@@ -253,7 +253,7 @@ export default function PatternLibraryPage() {
                 onClick={() => setSelected(i)}
                 style={{
                   aspectRatio: "1",
-                  borderRadius: 10,
+                  borderRadius: 0,
                   border: `2px solid ${selected === i ? fg : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
                   backgroundImage: transparentBg ? `${thumbSvg}, ${checkerBg}` : thumbSvg,
                   backgroundRepeat: "repeat",
@@ -335,7 +335,7 @@ export default function PatternLibraryPage() {
             style={{
               width: "100%",
               height: 250,
-              borderRadius: 14,
+              borderRadius: 0,
               border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
               backgroundImage: transparentBg ? `${encodedSvg}, ${checkerStyle.backgroundImage}` : encodedSvg,
               backgroundRepeat: "repeat",

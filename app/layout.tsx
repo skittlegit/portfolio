@@ -94,6 +94,7 @@ export default function RootLayout({
       <body
         className={`${grotesk.variable} ${mono.variable} ${serif.variable} antialiased`}
       >
+        <a href="#main" className="skip-link mono">Skip to content</a>
         <ThemeProvider>
           <Background />
           <Preloader />

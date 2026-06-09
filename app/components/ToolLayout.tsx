@@ -64,7 +64,7 @@ export default function ToolLayout({
       </div>
 
       {/* content */}
-      <div className="flex-1" style={{ padding: "0 clamp(20px,5vw,64px) 80px" }}>
+      <div id="main" className="flex-1" style={{ padding: "0 clamp(20px,5vw,64px) 80px" }}>
         {children}
       </div>
 

@@ -13,6 +13,8 @@ const TOOL_SLUGS = [
   "pattern-library",
   "generative-art",
   "vector-art",
+  "color-converter",
+  "logo-maker",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -13,6 +13,8 @@ import {
   LayoutGrid,
   Dna,
   Shapes,
+  Pipette,
+  Hexagon,
   ArrowUpRight,
   type LucideIcon,
 } from "lucide-react";
@@ -29,6 +31,8 @@ const tools: { slug: string; name: string; description: string; icon: LucideIcon
   { slug: "pattern-library", name: "Pattern Library", description: "Generate repeating SVG patterns for backgrounds.", icon: LayoutGrid },
   { slug: "generative-art", name: "Generative Bio Art", description: "Create organic, biology-inspired generative art.", icon: Dna },
   { slug: "vector-art", name: "Vector Art Generator", description: "Generate vector illustrations in various styles.", icon: Shapes },
+  { slug: "color-converter", name: "Color Converter", description: "Convert between HEX, RGB, and HSL color formats.", icon: Pipette },
+  { slug: "logo-maker", name: "Shape Maker", description: "Create unique shape compositions with blended colors.", icon: Hexagon },
 ];
 
 export default function ToolsPage() {

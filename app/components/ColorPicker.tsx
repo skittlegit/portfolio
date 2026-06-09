@@ -180,7 +180,7 @@ export default function ColorPicker({
           alignItems: "center",
           gap: 8,
           padding: "6px 10px",
-          borderRadius: 8,
+          borderRadius: 0,
           border: `1px solid ${border}`,
           background: "transparent",
           color: fg,
@@ -194,7 +194,7 @@ export default function ColorPicker({
           style={{
             width: 22,
             height: 22,
-            borderRadius: 6,
+            borderRadius: 0,
             backgroundColor: value,
             border: `1px solid ${borderSubtle}`,
             flexShrink: 0,
@@ -213,7 +213,7 @@ export default function ColorPicker({
             zIndex: 50,
             width: 220,
             padding: 12,
-            borderRadius: 12,
+            borderRadius: 0,
             border: `1px solid ${border}`,
             backgroundColor: isDark ? "#111" : "#fff",
             boxShadow: isDark
@@ -230,7 +230,7 @@ export default function ColorPicker({
               style={{
                 width: 196,
                 height: 120,
-                borderRadius: 8,
+                borderRadius: 0,
                 cursor: "crosshair",
                 display: "block",
               }}
@@ -262,7 +262,7 @@ export default function ColorPicker({
             style={{
               position: "relative",
               height: 14,
-              borderRadius: 7,
+              borderRadius: 0,
               background:
                 "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
               cursor: "pointer",
@@ -305,7 +305,7 @@ export default function ColorPicker({
               color: fg,
               backgroundColor: "transparent",
               border: `1px solid ${border}`,
-              borderRadius: 6,
+              borderRadius: 0,
               outline: "none",
               textAlign: "center",
             }}

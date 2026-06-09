@@ -149,7 +149,7 @@ export default function CompressorPage() {
           onClick={() => fileRef.current?.click()}
           style={{
             border: `2px dashed ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-            borderRadius: 14,
+            borderRadius: 0,
             padding: "40px 20px",
             textAlign: "center",
             color: fgMuted,
@@ -185,7 +185,7 @@ export default function CompressorPage() {
                       alignItems: "center",
                       gap: 12,
                       padding: "12px 14px",
-                      borderRadius: 10,
+                      borderRadius: 0,
                       border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
                     }}
                   >

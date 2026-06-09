@@ -218,9 +218,9 @@ export default function ShapeMakerPage() {
   const [shape, setShape] = useState<LogoShape>("abstract");
   const [colorMode, setColorMode] = useState<ColorMode>("gradient");
   const [colors, setColors] = useState<string[]>([
-    "#6366f1",
-    "#8b5cf6",
-    "#a855f7",
+    "#5a3cf0",
+    "#7c5cff",
+    "#a78bff",
   ]);
   const [iconSize, setIconSize] = useState(80);
   const [seed, setSeed] = useState(42);
@@ -407,7 +407,7 @@ export default function ShapeMakerPage() {
         <div
           style={{
             padding: 40,
-            borderRadius: 14,
+            borderRadius: 0,
             border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
             display: "flex",
             justifyContent: "center",
