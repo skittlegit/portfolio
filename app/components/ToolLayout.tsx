@@ -37,8 +37,8 @@ export default function ToolLayout({
     >
       <Nav />
 
-      {/* editorial title block — top padding clears the fixed nav */}
-      <div style={{ padding: "calc(62px + clamp(26px,5vw,52px)) clamp(20px,5vw,64px) clamp(18px,3vw,28px)" }}>
+      {/* editorial title block — top padding clears the fixed nav; gutters match the page grid */}
+      <div className="px-5 sm:px-8 md:px-12 lg:px-16" style={{ paddingTop: "calc(62px + clamp(26px,5vw,52px))", paddingBottom: "clamp(18px,3vw,28px)" }}>
         {showBack && (
           <Link
             href={backHref}
@@ -64,15 +64,16 @@ export default function ToolLayout({
       </div>
 
       {/* content */}
-      <div id="main" className="flex-1" style={{ padding: "0 clamp(20px,5vw,64px) 80px" }}>
+      <div id="main" className="flex-1 px-5 sm:px-8 md:px-12 lg:px-16" style={{ paddingBottom: 80 }}>
         {children}
       </div>
 
       {/* footer */}
       <footer
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between mono"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between mono px-5 sm:px-8 md:px-12 lg:px-16"
         style={{
-          padding: "20px clamp(20px,5vw,64px)",
+          paddingTop: 20,
+          paddingBottom: 20,
           borderTop: "1px solid var(--line)",
           fontSize: 11,
           letterSpacing: "0.06em",

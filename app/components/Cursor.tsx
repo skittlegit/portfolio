@@ -2,18 +2,17 @@
 
 import { useEffect, useRef } from "react";
 
-// Custom cursor — a precise dot that tracks instantly + a ring that lags. On an
-// interactive target the dot hides and the ring grows, fills with the accent,
-// and shows a short label (from [data-cursor]). Tighter lerp while hovering so
-// the filled ring stays locked to small targets. No blend mode, no crosshair,
-// no coordinate HUD. Renders nothing on touch / reduced-motion.
+// Magnetic-ring cursor — a precise dot tracks the pointer instantly while a
+// thin ring trails it with an elastic lag. Over an interactive target the
+// lerp tightens and the ring snaps in around the pointer, filling violet;
+// the dot disappears inside it. No labels, no words.
+// Renders nothing on touch / reduced-motion.
 const HOVER_SEL =
   "a,button,[role='button'],[data-cursor],label,summary,input,select,textarea";
 
 export default function Cursor() {
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
-  const labelRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -22,7 +21,6 @@ export default function Cursor() {
 
     const dot = dotRef.current!;
     const ring = ringRef.current!;
-    const label = labelRef.current!;
 
     const target = { x: innerWidth / 2, y: innerHeight / 2 };
     const ringPos = { x: target.x, y: target.y };
@@ -32,9 +30,9 @@ export default function Cursor() {
     let raf = 0;
 
     const setState = () => {
-      const s = hovering ? "hover" : down ? "down" : "";
-      ring.dataset.state = s;
       dot.dataset.state = hovering ? "hover" : "";
+      ring.dataset.state = hovering ? "hover" : "";
+      ring.dataset.down = down ? "1" : "0";
     };
 
     const onMove = (e: MouseEvent) => {
@@ -47,20 +45,18 @@ export default function Cursor() {
         ringPos.y = e.clientY;
         dot.style.opacity = ring.style.opacity = "1";
       }
-      const el = (e.target as Element | null)?.closest(HOVER_SEL);
-      const nextHover = !!el;
+      const nextHover = !!(e.target as Element | null)?.closest(HOVER_SEL);
       if (nextHover !== hovering) {
         hovering = nextHover;
         setState();
       }
-      label.textContent = el ? ((el as HTMLElement).dataset.cursor ?? "") : "";
     };
 
     const onDown = () => { down = true; setState(); };
     const onUp = () => { down = false; setState(); };
     // Fully hide + reset on any exit so the ring never re-appears stale — old
-    // position or leftover violet hover state — when the pointer returns or the
-    // tab/window regains focus. The next mousemove snaps it back to the cursor.
+    // position or leftover filled state — when the pointer returns or the
+    // tab/window regains focus. The next mousemove snaps it back.
     const hide = () => {
       visible = false;
       hovering = false;
@@ -71,8 +67,8 @@ export default function Cursor() {
     const onVisibility = () => { if (document.hidden) hide(); };
 
     const loop = () => {
-      // tighter follow while hovering so the filled ring locks onto targets
-      const k = hovering ? 0.32 : 0.18;
+      // elastic at rest; locks onto the pointer while over a target
+      const k = hovering ? 0.45 : 0.16;
       ringPos.x += (target.x - ringPos.x) * k;
       ringPos.y += (target.y - ringPos.y) * k;
       ring.style.transform = `translate(${ringPos.x}px, ${ringPos.y}px)`;
@@ -100,9 +96,11 @@ export default function Cursor() {
 
   return (
     <>
-      <div ref={dotRef} className="cur-dot" style={{ opacity: 0 }} />
+      <div ref={dotRef} className="cur-dot" style={{ opacity: 0 }}>
+        <span className="cur-dot-in" />
+      </div>
       <div ref={ringRef} className="cur-ring" style={{ opacity: 0 }}>
-        <span ref={labelRef} className="cur-label" />
+        <span className="cur-ring-in" />
       </div>
     </>
   );

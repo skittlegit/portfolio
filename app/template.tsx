@@ -1,16 +1,20 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
-// Route transition. Opacity-only crossfade on purpose — a transform/clip/filter
-// on this wrapper would turn it into the containing block for any position:fixed
-// descendant (nav, cursor), so we keep it to opacity.
+// Page-enter transition — every route arrives the same way: a quiet rise +
+// fade on the expo-out curve. While the transform animates, this wrapper is
+// the containing block for the fixed Nav, so the nav rides up with the page
+// (reads as one coherent entrance); framer drops the transform at identity,
+// after which position:fixed behaves normally again.
 export default function Template({ children }: { children: React.ReactNode }) {
+  const reduce = useReducedMotion();
+  if (reduce) return <>{children}</>;
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0, y: 26 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </motion.div>

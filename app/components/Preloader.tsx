@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-// TELEMETRY boot sequence: a count from 000→100 with the channel grid drawing
-// in and the name stacking. Runs once per session (sessionStorage), ~1.05s total,
-// then wipes away with a clip reveal. Skipped entirely under reduced-motion.
+// Boot sequence — a count from 000→100 beside the giant condensed name, then
+// the whole field wipes upward. Runs once per session (sessionStorage),
+// ~1.05s total. Skipped entirely under reduced-motion.
 export default function Preloader() {
   const reduce = useReducedMotion();
   const [show, setShow] = useState(false);
@@ -54,6 +54,7 @@ export default function Preloader() {
           initial={{ clipPath: "inset(0 0 0 0)" }}
           exit={{ clipPath: "inset(0 0 100% 0)" }}
           transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
+          className="px-5 sm:px-8 md:px-12 lg:px-16"
           style={{
             position: "fixed",
             inset: 0,
@@ -62,16 +63,17 @@ export default function Preloader() {
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            padding: "clamp(20px, 5vw, 48px)",
+            paddingTop: "clamp(20px, 4vw, 44px)",
+            paddingBottom: "clamp(20px, 4vw, 44px)",
           }}
         >
-          {/* top channel readout */}
+          {/* top readout */}
           <div
             className="mono"
             style={{
               display: "flex",
               justifyContent: "space-between",
-              fontSize: 11,
+              fontSize: 10.5,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
               color: "var(--fg-muted)",
@@ -81,53 +83,22 @@ export default function Preloader() {
             <span>loading</span>
           </div>
 
-          {/* center: stacked name + counter */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <motion.div
-              initial={{ y: 28, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="display display-md"
-              style={{ color: "var(--fg)" }}
-            >
-              DEEPAK
-            </motion.div>
-            <motion.div
-              initial={{ y: 28, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
-              className="display display-md"
-              style={{ color: "var(--accent)" }}
-            >
-              AELENI.
-            </motion.div>
-          </div>
-
-          {/* bottom: progress bar + count */}
-          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
-            <div
-              style={{
-                flex: 1,
-                height: 1,
-                background: "var(--line)",
-                position: "relative",
-                overflow: "hidden",
-                maxWidth: 520,
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: `${count}%`,
-                  background: "var(--accent)",
-                  transition: "width 0.05s linear",
-                }}
-              />
+          {/* bottom: giant name vs counter */}
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24 }}>
+            <div style={{ overflow: "hidden" }}>
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                className="giant"
+                style={{ fontSize: "clamp(2.6rem,9vw,8rem)", color: "var(--fg)" }}
+              >
+                Deepak Aeleni<span style={{ color: "var(--accent)" }}>.</span>
+              </motion.div>
             </div>
             <div
-              className="mono"
-              style={{ fontSize: 13, letterSpacing: "0.1em", color: "var(--fg)", minWidth: 56, textAlign: "right" }}
+              className="giant"
+              style={{ fontSize: "clamp(2.6rem,9vw,8rem)", color: "var(--fg-faint)", minWidth: "2.4ch", textAlign: "right" }}
             >
               {String(count).padStart(3, "0")}
             </div>

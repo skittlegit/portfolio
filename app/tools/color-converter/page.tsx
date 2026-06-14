@@ -33,7 +33,7 @@ function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: n
 }
 
 export default function ColorConverterPage() {
-  const [hex, setHex] = useState("#5a3cf0");
+  const [hex, setHex] = useState("#5f3df0");
   const [rgb, setRgb] = useState({ r: 90, g: 60, b: 240 });
   const [hsl, setHsl] = useState({ h: 250, s: 86, l: 59 });
   const [copied, setCopied] = useState<string | null>(null);

@@ -11,7 +11,8 @@ import Magnetic from "./Magnetic";
 type Lenis = { scrollTo: (t: string | number | HTMLElement, o?: object) => void };
 
 const LINKS = [
-  { label: "Work", href: "/#work" },
+  { label: "Work", href: "/work" },
+  { label: "About", href: "/about" },
   { label: "Tools", href: "/tools" },
   { label: "Résumé", href: "/resume" },
 ];
@@ -34,28 +35,21 @@ export default function Nav() {
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  function onAnchor(e: React.MouseEvent, href: string) {
-    if (!href.startsWith("/#")) { setOpen(false); return; }
-    const id = href.slice(2);
-    if (pathname === "/") {
+  // Contact scrolls to the shared footer when the current page has one;
+  // otherwise it navigates home and anchors there.
+  function onContact(e: React.MouseEvent) {
+    const el = document.getElementById("contact");
+    if (el) {
       e.preventDefault();
       setOpen(false);
-      const el = document.getElementById(id);
       const lenis = (window as unknown as { __lenis?: Lenis }).__lenis;
-      if (lenis && el) lenis.scrollTo(el, { offset: -80 });
-      else el?.scrollIntoView({ behavior: "smooth" });
+      if (lenis) lenis.scrollTo(el, { offset: -40 });
+      else el.scrollIntoView({ behavior: "smooth" });
     } else setOpen(false);
   }
 
-  const Monogram = (
-    <span
-      aria-hidden
-      className="heading"
-      style={{ width: 34, height: 34, background: "var(--fg)", color: "var(--bg)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700, letterSpacing: "-0.04em", flexShrink: 0 }}
-    >
-      DA
-    </span>
-  );
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 
   return (
     <>
@@ -63,35 +57,45 @@ export default function Nav() {
         style={{
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 90,
           borderBottom: `1px solid ${scrolled ? "var(--line)" : "transparent"}`,
-          background: scrolled ? (isDark ? "rgba(10,10,11,0.66)" : "rgba(244,242,234,0.72)") : "transparent",
-          backdropFilter: scrolled ? "blur(16px) saturate(150%)" : "none",
-          WebkitBackdropFilter: scrolled ? "blur(16px) saturate(150%)" : "none",
+          background: scrolled ? (isDark ? "rgba(16,15,12,0.72)" : "rgba(233,228,215,0.78)") : "transparent",
+          backdropFilter: scrolled ? "blur(14px)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(14px)" : "none",
           transition: "background 0.4s var(--ease-out), border-color 0.4s var(--ease-out)",
         }}
       >
-        <nav className="flex items-center justify-between" style={{ padding: "13px clamp(20px,5vw,64px)", height: 62 }}>
+        {/* gutters match the page grid (PAD) so the wordmark sits on the margin */}
+        <nav className="flex items-center justify-between px-5 sm:px-8 md:px-12 lg:px-16" style={{ height: 60 }}>
           {/* wordmark */}
-          <Link href="/" data-cursor="home" className="flex items-center" style={{ gap: 12, textDecoration: "none", color: "var(--fg)" }}>
-            {Monogram}
-            <span className="hidden sm:flex flex-col" style={{ lineHeight: 1.05 }}>
-              <span className="heading" style={{ fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" }}>Deepak Aeleni</span>
-              <span className="mono" style={{ fontSize: 9.5, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--fg-muted)" }}>Internet Generalist</span>
-            </span>
+          <Link href="/" data-cursor="home" className="flex items-baseline" style={{ gap: 10, textDecoration: "none", color: "var(--fg)" }}>
+            <span className="giant" style={{ fontSize: 19, letterSpacing: "0.01em" }}>Deepak Aeleni</span>
+            <span className="mono hidden sm:inline" style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--fg-faint)" }}>©2026</span>
           </Link>
 
           {/* desktop right */}
-          <div className="hidden md:flex items-center" style={{ gap: 26 }}>
+          <div className="hidden md:flex items-center" style={{ gap: 24 }}>
             {LINKS.map((l) => (
-              <Link key={l.href} href={l.href} onClick={(e) => onAnchor(e, l.href)} data-cursor={l.label} className="link-trace mono" style={{ fontSize: 12, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--fg-muted)" }}>
+              <Link
+                key={l.href}
+                href={l.href}
+                data-cursor={l.label}
+                aria-current={isActive(l.href) ? "page" : undefined}
+                className={`link-trace mono${isActive(l.href) ? " is-active" : ""}`}
+                style={{
+                  fontSize: 11.5,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: isActive(l.href) ? "var(--fg)" : "var(--fg-muted)",
+                }}
+              >
                 {l.label}
               </Link>
             ))}
             <button onClick={toggle} data-cursor={isDark ? "light" : "dark"} aria-label="Toggle theme" style={{ background: "transparent", border: "none", color: "var(--fg-muted)", lineHeight: 0, padding: 6 }}>
-              {isDark ? <Sun size={16} strokeWidth={1.5} /> : <Moon size={16} strokeWidth={1.5} />}
+              {isDark ? <Sun size={15} strokeWidth={1.5} /> : <Moon size={15} strokeWidth={1.5} />}
             </button>
             <Magnetic strength={0.45}>
-              <Link href="/#contact" onClick={(e) => onAnchor(e, "/#contact")} data-cursor="say hi" className="mono inline-flex items-center gap-2" style={{ background: "var(--fg)", color: "var(--bg)", padding: "10px 16px", fontSize: 11.5, letterSpacing: "0.06em", textTransform: "uppercase", textDecoration: "none" }}>
-                Contact <ArrowUpRight size={13} strokeWidth={2} />
+              <Link href="/#contact" onClick={onContact} data-cursor="say hi" className="btn-ink" style={{ padding: "10px 16px", fontSize: 11 }}>
+                Contact <ArrowUpRight size={12} strokeWidth={2} />
               </Link>
             </Magnetic>
           </div>
@@ -108,31 +112,47 @@ export default function Nav() {
         </nav>
       </header>
 
-      {/* mobile overlay */}
+      {/* mobile overlay — full-bleed index */}
       <AnimatePresence>
         {open && (
           <motion.div
             initial={{ clipPath: "inset(0 0 100% 0)" }}
             animate={{ clipPath: "inset(0 0 0% 0)" }}
             exit={{ clipPath: "inset(0 0 100% 0)" }}
-            transition={{ duration: 0.5, ease: [0.76, 0, 0.24, 1] }}
-            style={{ position: "fixed", inset: 0, zIndex: 95, background: "var(--bg)", display: "flex", flexDirection: "column", padding: "16px clamp(20px,6vw,48px) 32px" }}
+            transition={{ duration: 0.55, ease: [0.76, 0, 0.24, 1] }}
+            className="px-5 sm:px-8"
+            style={{ position: "fixed", inset: 0, zIndex: 95, background: "var(--bg)", display: "flex", flexDirection: "column", paddingTop: 14, paddingBottom: 30 }}
           >
             <div className="flex items-center justify-between" style={{ height: 36 }}>
-              {Monogram}
+              <span className="giant" style={{ fontSize: 19, color: "var(--fg)" }}>Deepak Aeleni</span>
               <button onClick={() => setOpen(false)} aria-label="Close menu" style={{ background: "transparent", border: "none", color: "var(--fg)", lineHeight: 0, padding: 8 }}>
                 <X size={22} strokeWidth={1.5} />
               </button>
             </div>
             <div className="flex flex-col" style={{ marginTop: "auto", marginBottom: "auto" }}>
-              {[...LINKS, { label: "Contact", href: "/#contact" }].map((l, i) => (
-                <Link key={l.href} href={l.href} onClick={(e) => onAnchor(e, l.href)} className="display" style={{ fontSize: "clamp(2.6rem,13vw,5rem)", color: "var(--fg)", textDecoration: "none", borderTop: "1px solid var(--line)", padding: "16px 0", display: "flex", alignItems: "baseline", gap: 18 }}>
-                  <span className="mono" style={{ fontSize: 13, color: "var(--accent)" }}>0{i + 1}</span>
+              {[{ label: "Home", href: "/" }, ...LINKS].map((l, i) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  className="giant"
+                  style={{ fontSize: "clamp(3rem,15vw,6rem)", color: isActive(l.href) ? "var(--accent)" : "var(--fg)", textDecoration: "none", borderTop: "1px solid var(--line)", padding: "14px 0", display: "flex", alignItems: "baseline", gap: 18 }}
+                >
+                  <span className="mono" style={{ fontSize: 12, color: "var(--fg-faint)", letterSpacing: "0.1em" }}>0{i + 1}</span>
                   {l.label}
                 </Link>
               ))}
+              <Link
+                href="/#contact"
+                onClick={onContact}
+                className="giant"
+                style={{ fontSize: "clamp(3rem,15vw,6rem)", color: "var(--fg)", textDecoration: "none", borderTop: "1px solid var(--line)", padding: "14px 0", display: "flex", alignItems: "baseline", gap: 18 }}
+              >
+                <span className="mono" style={{ fontSize: 12, color: "var(--fg-faint)", letterSpacing: "0.1em" }}>0{LINKS.length + 2}</span>
+                Contact
+              </Link>
             </div>
-            <a href="mailto:deepakrdy7@gmail.com" className="mono" style={{ fontSize: 12, color: "var(--fg-muted)", textDecoration: "none" }}>deepakrdy7@gmail.com</a>
+            <span className="mono" style={{ fontSize: 11, color: "var(--fg-muted)" }}>deepakrdy7@gmail.com</span>
           </motion.div>
         )}
       </AnimatePresence>

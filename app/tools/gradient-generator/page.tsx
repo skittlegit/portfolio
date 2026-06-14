@@ -23,7 +23,7 @@ export default function GradientGeneratorPage() {
   const [type, setType] = useState<GradientType>("linear");
   const [angle, setAngle] = useState(135);
   const [stops, setStops] = useState<GradientStop[]>([
-    { color: "#5a3cf0", position: 0 },
+    { color: "#4527d8", position: 0 },
     { color: "#ec4899", position: 50 },
     { color: "#f59e0b", position: 100 },
   ]);
@@ -67,7 +67,7 @@ export default function GradientGeneratorPage() {
 
   const addStop = () => {
     const pos = stops.length > 0 ? Math.min(100, stops[stops.length - 1].position + 20) : 50;
-    setStops((prev) => [...prev, { color: "#7c5cff", position: pos }]);
+    setStops((prev) => [...prev, { color: "#8b6cff", position: pos }]);
   };
 
   const removeStop = (i: number) => {

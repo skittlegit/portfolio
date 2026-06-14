@@ -76,7 +76,7 @@ export default function BiomPage() {
   const [preset, setPreset] = useState<Preset>("flow");
   const [colors, setColors] = useState<string[]>(() => [
     isDark ? "#ffffff" : "#000000",
-    isDark ? "#7c5cff" : "#5a3cf0",
+    isDark ? "#5f3df0" : "#4527d8",
   ]);
   const [locked, setLocked] = useState<boolean[]>(() => [false, false]);
   const [bgColor, setBgColor] = useState(isDark ? "#000000" : "#ffffff");

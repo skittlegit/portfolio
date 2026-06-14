@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, Space_Mono, Instrument_Serif } from "next/font/google";
+import { Archivo, Fragment_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -8,27 +8,22 @@ import SmoothScroll from "./components/SmoothScroll";
 import Cursor from "./components/Cursor";
 import Preloader from "./components/Preloader";
 import Background from "./components/Background";
+import Hud from "./components/Hud";
 import "./globals.css";
 
-const grotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+// One variable family does all the talking: Archivo's width axis spans
+// 62% (the condensed display voice) to 125%. Fragment Mono is the data voice.
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  axes: ["wdth"],
   display: "swap",
 });
 
-const mono = Space_Mono({
-  variable: "--font-space-mono",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-});
-
-const serif = Instrument_Serif({
-  variable: "--font-instrument-serif",
+const mono = Fragment_Mono({
+  variable: "--font-fragment",
   subsets: ["latin"],
   weight: "400",
-  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -74,31 +69,33 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0b" },
-    { media: "(prefers-color-scheme: light)", color: "#f4f2ea" },
+    { media: "(prefers-color-scheme: dark)", color: "#100f0c" },
+    { media: "(prefers-color-scheme: light)", color: "#e9e4d7" },
   ],
-  colorScheme: "light dark",
+  colorScheme: "dark light",
 };
 
-// Set theme before paint to avoid a flash of the wrong palette.
-const themeScript = `(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark')t='light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
+// Set theme before paint to avoid a flash of the wrong palette. Ink (dark) is
+// the art-directed default; paper is the alternate.
+const themeScript = `(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark')t='dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-theme="light" suppressHydrationWarning>
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body
-        className={`${grotesk.variable} ${mono.variable} ${serif.variable} antialiased`}
+        className={`${archivo.variable} ${mono.variable} antialiased`}
       >
         <a href="#main" className="skip-link mono">Skip to content</a>
         <ThemeProvider>
           <Background />
           <Preloader />
           <Cursor />
+          <Hud />
           <SmoothScroll>
             <ErrorBoundary>{children}</ErrorBoundary>
           </SmoothScroll>

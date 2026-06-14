@@ -3,54 +3,53 @@
 /* ════════════════════════════════════════════════════════════════════════
    bydeepak.com — design tokens & motion language
 
-   MOTION LANGUAGE: "DECODE"  (editorial paper gallery × instrument readout)
+   DESIGN LANGUAGE: "INDEX"  (a designer's archive)
    ----------------------------------------------------------------------
-   A near-monochrome PAPER gallery: off-white + near-black ink, oversized
-   Space Grotesk display type, Instrument Serif accents/numerals, Space Mono
-   data. One idea threaded through the whole thing — things resolve into place:
+   Warm black ink + warm cream paper, dark by default. One variable family —
+   Archivo — does all the talking: ultra-condensed black caps for the giant
+   edge-to-edge display words that open every page, normal width for body.
+   Fragment Mono is the data voice: index numbers, coordinates, timestamps,
+   tags. A single electric-violet accent on < ~5% of the surface.
 
-     · type DECODES — the hero name scrambles out of random glyphs and locks in;
-       replays on hover.
-     · the CURSOR is a dot + ring that fills violet and labels itself over targets.
-     · a soft violet/warm colour MESH drifts slowly behind everything (no grid lines).
-     · reveals PLOT IN — clip / mask wipes, staggered.
-     · interactive states: plotted-trace underlines, a pulsing status lamp, magnetic
-       CTAs, oversized serif numerals, real project screenshots in an angular bento.
-
-   Near-monochrome; a single muted electric-violet accent on < ~5% of the surface
-   (focus ring, one link/hover, one lamp, accent periods). Sharp corners (radius 0).
-   Everything tweakable below: colour, type, space, motion. No soft, no default.
+     · every page OPENS with one giant condensed word, set edge to edge.
+     · type arrives through LINE MASKS — letters rise out of an overflow crop.
+     · the work index is TYPOGRAPHIC — rows invert on hover and a live
+       preview card chases the cursor.
+     · chrome is an INSTRUMENT: tiny mono readouts (coords, IST clock,
+       indices) pinned to the page edges.
+     · flat confident fields — no gradients, no glass, no mesh. Film grain
+       only. Sharp corners everywhere (radius 0).
    ════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Palette · PAPER (default / light) — gallery white, near-black ink ── */
-  --bg: #f4f2ea;          /* warm off-white paper */
-  --bg-raised: #fbfaf5;   /* raised tile (lighter than page → gallery card) */
-  --bg-sunk: #e9e5da;     /* recessed */
-  --fg: #14130f;          /* near-black ink */
-  --fg-muted: #5f5c54;    /* secondary */
-  --fg-faint: #9a9588;    /* tertiary / captions */
+  /* ── Palette · INK (default / dark) — warm black, cream type ── */
+  --bg: #100f0c;          /* warm black */
+  --bg-raised: #181611;   /* raised tile */
+  --bg-sunk: #0a0907;     /* recessed */
+  --fg: #e8e2d4;          /* warm cream */
+  --fg-muted: #928b7a;    /* secondary */
+  --fg-faint: #5c5648;    /* tertiary / captions */
 
-  --line: rgba(20, 19, 15, 0.16);        /* hairline rules / grid */
-  --line-strong: rgba(20, 19, 15, 0.34); /* visible dividers */
-  --line-faint: rgba(20, 19, 15, 0.07);
+  --line: rgba(232, 226, 212, 0.14);        /* hairline rules */
+  --line-strong: rgba(232, 226, 212, 0.3);  /* visible dividers */
+  --line-faint: rgba(232, 226, 212, 0.06);
 
-  --accent: #5a3cf0;       /* deep electric violet (reads on paper) */
-  --accent-hover: #4426d8;
+  --accent: #5f3df0;       /* deep electric violet */
+  --accent-hover: #7a5cff;
   --accent-ink: #ffffff;   /* text on accent */
-  --accent-glow: rgba(90, 60, 240, 0.12);
+  --accent-glow: rgba(95, 61, 240, 0.18);
 
-  --surface-hover: #ffffff;
+  --surface-hover: #1e1b15;
 
   /* ── Motion ── */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);     /* primary "plot in" */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);      /* expo-out — primary */
   --ease-inout: cubic-bezier(0.76, 0, 0.24, 1);   /* wipes / transitions */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --dur-fast: 0.18s;
   --dur: 0.4s;
   --dur-slow: 0.8s;
 
-  /* ── Compat aliases for the 10 tool pages (do not rename) ── */
+  /* ── Compat aliases for the tool pages (do not rename) ── */
   --border: var(--line);
   --border-hover: var(--line-strong);
   --surface: var(--bg-raised);
@@ -61,25 +60,25 @@
   --glow-color: var(--accent-glow);
 }
 
-[data-theme="dark"] {
-  /* ── Palette · INK (dark) ── */
-  --bg: #0a0a0b;          /* near-black ink */
-  --bg-raised: #121214;   /* raised tile */
-  --bg-sunk: #060607;
-  --fg: #f1efea;          /* paper-white text */
-  --fg-muted: #8b8884;
-  --fg-faint: #56544f;
+[data-theme="light"] {
+  /* ── Palette · PAPER (light) — warm cream field, ink type ── */
+  --bg: #e9e4d7;
+  --bg-raised: #f1ede2;
+  --bg-sunk: #ddd6c5;
+  --fg: #191510;
+  --fg-muted: #6e6759;
+  --fg-faint: #a59c88;
 
-  --line: rgba(241, 239, 234, 0.11);
-  --line-strong: rgba(241, 239, 234, 0.22);
-  --line-faint: rgba(241, 239, 234, 0.05);
+  --line: rgba(25, 21, 16, 0.16);
+  --line-strong: rgba(25, 21, 16, 0.36);
+  --line-faint: rgba(25, 21, 16, 0.07);
 
-  --accent: #7c5cff;       /* electric violet for ink */
-  --accent-hover: #9a80ff;
+  --accent: #4527d8;
+  --accent-hover: #3318b8;
   --accent-ink: #ffffff;
-  --accent-glow: rgba(124, 92, 255, 0.16);
+  --accent-glow: rgba(69, 39, 216, 0.12);
 
-  --surface-hover: #18181c;
+  --surface-hover: #f7f3e9;
 }
 
 @theme inline {
@@ -92,10 +91,9 @@
   --color-background: var(--bg);
   --color-foreground: var(--fg);
 
-  --font-sans: var(--font-space-grotesk);
-  --font-display: var(--font-space-grotesk);
-  --font-mono: var(--font-space-mono);
-  --font-serif: var(--font-instrument-serif);
+  --font-sans: var(--font-archivo);
+  --font-display: var(--font-archivo);
+  --font-mono: var(--font-fragment);
 }
 
 /* ── Reset / base ── */
@@ -113,12 +111,11 @@ html {
 body {
   background-color: var(--bg);
   color: var(--fg);
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-family: var(--font-archivo), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  font-feature-settings: "ss01", "cv01";
-  letter-spacing: -0.011em;
+  letter-spacing: -0.008em;
 }
 
 ::selection {
@@ -126,7 +123,7 @@ body {
   color: var(--accent-ink);
 }
 
-/* Visible, angular focus ring — the one place violet always shows */
+/* Visible, angular focus ring */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -166,44 +163,54 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Scoped colour transitions on theme flip */
-body, .tools-layout, nav, header, footer, .tele-panel {
+body, .tools-layout, nav, header, footer {
   transition: background-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
 }
 
 /* ════════ Typography ════════ */
+/* The display voice — ultra-condensed Archivo, set in caps. */
+.giant {
+  font-family: var(--font-archivo), system-ui, sans-serif;
+  font-weight: 800;
+  font-stretch: 62%;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.82;
+}
+
 .heading,
 .display {
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-family: var(--font-archivo), system-ui, sans-serif;
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 0.95;
 }
 .display {
-  text-transform: none;
-}
-.serif {
-  font-family: var(--font-instrument-serif), Georgia, serif;
-  font-weight: 400;
-  font-style: normal;
-  letter-spacing: 0;
-}
-.italic-serif {
-  font-family: var(--font-instrument-serif), Georgia, serif;
-  font-style: italic;
-  font-weight: 400; /* Instrument Serif has no bold — stop synthetic bolding inside .display */
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  font-stretch: 75%;
+  text-transform: uppercase;
+  letter-spacing: -0.015em;
+  line-height: 0.86;
 }
 .mono {
-  font-family: var(--font-space-mono), ui-monospace, monospace;
+  font-family: var(--font-fragment), ui-monospace, monospace;
   letter-spacing: 0;
 }
 .eyebrow {
-  font-family: var(--font-space-mono), ui-monospace, monospace;
+  font-family: var(--font-fragment), ui-monospace, monospace;
   font-size: 11px;
   line-height: 1;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--fg-muted);
+}
+/* condensed numerals — index numbers, stats */
+.numeral {
+  font-family: var(--font-archivo), system-ui, sans-serif;
+  font-weight: 800;
+  font-stretch: 65%;
+  line-height: 0.8;
+  letter-spacing: -0.01em;
 }
 
 /* fluid oversized display sizing */
@@ -219,100 +226,90 @@ body, .tools-layout, nav, header, footer, .tele-panel {
   select, option { cursor: pointer; }
 }
 
-/* precise dot (tracks instantly) */
+/* MAGNETIC RING — a precise dot tracks the pointer instantly; a thin ring
+   trails it on a lerp. Over an interactive target the ring snaps tight
+   around the pointer and fills violet (the dot disappears inside it).
+   Outer nodes are positioned by JS (inline transform); all state styling
+   lives on the inner elements so CSS never fights the inline transform. */
 .cur-dot {
   position: fixed; top: 0; left: 0;
-  width: 6px; height: 6px; margin: -3px 0 0 -3px;
+  pointer-events: none; z-index: 9999;
+  will-change: transform;
+}
+.cur-dot-in {
+  display: block;
+  width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px;
   border-radius: 50%;
   background: var(--fg);
-  pointer-events: none; z-index: 9999;
-  will-change: transform;
-  transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) ease;
+  transition: transform 0.25s var(--ease-out), opacity var(--dur-fast) ease;
 }
-.cur-dot[data-state="hover"] { transform: scale(0); }
+.cur-dot[data-state="hover"] .cur-dot-in { transform: scale(0); }
 
-/* ring (lags; grows + fills on hover, shows a label) */
 .cur-ring {
   position: fixed; top: 0; left: 0;
-  width: 36px; height: 36px; margin: -18px 0 0 -18px;
-  border-radius: 50%;
-  border: 1px solid var(--fg);
-  display: flex; align-items: center; justify-content: center;
-  pointer-events: none; z-index: 9999;
-  will-change: transform, width, height;
-  transition: width var(--dur) var(--ease-out), height var(--dur) var(--ease-out),
-              margin var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out),
-              border-color var(--dur) var(--ease-out), opacity var(--dur-fast) ease;
-}
-.cur-ring[data-state="hover"] {
-  width: 76px; height: 76px; margin: -38px 0 0 -38px;
-  background: var(--accent); border-color: var(--accent);
-}
-.cur-ring[data-state="down"] { width: 28px; height: 28px; margin: -14px 0 0 -14px; }
-
-.cur-label {
-  font-family: var(--font-space-mono), monospace;
-  font-size: 9px; line-height: 1; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--accent-ink); text-align: center;
-  max-width: 62px; padding: 0 6px;
-  opacity: 0; transform: scale(0.5);
-  transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
-}
-.cur-ring[data-state="hover"] .cur-label { opacity: 1; transform: scale(1); }
-
-/* ════════ Background — soft drifting colour mesh + grain ════════ */
-.bg-mesh {
-  position: fixed;
-  inset: -25%;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(36% 36% at 20% 26%, rgba(90, 60, 240, 0.10) 0%, transparent 62%),
-    radial-gradient(40% 40% at 82% 22%, rgba(214, 116, 70, 0.09) 0%, transparent 64%),
-    radial-gradient(46% 46% at 64% 88%, rgba(90, 60, 240, 0.07) 0%, transparent 62%);
-  filter: blur(40px);
+  pointer-events: none; z-index: 9998;
   will-change: transform;
-  animation: mesh-drift 26s var(--ease-inout) infinite alternate;
 }
-[data-theme="dark"] .bg-mesh {
-  background:
-    radial-gradient(38% 38% at 18% 24%, rgba(124, 92, 255, 0.16) 0%, transparent 62%),
-    radial-gradient(42% 42% at 84% 26%, rgba(70, 60, 150, 0.16) 0%, transparent 64%),
-    radial-gradient(50% 50% at 62% 92%, rgba(124, 92, 255, 0.10) 0%, transparent 60%);
+.cur-ring-in {
+  display: block;
+  width: 34px; height: 34px; margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  border: 1.5px solid var(--fg);
+  /* hairline halo in the page colour so the ring still reads over images */
+  box-shadow: 0 0 0 1px var(--bg);
+  background: transparent;
+  transition: transform 0.35s var(--ease-out), background-color 0.28s ease,
+              border-color 0.28s ease, opacity var(--dur-fast) ease;
 }
-@keyframes mesh-drift {
-  0%   { transform: translate3d(-2%, -1%, 0) scale(1.04) rotate(0deg); }
-  100% { transform: translate3d(3%, 2%, 0) scale(1.14) rotate(4deg); }
+.cur-ring[data-state="hover"] .cur-ring-in {
+  transform: scale(0.56);
+  background: var(--accent);
+  border-color: var(--accent);
 }
+.cur-ring[data-down="1"] .cur-ring-in { transform: scale(0.4); }
+
+/* ════════ Background — flat field under fine film grain ════════ */
 .grain {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.04;
+  opacity: 0.05;
   mix-blend-mode: soft-light;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-repeat: repeat;
 }
 
-/* registration ticks (corner marks on cards / sections) */
-.tick {
-  position: absolute;
-  width: 8px; height: 8px;
+/* ════════ Edge HUD — instrument readouts pinned to the viewport ════════ */
+.hud {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 48px 14px; /* tracks the page gutter (md 48 / lg 64) */
   pointer-events: none;
+  font-family: var(--font-fragment), monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--fg-faint);
 }
-.tick::before, .tick::after {
-  content: ""; position: absolute; background: currentColor;
+@media (min-width: 1024px) { .hud { padding: 0 64px 14px; } }
+@media (max-width: 767px) { .hud { display: none; } }
+
+/* hero name — wider on phones so it still hits both gutters; capped by
+   viewport height on desktop so the whole hero (name + statement + CTAs)
+   always fits inside the first fold */
+.hero-name {
+  font-size: clamp(4.2rem, 27.5vw, 8.5rem);
 }
-.tick::before { width: 8px; height: 1px; top: 0; left: 0; }
-.tick::after { width: 1px; height: 8px; top: 0; left: 0; }
-.tick-tr { transform: scaleX(-1); }
-.tick-bl { transform: scaleY(-1); }
-.tick-br { transform: scale(-1); }
+@media (min-width: 640px) {
+  .hero-name { font-size: clamp(8rem, min(24vw, 36svh), 24rem); }
+}
 
 /* ════════ Interactions ════════ */
-/* plotted-trace underline for links */
+/* trace underline for links */
 .link-trace {
   position: relative;
   text-decoration: none;
@@ -330,16 +327,40 @@ body, .tools-layout, nav, header, footer, .tele-panel {
 }
 .link-trace:hover::after,
 .link-trace:focus-visible::after { transform: scaleX(1); }
-
-/* hero second line — unfilled letterform that inks in on hover (letterpress before
-   the press hits; pairs with the scramble replay on the same hover) */
-.hero-outline {
-  color: transparent;
-  -webkit-text-stroke: clamp(1.6px, 0.2vw, 3px) var(--fg);
-  transition: color var(--dur-slow) var(--ease-out);
+/* current page — underline stays on, in the accent */
+.link-trace.is-active::after {
+  transform: scaleX(1);
+  background: var(--accent);
 }
-@media (hover: hover) {
-  .hero-outline:hover { color: var(--fg); }
+
+/* solid ink button — inverts to accent on hover */
+.btn-ink {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--fg);
+  color: var(--bg);
+  padding: 15px 24px;
+  font-family: var(--font-fragment), monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  transition: background-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+}
+.btn-ink:hover { background: var(--accent); color: var(--accent-ink); }
+
+/* mono tag chip */
+.chip {
+  font-family: var(--font-fragment), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  border: 1px solid var(--line);
+  padding: 4px 9px;
+  white-space: nowrap;
 }
 
 /* gentle vertical bob for scroll cues */
@@ -372,11 +393,136 @@ body, .tools-layout, nav, header, footer, .tele-panel {
 }
 @keyframes loading-slide { 0% { left: -40%; } 100% { left: 100%; } }
 
-/* ════════ Tool component classes (preserved names, now angular) ════════ */
+/* ════════ Work index — typographic rows that invert on hover ════════ */
+.index-row {
+  position: relative;
+  display: block;
+  text-decoration: none;
+  color: var(--fg);
+  border-top: 1px solid var(--line);
+  overflow: hidden;
+}
+.index-row::before {
+  /* invert fill — rises from the bottom edge */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--fg);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.45s var(--ease-out);
+}
+.index-row > * { position: relative; }
+.index-row .row-inner {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: clamp(14px, 2.4vw, 32px);
+  padding: clamp(20px, 3vw, 34px) clamp(4px, 1vw, 16px);
+  transition: transform 0.45s var(--ease-out);
+}
+/* status cell — right-aligned on desktop */
+.row-status { white-space: nowrap; display: inline-flex; align-items: center; gap: 12px; }
+@media (min-width: 768px) { .row-status { margin-left: auto; } }
+/* inline thumbnail — touch screens only (desktop gets the chasing preview) */
+.row-thumb { display: none; }
+@media (max-width: 767px) {
+  .row-thumb {
+    display: block;
+    position: relative;
+    aspect-ratio: 16 / 8;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    margin: clamp(20px, 3vw, 34px) clamp(4px, 1vw, 16px) 0;
+  }
+  .row-thumb + .row-inner { padding-top: 14px; }
+}
+.index-row .row-title {
+  transition: color 0.3s var(--ease-out);
+}
+.index-row .row-meta {
+  transition: color 0.3s var(--ease-out);
+}
+@media (hover: hover) {
+  .index-row:hover::before { transform: scaleY(1); }
+  .index-row:hover .row-inner { transform: translateX(clamp(8px, 1.4vw, 22px)); }
+  .index-row:hover .row-title { color: var(--bg); }
+  .index-row:hover .row-meta { color: var(--accent); }
+}
+
+/* floating preview card that chases the cursor over the index */
+.row-preview {
+  position: fixed;
+  top: 0; left: 0;
+  width: clamp(280px, 26vw, 420px);
+  aspect-ratio: 16 / 11;
+  pointer-events: none;
+  z-index: 60;
+  overflow: hidden;
+  background: var(--bg-sunk);
+  border: 1px solid var(--line-strong);
+}
+
+/* ════════ Home / case-study cards ════════ */
+.work-tile {
+  display: block;
+  position: relative;
+  text-decoration: none;
+  color: var(--fg);
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  overflow: hidden;
+}
+.work-tile .tile-img {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-sunk);
+  border-bottom: 1px solid var(--line);
+}
+.work-tile .tile-img img {
+  transition: transform 1s var(--ease-out), filter 1s var(--ease-out);
+}
+@media (hover: hover) {
+  .work-tile:hover .tile-img img { transform: scale(1.045); }
+  .work-tile:hover .tile-arrow { transform: translate(4px, -4px); }
+}
+.tile-arrow { transition: transform var(--dur) var(--ease-out); display: inline-flex; }
+
+/* case-study media frame */
+.case-media {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--bg-sunk);
+}
+
+/* fact rows (case-study key points / spec sheets) */
+.fact-row {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  transition: transform var(--dur) var(--ease-out);
+}
+@media (hover: hover) {
+  .fact-row:hover { transform: translateX(8px); }
+}
+
+/* social / contact rows */
+.social-row {
+  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+}
+.social-row:hover {
+  transform: translateX(8px);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+/* ════════ Tool component classes (preserved names, angular) ════════ */
 .tools-layout { overflow: auto; }
 
 .tool-label {
-  font-family: var(--font-space-mono), monospace;
+  font-family: var(--font-fragment), monospace;
   font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -387,7 +533,7 @@ body, .tools-layout, nav, header, footer, .tele-panel {
 .tool-input {
   padding: 10px 14px;
   font-size: 14px;
-  font-family: var(--font-space-mono), monospace;
+  font-family: var(--font-fragment), monospace;
   color: var(--fg);
   background-color: var(--bg-raised);
   border: 1px solid var(--line);
@@ -399,7 +545,7 @@ body, .tools-layout, nav, header, footer, .tele-panel {
 .tool-select {
   padding: 10px 34px 10px 14px;
   font-size: 14px;
-  font-family: var(--font-space-mono), monospace;
+  font-family: var(--font-fragment), monospace;
   color: var(--fg);
   background-color: var(--bg-raised);
   border: 1px solid var(--line);
@@ -416,7 +562,7 @@ body, .tools-layout, nav, header, footer, .tele-panel {
 .tool-btn {
   padding: 9px 16px;
   font-size: 12px;
-  font-family: var(--font-space-mono), monospace;
+  font-family: var(--font-fragment), monospace;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--fg-muted);
@@ -431,7 +577,7 @@ body, .tools-layout, nav, header, footer, .tele-panel {
 .tool-toggle {
   padding: 9px 16px;
   font-size: 12px;
-  font-family: var(--font-space-mono), monospace;
+  font-family: var(--font-fragment), monospace;
   border-radius: 0;
   border: 1px solid var(--line);
   transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, border-color var(--dur-fast) ease;
@@ -454,7 +600,7 @@ body, .tools-layout, nav, header, footer, .tele-panel {
 .tool-muted { color: var(--fg-muted); }
 .tool-code {
   padding: 12px 14px;
-  font-family: var(--font-space-mono), monospace;
+  font-family: var(--font-fragment), monospace;
   font-size: 12px;
   border-radius: 0;
   border: 1px solid var(--line);
@@ -463,108 +609,6 @@ body, .tools-layout, nav, header, footer, .tele-panel {
   color: var(--fg-muted);
   background: var(--bg-sunk);
 }
-
-/* ════════ Home interactions ════════ */
-/* base colours/borders are set inline on these nodes, so hover affordances use
-   box-shadow / transform / child opacity (which inline style does not set). */
-
-/* image-forward work cards — layout lives here (not inline) so the full-width
-   feature variant can restructure at the md breakpoint */
-.work-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  border: 1px solid var(--line);
-  background: var(--bg-raised);
-  text-decoration: none;
-  position: relative;
-  overflow: hidden;
-  transition: box-shadow var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
-}
-.work-card:hover {
-  box-shadow: inset 0 0 0 1px var(--accent), 0 30px 60px -34px rgba(20, 19, 15, 0.5);
-  transform: translateY(-5px);
-}
-.work-shot {
-  border-bottom: 1px solid var(--line);
-  overflow: hidden;
-}
-.work-img {
-  position: relative;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  background: var(--bg-sunk);
-}
-.work-meta {
-  padding: clamp(18px, 2vw, 26px);
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-.work-title { font-size: clamp(1.15rem, 1.7vw, 1.5rem); }
-.work-desc { font-size: 13px; }
-.work-stack { margin-top: auto; }
-
-/* full-width feature card — shot left, meta right, editorial split */
-@media (min-width: 768px) {
-  .work-feature { display: grid; grid-template-columns: 5fr 3fr; }
-  .work-feature .work-shot {
-    border-bottom: none;
-    border-right: 1px solid var(--line);
-    display: flex;
-    flex-direction: column;
-  }
-  .work-feature .work-shot .work-img {
-    flex: 1;
-    aspect-ratio: auto;
-    min-height: 420px;
-  }
-  .work-feature .work-meta { justify-content: center; padding: clamp(24px, 3.2vw, 48px); }
-  .work-feature .work-title { font-size: clamp(1.5rem, 2.3vw, 2.1rem); }
-  .work-feature .work-desc { font-size: 14px; max-width: 52ch; }
-  .work-feature .work-stack { margin-top: 26px; }
-}
-
-.work-shot img {
-  transition: transform var(--dur-slow) var(--ease-out);
-}
-.work-card:hover .work-shot img { transform: scale(1.04); }
-.work-arrow {
-  transition: transform var(--dur) var(--ease-out);
-  display: inline-flex;
-}
-.work-card:hover .work-arrow { transform: translate(3px, -3px); }
-.work-phone { transition: transform var(--dur) var(--ease-out); }
-.work-card:hover .work-phone { transform: translateY(-5px) rotate(-1.5deg); }
-
-/* oversized graphic numerals (serif) */
-.numeral {
-  font-family: var(--font-instrument-serif), Georgia, serif;
-  font-weight: 400;
-  line-height: 0.8;
-  letter-spacing: -0.02em;
-}
-
-.tools-teaser { transition: box-shadow var(--dur) var(--ease-out); }
-.tools-teaser:hover { box-shadow: inset 0 0 0 2px var(--accent); }
-
-.social-row {
-  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
-}
-.social-row:hover {
-  transform: translateX(8px);
-  box-shadow: inset 2px 0 0 var(--accent);
-}
-
-.spec-row {
-  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
-}
-.spec-row:hover {
-  transform: translateX(6px);
-  box-shadow: inset 2px 0 0 var(--accent);
-}
-
-.stat-cell { transition: transform var(--dur) var(--ease-out); }
 
 /* ════════ Reduced motion ════════ */
 @media (prefers-reduced-motion: reduce) {
@@ -579,5 +623,4 @@ body, .tools-layout, nav, header, footer, .tele-panel {
     body, a, button { cursor: auto; }
   }
   .lamp { animation: none; }
-  .bg-mesh { animation: none; }
 }
