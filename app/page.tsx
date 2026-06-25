@@ -1,8 +1,5 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Nav from "./components/Nav";
 import Footer from "./components/Footer";
@@ -37,8 +34,6 @@ function SectionHead({ n, title, meta }: { n: string; title: string; meta?: stri
 /* ── Page ───────────────────────────────────────────────────────────────── */
 
 export default function Home() {
-  const reduce = useReducedMotion();
-
   return (
     <main id="main" style={{ position: "relative", zIndex: 2 }}>
       <Nav />
@@ -47,40 +42,35 @@ export default function Home() {
       {/* bottom padding clears the fixed HUD readouts */}
       <section className={PAD} style={{ minHeight: "100svh", display: "flex", flexDirection: "column", paddingTop: 78, paddingBottom: "clamp(44px,7vh,84px)", position: "relative" }}>
         {/* meta band */}
-        <motion.div
-          initial={reduce ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.55, duration: 0.8 }}
-          className="mono flex items-center justify-between"
-          style={{ borderTop: "1px solid var(--line)", paddingTop: 12, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fg-muted)", gap: 16 }}
+        <div
+          className="mono flex items-center justify-between fade-in"
+          style={{ animationDelay: "0.55s", borderTop: "1px solid var(--line)", paddingTop: 12, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fg-muted)", gap: 16 }}
         >
           <span className="inline-flex items-center gap-2" style={{ color: "var(--fg)" }}>
             <span className="lamp" /> Available for projects
           </span>
           <span className="hidden sm:block" style={{ color: "var(--fg-faint)" }}>Folio 2026 — Hyderabad, IN</span>
-        </motion.div>
+        </div>
 
-        {/* the name */}
+        {/* the name — LCP element. Revealed with CSS (.hero-line), NOT Framer,
+            so it paints on first load instead of waiting for JS to hydrate. */}
         <h1 className="giant hero-name" style={{ color: "var(--fg)", marginLeft: "-0.04em", marginTop: "clamp(16px,3vh,40px)" }}>
-          <MaskReveal mount delay={0.12}>
-            <span style={{ display: "block" }}>Deepak</span>
-          </MaskReveal>
-          <MaskReveal mount delay={0.22}>
-            <span style={{ display: "block" }}>
+          <span className="hero-line">
+            <span className="hero-line-in" style={{ animationDelay: "0.12s" }}>Deepak</span>
+          </span>
+          <span className="hero-line">
+            <span className="hero-line-in" style={{ animationDelay: "0.22s" }}>
               Aeleni<span style={{ color: "var(--accent)" }}>.</span>
             </span>
-          </MaskReveal>
+          </span>
         </h1>
 
         <div style={{ flex: 1 }} />
 
         {/* lower band — statement left, roles + CTAs right */}
-        <motion.div
-          initial={reduce ? false : { opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col md:flex-row md:items-end md:justify-between"
-          style={{ borderTop: "1px solid var(--line)", paddingTop: "clamp(18px,3vh,28px)", marginTop: 24, gap: 28 }}
+        <div
+          className="flex flex-col md:flex-row md:items-end md:justify-between fade-up"
+          style={{ animationDelay: "0.6s", borderTop: "1px solid var(--line)", paddingTop: "clamp(18px,3vh,28px)", marginTop: 24, gap: 28 }}
         >
           <p style={{ fontSize: "clamp(1rem,1.3vw,1.2rem)", lineHeight: 1.6, color: "var(--fg-muted)", maxWidth: 460 }}>
             Internet generalist based in <span style={{ color: "var(--fg)" }}>Hyderabad</span> —
@@ -101,7 +91,7 @@ export default function Home() {
               </Magnetic>
             </div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* ════ SELECTED WORK ════ */}

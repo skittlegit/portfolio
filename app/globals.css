@@ -308,6 +308,39 @@ body, .tools-layout, nav, header, footer {
   .hero-name { font-size: clamp(8rem, min(24vw, 36svh), 24rem); }
 }
 
+/* hero entrance — pure CSS so the LCP name reveals on first paint instead of
+   waiting for the JS bundle to download + hydrate Framer. Same mask-rise the
+   MaskReveal component uses (115% -> 0 on the expo-out curve), same crop pad.
+   `both` holds the start offset through the per-line animation-delay. */
+.hero-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.hero-line-in {
+  display: block;
+  animation: mask-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes mask-rise {
+  from { transform: translateY(115%); }
+  to { transform: translateY(0); }
+}
+
+/* generic first-fold entrances — CSS so the hero band fades/rises without any
+   Framer dependency, which lets page.tsx be a server component (no JS hydration
+   for the static fold). Non-LCP elements, so opacity is fine here. */
+.fade-in { animation: fade-in 0.8s ease both; }
+.fade-up { animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ════════ Interactions ════════ */
 /* trace underline for links */
 .link-trace {
@@ -623,4 +656,6 @@ body, .tools-layout, nav, header, footer {
     body, a, button { cursor: auto; }
   }
   .lamp { animation: none; }
+  /* show the first fold at rest — no rise/fade, no animation-delay flash */
+  .hero-line-in, .fade-in, .fade-up { animation: none; }
 }

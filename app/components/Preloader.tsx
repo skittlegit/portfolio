@@ -15,7 +15,7 @@ export default function Preloader() {
     if (reduce) return;
     if (sessionStorage.getItem("booted") === "1") return;
 
-    const DURATION = 950;
+    const DURATION = 650;
     let raf = 0;
 
     // Defer the boot sequence to the next frame so state updates run from a
@@ -34,7 +34,7 @@ export default function Preloader() {
           setTimeout(() => {
             setShow(false);
             document.body.style.overflow = "";
-          }, 260);
+          }, 150);
         }
       };
       raf = requestAnimationFrame(tick);
@@ -53,7 +53,7 @@ export default function Preloader() {
           key="preloader"
           initial={{ clipPath: "inset(0 0 0 0)" }}
           exit={{ clipPath: "inset(0 0 100% 0)" }}
-          transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
+          transition={{ duration: 0.5, ease: [0.76, 0, 0.24, 1] }}
           className="px-5 sm:px-8 md:px-12 lg:px-16"
           style={{
             position: "fixed",
