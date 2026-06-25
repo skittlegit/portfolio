@@ -34,7 +34,7 @@ Type: **Space Grotesk** (display/body) · **Instrument Serif** (accents & numera
 ## Stack
 
 | | |
-|---|---|
+| --- | --- |
 | **Framework** | Next.js 16 (App Router) + React 19 |
 | **Language** | TypeScript (strict) |
 | **Styling** | Tailwind CSS v4 + centralized CSS design tokens |
@@ -45,7 +45,7 @@ Type: **Space Grotesk** (display/body) · **Instrument Serif** (accents & numera
 
 ## Architecture
 
-```
+```text
 app/
 ├─ layout.tsx              # root — fonts, metadata/OG, providers, global shell
 ├─ template.tsx            # route transition (opacity crossfade)
@@ -79,7 +79,7 @@ npm run dev      # http://localhost:3000
 ```
 
 | Command | Description |
-|---------|-------------|
+| --- | --- |
 | `npm run dev` | Start the dev server |
 | `npm run build` | Production build |
 | `npm run start` | Serve the production build |
