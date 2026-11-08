@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
 
@@ -32,10 +32,29 @@ function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: n
   return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
 }
 
+const INITIAL_HEX = "#5f3df0";
+const INITIAL_RGB = { r: 95, g: 61, b: 240 };
+
+function CopyBtn({
+  text,
+  isCopied,
+  onCopy,
+}: {
+  text: string;
+  isCopied: boolean;
+  onCopy: (text: string) => void;
+}) {
+  return (
+    <button onClick={() => onCopy(text)} className="tool-icon-btn" style={{ padding: 4 }}>
+      {isCopied ? <Check size={14} /> : <Copy size={14} />}
+    </button>
+  );
+}
+
 export default function ColorConverterPage() {
-  const [hex, setHex] = useState("#5f3df0");
-  const [rgb, setRgb] = useState({ r: 90, g: 60, b: 240 });
-  const [hsl, setHsl] = useState({ h: 250, s: 86, l: 59 });
+  const [hex, setHex] = useState(INITIAL_HEX);
+  const [rgb, setRgb] = useState(INITIAL_RGB);
+  const [hsl, setHsl] = useState(() => rgbToHsl(INITIAL_RGB.r, INITIAL_RGB.g, INITIAL_RGB.b));
   const [copied, setCopied] = useState<string | null>(null);
 
   const updateFromHex = (val: string) => {
@@ -53,26 +72,11 @@ export default function ColorConverterPage() {
     setHsl(rgbToHsl(r, g, b));
   };
 
-  useEffect(() => {
-    updateFromHex(hex);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const copy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     setCopied(label);
     setTimeout(() => setCopied(null), 1500);
   };
-
-  const CopyBtn = ({ text, label }: { text: string; label: string }) => (
-    <button
-      onClick={() => copy(text, label)}
-      className="tool-icon-btn"
-      style={{ padding: 4 }}
-    >
-      {copied === label ? <Check size={14} /> : <Copy size={14} />}
-    </button>
-  );
 
   return (
     <ToolLayout title="Color Converter" description="Convert between HEX, RGB, and HSL color formats.">
@@ -99,7 +103,7 @@ export default function ColorConverterPage() {
               onChange={(e) => updateFromHex(e.target.value)}
               className="tool-input w-full"
             />
-            <CopyBtn text={hex} label="hex" />
+            <CopyBtn text={hex} isCopied={copied === "hex"} onCopy={(t) => copy(t, "hex")} />
           </div>
         </div>
 
@@ -124,7 +128,11 @@ export default function ColorConverterPage() {
                 className="tool-input w-full text-center"
               />
             ))}
-            <CopyBtn text={`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`} label="rgb" />
+            <CopyBtn
+              text={`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`}
+              isCopied={copied === "rgb"}
+              onCopy={(t) => copy(t, "rgb")}
+            />
           </div>
         </div>
 
@@ -139,7 +147,11 @@ export default function ColorConverterPage() {
               className="tool-input w-full"
               style={{ opacity: 0.7 }}
             />
-            <CopyBtn text={`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`} label="hsl" />
+            <CopyBtn
+              text={`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`}
+              isCopied={copied === "hsl"}
+              onCopy={(t) => copy(t, "hsl")}
+            />
           </div>
         </div>
       </div>

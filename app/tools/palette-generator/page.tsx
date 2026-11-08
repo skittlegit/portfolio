@@ -54,6 +54,10 @@ function contrastColor(hex: string): string {
 
 type PaletteColor = { hex: string; locked: boolean };
 
+const INITIAL_PALETTE: PaletteColor[] = ["#5f3df0", "#d9487a", "#e8903a", "#3aa88f", "#2f6fd6"].map(
+  (hex) => ({ hex, locked: false })
+);
+
 function generatePalette(existing: PaletteColor[]): PaletteColor[] {
   return existing.map((c) => (c.locked ? c : { hex: randomColor(), locked: false }));
 }
@@ -108,11 +112,15 @@ function generateHarmony(
 export default function PaletteGeneratorPage() {
   const { fg, fgMuted, isDark } = useTheme();
   const [count, setCount] = useState(5);
-  const [colors, setColors] = useState<PaletteColor[]>(() =>
-    Array.from({ length: 5 }, () => ({ hex: randomColor(), locked: false }))
-  );
+  const [colors, setColors] = useState<PaletteColor[]>(INITIAL_PALETTE);
   const [copied, setCopied] = useState<number | null>(null);
   const [harmony, setHarmony] = useState<string>("random");
+
+  // Randomize only after hydration, so the server and client render the same first palette.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setColors(generatePalette));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   const regenerate = useCallback(() => {
     if (harmony === "random") {
