@@ -131,8 +131,7 @@ export default function AsciiArtPage() {
     }
   }, [width, charSet, mode, processImage]);
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const loadFile = (file: File | undefined) => {
     if (!file) return;
     const url = URL.createObjectURL(file);
     const img = new window.Image();
@@ -162,7 +161,7 @@ export default function AsciiArtPage() {
     <ToolLayout title="ASCII Art Generator" description="Convert text or images into ASCII art.">
       <div className="max-w-4xl">
         <canvas ref={canvasRef} style={{ display: "none" }} />
-        <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
+        <input ref={fileRef} type="file" accept="image/*" onChange={(e) => loadFile(e.target.files?.[0])} style={{ display: "none" }} />
 
         {/* Mode toggle */}
         <div className="flex gap-2 mb-6">

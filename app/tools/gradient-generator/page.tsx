@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Copy, Check, Plus, X, Upload, Download } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import Dropzone from "../../components/Dropzone";
 import { copyText } from "../../lib/clipboard";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
@@ -163,8 +164,7 @@ export default function GradientGeneratorPage() {
     []
   );
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const loadFile = (file: File | undefined) => {
     if (!file) return;
     const url = URL.createObjectURL(file);
     const img = new window.Image();
@@ -215,7 +215,7 @@ export default function GradientGeneratorPage() {
     <ToolLayout title="CSS Gradient Generator" description="Create CSS gradients or extract them from photos.">
       <div className="max-w-3xl">
         <canvas ref={canvasRef} style={{ display: "none" }} />
-        <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
+        <input ref={fileRef} type="file" accept="image/*" onChange={(e) => loadFile(e.target.files?.[0])} style={{ display: "none" }} />
 
         {/* Tab toggle */}
         <div className="flex gap-2 mb-6">
@@ -450,20 +450,12 @@ export default function GradientGeneratorPage() {
                 </div>
               </>
             ) : !hasImage ? (
-              <div
-                onClick={() => fileRef.current?.click()}
-                style={{
-                  border: `2px dashed ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-                  borderRadius: 0,
-                  padding: "60px 20px",
-                  textAlign: "center",
-                  color: fgMuted,
-                  cursor: "pointer",
-                }}
-              >
-                <Upload size={32} strokeWidth={1} style={{ margin: "0 auto 12px" }} />
-                <p className="text-sm">Upload a photo to extract a gradient</p>
-              </div>
+              <Dropzone
+                onPick={() => fileRef.current?.click()}
+                onFiles={(files) => loadFile(files[0])}
+                label="Select or drop a photo"
+                hint="Its colours become the gradient"
+              />
             ) : null}
           </>
         )}

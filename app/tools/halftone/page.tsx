@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Upload, Download } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import Dropzone from "../../components/Dropzone";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -107,8 +108,7 @@ export default function HalftonePage() {
     }
   }, [dotSize, contrast, dotShape, dotColor, bgColor, transparentBg, hasImage, renderHalftone]);
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const loadFile = (file: File | undefined) => {
     if (!file) return;
     const url = URL.createObjectURL(file);
     const img = new window.Image();
@@ -141,7 +141,7 @@ export default function HalftonePage() {
           ref={fileRef}
           type="file"
           accept="image/*"
-          onChange={handleFile}
+          onChange={(e) => loadFile(e.target.files?.[0])}
           style={{ display: "none" }}
         />
 
@@ -248,20 +248,12 @@ export default function HalftonePage() {
             </button>
           </div>
         ) : (
-          <div
-            onClick={() => fileRef.current?.click()}
-            style={{
-              border: `2px dashed ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-              borderRadius: 0,
-              padding: "60px 20px",
-              textAlign: "center",
-              color: fgMuted,
-              cursor: "pointer",
-            }}
-          >
-            <Upload size={32} strokeWidth={1} style={{ margin: "0 auto 12px" }} />
-            <p className="text-sm">Click or drop an image to start</p>
-          </div>
+          <Dropzone
+            onPick={() => fileRef.current?.click()}
+            onFiles={(files) => loadFile(files[0])}
+            label="Select or drop an image"
+            hint="JPEG · PNG · WebP"
+          />
         )}
       </div>
     </ToolLayout>

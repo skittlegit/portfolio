@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Upload, Download, X, FileArchive } from "lucide-react";
+import { Download, X, FileArchive } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import Dropzone from "../../components/Dropzone";
 import { useTheme } from "../../context/ThemeContext";
 
 type CompressedFile = {
@@ -91,16 +92,15 @@ export default function CompressorPage() {
     });
   };
 
-  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files;
-    if (!selected) return;
+  const processFiles = async (selected: File[]) => {
+    if (selected.length === 0 || processing) return;
     setProcessing(true);
     setFailed([]);
 
     const results: CompressedFile[] = [];
     const bad: string[] = [];
     try {
-      for (const file of Array.from(selected)) {
+      for (const file of selected) {
         const compressed = file.type.startsWith("image/") ? await compressImage(file) : null;
         if (compressed) results.push(compressed);
         else bad.push(file.name);
@@ -142,7 +142,7 @@ export default function CompressorPage() {
     <ToolLayout title="Image Compressor" description="Compress images right in your browser. No uploads.">
       <div className="max-w-3xl">
         <canvas ref={canvasRef} style={{ display: "none" }} />
-        <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFiles} style={{ display: "none" }} />
+        <input ref={fileRef} type="file" accept="image/*" multiple onChange={(e) => processFiles(Array.from(e.target.files ?? []))} style={{ display: "none" }} />
 
         {/* Controls */}
         <div className="flex flex-wrap gap-6 items-end mb-6">
@@ -179,20 +179,15 @@ export default function CompressorPage() {
         </div>
 
         {/* Upload area */}
-        <div
-          onClick={() => fileRef.current?.click()}
-          style={{
-            border: `2px dashed ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-            borderRadius: 0,
-            padding: "40px 20px",
-            textAlign: "center",
-            color: fgMuted,
-            cursor: "pointer",
-            marginBottom: 24,
-          }}
-        >
-          <Upload size={28} strokeWidth={1} style={{ margin: "0 auto 10px" }} />
-          <p className="text-sm">{processing ? "Compressing..." : "Click to select images"}</p>
+        <div style={{ marginBottom: 24 }}>
+          <Dropzone
+            multiple
+            busy={processing}
+            onPick={() => fileRef.current?.click()}
+            onFiles={processFiles}
+            label={processing ? "Compressing…" : "Select or drop images"}
+            hint="JPEG · PNG · WebP — nothing leaves your browser"
+          />
         </div>
 
         {failed.length > 0 && (

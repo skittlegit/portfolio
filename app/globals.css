@@ -310,7 +310,11 @@ body, .tools-layout, nav, header, footer {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--fg-faint);
+  /* A fixed mid-tone + difference blending keeps the readouts legible over
+     whatever scrolls beneath them — ink, paper, or a project screenshot —
+     without giving the HUD a background of its own. */
+  color: #6f6a5e;
+  mix-blend-mode: difference;
 }
 @media (min-width: 1024px) { .hud { padding: 0 64px 14px; } }
 @media (max-width: 767px) { .hud { display: none; } }
@@ -319,7 +323,14 @@ body, .tools-layout, nav, header, footer {
    viewport height on desktop so the whole hero (name + statement + CTAs)
    always fits inside the first fold */
 .hero-name {
-  font-size: clamp(4.2rem, 27.5vw, 8.5rem);
+  font-size: clamp(4.2rem, 32vw, 13rem);
+}
+/* Below sm the hero is as tall as its content, so the next section shows in
+   the first fold; from sm up it fills the viewport and the gap flexes. */
+.hero-gap { height: clamp(28px, 7svh, 64px); }
+@media (min-width: 640px) {
+  .hero { min-height: 100svh; }
+  .hero-gap { flex: 1; height: auto; }
 }
 @media (min-width: 640px) {
   .hero-name { font-size: clamp(8rem, min(24vw, 36svh), 24rem); }
@@ -570,6 +581,101 @@ body, .tools-layout, nav, header, footer {
 
 /* ════════ Tool component classes (preserved names, angular) ════════ */
 .tools-layout { overflow: auto; }
+/* Mono is the data voice — every value, hint and control inside a tool
+   speaks it (titles keep their own display classes). */
+.tools-layout main { font-family: var(--font-fragment), ui-monospace, monospace; letter-spacing: 0; }
+/* the fixed HUD sits in the bottom 34px on md+; keep the footer line above it */
+.tool-footer { padding-bottom: 20px; }
+@media (min-width: 768px) { .tool-footer { padding-bottom: 44px; } }
+
+/* Range sliders — a hairline track with a square thumb, like an instrument
+   fader. The wrapper rule gives a slider row the same height as buttons and
+   selects so mixed control rows share one baseline. */
+.tools-layout div:has(> input[type="range"]) { min-height: 40px; }
+/* …and the other controls in a bottom-aligned row match that height, so the
+   labels above them line up too */
+.tools-layout .items-end .tool-btn,
+.tools-layout .items-end .tool-select,
+.tools-layout .items-end .tool-toggle,
+.tools-layout .tool-swatch { min-height: 40px; }
+.tools-layout .items-end .tool-select { padding-top: 0; padding-bottom: 0; }
+.tools-layout input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  height: 20px;
+  background: transparent;
+  cursor: pointer;
+  margin: 0;
+}
+.tools-layout input[type="range"]::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--line-strong);
+}
+.tools-layout input[type="range"]::-moz-range-track {
+  height: 1px;
+  background: var(--line-strong);
+}
+.tools-layout input[type="range"]::-moz-range-progress {
+  height: 1px;
+  background: var(--fg);
+}
+.tools-layout input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 11px; height: 11px;
+  margin-top: -5px;
+  background: var(--fg);
+  border: none;
+  border-radius: 0;
+  transition: background-color var(--dur-fast) ease, transform var(--dur-fast) ease;
+}
+.tools-layout input[type="range"]::-moz-range-thumb {
+  width: 11px; height: 11px;
+  background: var(--fg);
+  border: none;
+  border-radius: 0;
+  transition: background-color var(--dur-fast) ease, transform var(--dur-fast) ease;
+}
+.tools-layout input[type="range"]:hover::-webkit-slider-thumb,
+.tools-layout input[type="range"]:active::-webkit-slider-thumb { background: var(--accent); transform: scale(1.25); }
+.tools-layout input[type="range"]:hover::-moz-range-thumb,
+.tools-layout input[type="range"]:active::-moz-range-thumb { background: var(--accent); transform: scale(1.25); }
+.tools-layout input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+/* Upload target (Dropzone) — click, keyboard, or drop */
+.tool-drop {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 52px 20px;
+  background: transparent;
+  border: 1px dashed var(--line-strong);
+  border-radius: 0;
+  color: var(--fg-muted);
+  font-family: var(--font-fragment), monospace;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.tool-drop[data-compact="true"] { flex-direction: row; padding: 16px 20px; gap: 14px; }
+.tool-drop[data-compact="true"] .tool-drop-hint { display: none; }
+.tool-drop-icon {
+  width: 44px; height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line);
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+.tool-drop[data-compact="true"] .tool-drop-icon { width: 30px; height: 30px; }
+.tool-drop-label { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg); }
+.tool-drop-hint { font-size: 11px; letter-spacing: 0.04em; color: var(--fg-faint); }
+.tool-drop:hover,
+.tool-drop:focus-visible { border-color: var(--accent); background-color: var(--accent-glow); }
+.tool-drop:hover .tool-drop-icon,
+.tool-drop:focus-visible .tool-drop-icon,
+.tool-drop[data-drag="true"] .tool-drop-icon { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.tool-drop[data-drag="true"] { border-style: solid; border-color: var(--accent); background-color: var(--accent-glow); }
+.tool-drop[aria-busy="true"] { cursor: progress; }
 
 .tool-label {
   font-family: var(--font-fragment), monospace;

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, Download, X, GripVertical, ChevronUp, ChevronDown } from "lucide-react";
+import { Download, X, GripVertical, ChevronUp, ChevronDown } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import Dropzone from "../../components/Dropzone";
 import { useTheme } from "../../context/ThemeContext";
 
 type ImageItem = {
@@ -56,9 +57,7 @@ export default function ImagesToPdfPage() {
       reader.readAsDataURL(file);
     });
 
-  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = Array.from(e.target.files ?? []);
-    if (fileRef.current) fileRef.current.value = "";
+  const addFiles = async (selected: File[]) => {
     if (selected.length === 0) return;
 
     // Promise.all keeps the selection order regardless of which file
@@ -184,7 +183,11 @@ export default function ImagesToPdfPage() {
           type="file"
           accept="image/*"
           multiple
-          onChange={handleFiles}
+          onChange={(e) => {
+            const picked = Array.from(e.target.files ?? []);
+            e.target.value = "";
+            addFiles(picked);
+          }}
           style={{ display: "none" }}
         />
 
@@ -232,24 +235,15 @@ export default function ImagesToPdfPage() {
         </div>
 
         {/* Upload area */}
-        <div
-          onClick={() => fileRef.current?.click()}
-          style={{
-            border: `2px dashed ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
-            borderRadius: 0,
-            padding: "40px 20px",
-            textAlign: "center",
-            color: fgMuted,
-            cursor: "pointer",
-            marginBottom: 24,
-          }}
-        >
-          <Upload
-            size={28}
-            strokeWidth={1}
-            style={{ margin: "0 auto 10px" }}
+        <div style={{ marginBottom: 24 }}>
+          <Dropzone
+            multiple
+            compact={images.length > 0}
+            onPick={() => fileRef.current?.click()}
+            onFiles={addFiles}
+            label={images.length > 0 ? "Add more images" : "Select or drop images"}
+            hint="One page per image, in the order listed"
           />
-          <p className="text-sm">Click to add images</p>
         </div>
 
         {error && (

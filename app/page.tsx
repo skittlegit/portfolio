@@ -42,7 +42,7 @@ export default function Home() {
 
       {/* ════ HERO — the name hits first, everything else gathers below ════ */}
       {/* bottom padding clears the fixed HUD readouts */}
-      <section className={PAD} style={{ minHeight: "100svh", display: "flex", flexDirection: "column", paddingTop: 78, paddingBottom: "clamp(44px,7vh,84px)", position: "relative" }}>
+      <section className={`hero ${PAD}`} style={{ display: "flex", flexDirection: "column", paddingTop: 78, paddingBottom: "clamp(44px,7vh,84px)", position: "relative" }}>
         {/* meta band */}
         <div
           className="mono flex items-center justify-between fade-in"
@@ -67,7 +67,7 @@ export default function Home() {
           </span>
         </h1>
 
-        <div style={{ flex: 1 }} />
+        <div className="hero-gap" />
 
         {/* lower band — statement left, roles + CTAs right */}
         <div

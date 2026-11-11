@@ -62,7 +62,7 @@ app/
 │  └─ clipboard.ts         # copyText()
 ├─ context/ThemeContext.tsx
 ├─ components/             # Nav, Footer, Hud, Cursor, Preloader, MaskReveal, Reveal,
-│                          #   Magnetic, SmoothScroll, ToolLayout, ColorPicker, …
+│                          #   Magnetic, SmoothScroll, ToolLayout, ColorPicker, Dropzone, …
 └─ tools/                  # one folder per tool: page.tsx (client) + layout.tsx (metadata)
 public/work/               # project screenshots (statically imported → content-hashed)
 scripts/                   # headless-Chrome screenshot helpers (see below)

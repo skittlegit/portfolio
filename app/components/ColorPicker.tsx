@@ -160,20 +160,7 @@ export default function ColorPicker({
 
   return (
     <div ref={containerRef} style={{ position: "relative", display: "inline-block" }}>
-      {label && (
-        <span
-          style={{
-            fontSize: 11,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: fgMuted,
-            marginBottom: 6,
-            display: "block",
-          }}
-        >
-          {label}
-        </span>
-      )}
+      {label && <span className="tool-label">{label}</span>}
       {/* Swatch + hex trigger */}
       <button
         type="button"
@@ -182,6 +169,7 @@ export default function ColorPicker({
         aria-expanded={open}
         aria-label={`${label ?? "Color"}: ${value}. Open color picker`}
         data-interactive
+        className="tool-swatch"
         style={{
           display: "flex",
           alignItems: "center",

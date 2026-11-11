@@ -72,10 +72,9 @@ export default function ToolLayout({
 
       {/* footer */}
       <footer
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between mono px-5 sm:px-8 md:px-12 lg:px-16"
+        className="tool-footer flex flex-col sm:flex-row sm:items-center sm:justify-between mono px-5 sm:px-8 md:px-12 lg:px-16"
         style={{
           paddingTop: 20,
-          paddingBottom: 20,
           borderTop: "1px solid var(--line)",
           fontSize: 11,
           letterSpacing: "0.06em",
