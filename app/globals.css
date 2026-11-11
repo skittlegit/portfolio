@@ -534,11 +534,17 @@ body, .tools-layout, nav, header, footer {
   background: var(--bg-raised);
   overflow: hidden;
 }
+/* One ratio on phones, where every tile is a full-width column; the lead tile
+   only goes ultra-wide once it actually spans two columns. */
 .work-tile .tile-img {
+  aspect-ratio: 16 / 10;
   position: relative;
   overflow: hidden;
   background: var(--bg-sunk);
   border-bottom: 1px solid var(--line);
+}
+@media (min-width: 768px) {
+  .work-tile .tile-img[data-large] { aspect-ratio: 21 / 9; }
 }
 .work-tile .tile-img img {
   transition: transform 1s var(--ease-out), filter 1s var(--ease-out);
@@ -550,11 +556,19 @@ body, .tools-layout, nav, header, footer {
 .tile-arrow { transition: transform var(--dur) var(--ease-out); display: inline-flex; }
 
 /* case-study media frame */
+/* The ratio lives here, not inline: a min-height on an aspect-ratio box
+   widens it past its container on narrow screens, so phones get the same
+   16:10 as the work tiles instead of a height floor. */
 .case-media {
+  width: 100%;
+  aspect-ratio: 16 / 10;
   position: relative;
   overflow: hidden;
   border: 1px solid var(--line);
   background: var(--bg-sunk);
+}
+@media (min-width: 768px) {
+  .case-media { aspect-ratio: 21 / 10; }
 }
 
 /* fact rows (case-study key points / spec sheets) */

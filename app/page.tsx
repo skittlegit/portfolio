@@ -214,7 +214,7 @@ export default function Home() {
 function WorkTile({ p, large }: { p: Project; large?: boolean }) {
   return (
     <Link href={`/work/${p.slug}`} data-cursor="case study" className="work-tile">
-      <div className="tile-img" style={{ aspectRatio: large ? "21 / 9" : "16 / 10" }}>
+      <div className="tile-img" data-large={large || undefined}>
         {p.img && (
           <Image
             src={p.img}

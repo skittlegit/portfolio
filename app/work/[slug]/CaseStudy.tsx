@@ -167,7 +167,7 @@ function ParallaxMedia({ p }: { p: Project }) {
   const y = useTransform(scrollYProgress, [0, 1], ["-7%", "7%"]);
 
   return (
-    <div ref={ref} className="case-media" style={{ aspectRatio: "21 / 10", minHeight: 260 }}>
+    <div ref={ref} className="case-media">
       <motion.div style={{ position: "absolute", inset: "-8% 0", y: reduce ? 0 : y }}>
         {p.img ? (
           <Image
