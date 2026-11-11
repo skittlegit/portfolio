@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import { copyText } from "../../lib/clipboard";
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const m = hex.replace("#", "").match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
@@ -73,9 +74,11 @@ export default function ColorConverterPage() {
   };
 
   const copy = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(label);
-    setTimeout(() => setCopied(null), 1500);
+    copyText(text).then((ok) => {
+      if (!ok) return;
+      setCopied(label);
+      setTimeout(() => setCopied(null), 1500);
+    });
   };
 
   return (

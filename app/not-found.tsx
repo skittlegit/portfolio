@@ -1,10 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import Nav from "./components/Nav";
 
+export const metadata: Metadata = { title: "Page not found", robots: { index: false } };
+
 export default function NotFound() {
   return (
     <main
+      id="main"
       className="px-5 sm:px-8 md:px-12 lg:px-16"
       style={{ position: "relative", zIndex: 2, minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "center" }}
     >

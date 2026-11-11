@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
-
-const SITE = "https://bydeepak.com";
+import { SITE } from "./lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {

@@ -17,7 +17,7 @@ const PAD = "px-5 sm:px-8 md:px-12 lg:px-16";
 
 // One project, opened up — giant name, spec sheet, the shot at full width
 // with a slow parallax, the facts as numbered rows, and the next project.
-export default function CaseStudy({ project: p, next }: { project: Project; next: Project }) {
+export default function CaseStudy({ project: p, next, total }: { project: Project; next: Project; total: number }) {
   const reduce = useReducedMotion();
 
   return (
@@ -30,7 +30,7 @@ export default function CaseStudy({ project: p, next }: { project: Project; next
           <Link href="/work" data-cursor="index" className="link-trace inline-flex items-center" style={{ gap: 8, color: "var(--fg-muted)" }}>
             <ArrowLeft size={12} strokeWidth={1.75} /> Index
           </Link>
-          <span style={{ color: "var(--fg-faint)" }}>{p.idx} / 06</span>
+          <span style={{ color: "var(--fg-faint)" }}>{p.idx} / {String(total).padStart(2, "0")}</span>
         </div>
 
         <h1 className="giant" style={{ fontSize: "clamp(3.4rem,16.5vw,17rem)", color: "var(--fg)", marginLeft: "-0.04em", marginTop: 12 }}>

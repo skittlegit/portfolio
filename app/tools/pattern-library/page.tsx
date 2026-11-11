@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Copy, Check, Download, RefreshCw, Shuffle } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import { copyText } from "../../lib/clipboard";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -208,9 +209,11 @@ export default function PatternLibraryPage() {
   const cssCode = `background-image: ${encodedSvg};\nbackground-repeat: repeat;\nbackground-size: ${tileSize}px ${tileSize}px;`;
 
   const copy = () => {
-    navigator.clipboard.writeText(cssCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    copyText(cssCode).then((ok) => {
+      if (!ok) return;
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
   };
 
   const downloadSvg = () => {

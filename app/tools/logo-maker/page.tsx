@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Download, RefreshCw, Copy, Check, Plus, X } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import { copyText } from "../../lib/clipboard";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -281,9 +282,11 @@ export default function ShapeMakerPage() {
   };
 
   const copySvg = () => {
-    navigator.clipboard.writeText(svgString);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    copyText(svgString).then((ok) => {
+      if (!ok) return;
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
   };
 
   return (

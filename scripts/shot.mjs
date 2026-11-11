@@ -1,18 +1,15 @@
 // Screenshot helper — drives headless Chrome against the running prod server.
 // Usage: node scripts/shot.mjs [url] [outPrefix]
-import puppeteer from "puppeteer-core";
+import { launch, BASE } from "./browser.mjs";
 
-const URL = process.argv[2] ?? "http://localhost:3199/";
+const URL = process.argv[2] ?? BASE + "/";
 const PREFIX = process.argv[3] ?? "home";
 const OUT = "scripts/shots";
 
 import { mkdirSync } from "node:fs";
 mkdirSync(OUT, { recursive: true });
 
-const browser = await puppeteer.launch({
-  executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
-  headless: "new",
-});
+const browser = await launch();
 
 async function capture(width, height, suffix, { dark = false } = {}) {
   const page = await browser.newPage();

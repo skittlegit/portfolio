@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Copy, Check, Plus, X, Upload, Download } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import { copyText } from "../../lib/clipboard";
 import ColorPicker from "../../components/ColorPicker";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -77,9 +78,11 @@ export default function GradientGeneratorPage() {
 
   const copy = () => {
     const text = `background: ${activeGradient};`;
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    copyText(text).then((ok) => {
+      if (!ok) return;
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
   };
 
   // Extract colors from photo
@@ -163,13 +166,16 @@ export default function GradientGeneratorPage() {
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const url = URL.createObjectURL(file);
     const img = new window.Image();
+    img.onerror = () => URL.revokeObjectURL(url);
     img.onload = () => {
+      URL.revokeObjectURL(url);
       imgRef.current = img;
       setHasImage(true);
       doExtract(img, steps, direction);
     };
-    img.src = URL.createObjectURL(file);
+    img.src = url;
   };
 
   const updateDirection = (d: Direction) => {

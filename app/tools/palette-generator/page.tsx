@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Copy, Check, RefreshCw, Lock, Unlock } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import { copyText } from "../../lib/clipboard";
 import NumberStepper from "../../components/NumberStepper";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -149,17 +150,21 @@ export default function PaletteGeneratorPage() {
   };
 
   const copy = (hex: string, i: number) => {
-    navigator.clipboard.writeText(hex);
-    setCopied(i);
-    setTimeout(() => setCopied(null), 1500);
+    copyText(hex).then((ok) => {
+      if (!ok) return;
+      setCopied(i);
+      setTimeout(() => setCopied(null), 1500);
+    });
   };
 
   const exportCSS = () => {
     const vars = colors.map((c, i) => `  --color-${i + 1}: ${c.hex};`).join("\n");
     const css = `:root {\n${vars}\n}`;
-    navigator.clipboard.writeText(css);
-    setCopied(-1);
-    setTimeout(() => setCopied(null), 1500);
+    copyText(css).then((ok) => {
+      if (!ok) return;
+      setCopied(-1);
+      setTimeout(() => setCopied(null), 1500);
+    });
   };
 
   const handleCountChange = (newCount: number) => {
@@ -232,6 +237,8 @@ export default function PaletteGeneratorPage() {
                 {/* Lock button */}
                 <button
                   onClick={() => toggleLock(i)}
+                  aria-label={`${color.locked ? "Unlock" : "Lock"} ${color.hex}`}
+                  aria-pressed={color.locked}
                   style={{
                     position: "absolute",
                     top: 14,
@@ -337,12 +344,13 @@ export default function PaletteGeneratorPage() {
 function SpacebarHandler({ onSpace }: { onSpace: () => void }) {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (
-        e.code === "Space" &&
-        !(e.target instanceof HTMLInputElement) &&
-        !(e.target instanceof HTMLTextAreaElement) &&
-        !(e.target instanceof HTMLSelectElement)
-      ) {
+      // Space on a focused control must keep its native meaning (activate the
+      // button, type a space, …) — only regenerate when nothing interactive
+      // has focus.
+      const onControl =
+        e.target instanceof Element &&
+        e.target.closest("button,a,input,textarea,select,summary,[role='button'],[role='slider'],[contenteditable='true']");
+      if (e.code === "Space" && !onControl) {
         e.preventDefault();
         onSpace();
       }

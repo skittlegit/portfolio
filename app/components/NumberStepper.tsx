@@ -34,6 +34,9 @@ export default function NumberStepper({
         style={{ border: `1px solid ${border}`, borderRadius: 0, overflow: "hidden" }}
       >
         <button
+          type="button"
+          aria-label={`Decrease ${label ?? "value"}`}
+          disabled={value <= min}
           onClick={() => value > min && onChange(value - 1)}
           style={{
             background: "transparent",
@@ -48,6 +51,7 @@ export default function NumberStepper({
           −
         </button>
         <span
+          aria-live="polite"
           style={{
             minWidth: 24,
             textAlign: "center",
@@ -60,6 +64,9 @@ export default function NumberStepper({
           {value}
         </span>
         <button
+          type="button"
+          aria-label={`Increase ${label ?? "value"}`}
+          disabled={value >= max}
           onClick={() => value < max && onChange(value + 1)}
           style={{
             background: "transparent",

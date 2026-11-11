@@ -131,6 +131,23 @@ body {
 }
 :focus:not(:focus-visible) { outline: none; }
 
+/* Boot cover — bridges the gap between first paint and the Preloader
+   hydrating (the inline script in layout.tsx sets data-boot on first visits).
+   The Preloader removes the attribute once its own overlay is on screen; the
+   delayed animation is a failsafe so the page is never stuck hidden if
+   JavaScript fails to load. */
+html[data-boot] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  animation: boot-cover-release 0.2s linear 4s forwards;
+}
+@keyframes boot-cover-release {
+  to { opacity: 0; visibility: hidden; }
+}
+
 /* Skip link — hidden offscreen until keyboard focus */
 .skip-link {
   position: fixed;

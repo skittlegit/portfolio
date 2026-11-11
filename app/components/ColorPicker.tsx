@@ -56,7 +56,6 @@ export default function ColorPicker({
   const [hexEditing, setHexEditing] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const dragging = useRef<"canvas" | "hue" | null>(null);
 
   // Derive HSL from value prop (single source of truth)
   const hsl = useMemo(() => hexToHsl(value), [value]);
@@ -65,17 +64,19 @@ export default function ColorPicker({
   // Close on outside click
   useEffect(() => {
     if (!open) return;
-    const handle = (e: MouseEvent) => {
+    const handle = (e: PointerEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
         setHexEditing(null);
       }
     };
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
+    document.addEventListener("pointerdown", handle);
+    return () => document.removeEventListener("pointerdown", handle);
   }, [open]);
 
-  // Draw the saturation/lightness canvas
+  // Draw the saturation/lightness canvas. For a fixed hue and saturation, RGB
+  // is linear in lightness on each side of 50%, so one three-stop vertical
+  // gradient per column is exact — ~200 fills instead of one per pixel.
   const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -85,12 +86,13 @@ export default function ColorPicker({
     const h = canvas.height;
 
     for (let x = 0; x < w; x++) {
-      for (let y = 0; y < h; y++) {
-        const s = (x / w) * 100;
-        const l = 100 - (y / h) * 100;
-        ctx.fillStyle = `hsl(${hsl.h}, ${s}%, ${l}%)`;
-        ctx.fillRect(x, y, 1, 1);
-      }
+      const s = (x / w) * 100;
+      const g = ctx.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, "#ffffff");
+      g.addColorStop(0.5, `hsl(${hsl.h}, ${s}%, 50%)`);
+      g.addColorStop(1, "#000000");
+      ctx.fillStyle = g;
+      ctx.fillRect(x, 0, 1, h);
     }
   }, [hsl.h]);
 
@@ -111,7 +113,7 @@ export default function ColorPicker({
     onChange(hex);
   };
 
-  const updateFromHue = (clientX: number, track: HTMLDivElement) => {
+  const updateFromHue = (clientX: number, track: HTMLElement) => {
     const rect = track.getBoundingClientRect();
     const x = clamp(clientX - rect.left, 0, rect.width);
     const h = Math.round((x / rect.width) * 360);
@@ -127,29 +129,31 @@ export default function ColorPicker({
     }
   };
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (dragging.current === "canvas") {
-        e.preventDefault();
-        updateFromCanvas(e.clientX, e.clientY);
-      } else if (dragging.current === "hue") {
-        e.preventDefault();
-        const track = document.getElementById("hue-track");
-        if (track) updateFromHue(e.clientX, track as HTMLDivElement);
-      }
-    };
-    const handleMouseUp = () => {
-      dragging.current = null;
-    };
-    if (open) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
-    }
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  });
+  // Arrow keys nudge the value (Shift = bigger steps) so the picker works
+  // without a pointer.
+  const onCanvasKey = (e: React.KeyboardEvent) => {
+    const step = e.shiftKey ? 10 : 1;
+    let { s, l } = hsl;
+    if (e.key === "ArrowLeft") s -= step;
+    else if (e.key === "ArrowRight") s += step;
+    else if (e.key === "ArrowUp") l += step;
+    else if (e.key === "ArrowDown") l -= step;
+    else return;
+    e.preventDefault();
+    setHexEditing(null);
+    onChange(hslToHex(hsl.h, clamp(s, 0, 100), clamp(l, 0, 100)));
+  };
+
+  const onHueKey = (e: React.KeyboardEvent) => {
+    const step = e.shiftKey ? 10 : 1;
+    let h = hsl.h;
+    if (e.key === "ArrowLeft" || e.key === "ArrowDown") h -= step;
+    else if (e.key === "ArrowRight" || e.key === "ArrowUp") h += step;
+    else return;
+    e.preventDefault();
+    setHexEditing(null);
+    onChange(hslToHex(clamp(h, 0, 360), hsl.s, hsl.l));
+  };
 
   const border = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)";
   const borderSubtle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
@@ -172,8 +176,11 @@ export default function ColorPicker({
       )}
       {/* Swatch + hex trigger */}
       <button
+        type="button"
         onClick={() => !disabled && setOpen(!open)}
         disabled={disabled}
+        aria-expanded={open}
+        aria-label={`${label ?? "Color"}: ${value}. Open color picker`}
         data-interactive
         style={{
           display: "flex",
@@ -206,6 +213,13 @@ export default function ColorPicker({
       {/* Dropdown panel */}
       {open && !disabled && (
         <div
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.stopPropagation();
+              setOpen(false);
+              setHexEditing(null);
+            }
+          }}
           style={{
             position: "absolute",
             top: "calc(100% + 6px)",
@@ -233,10 +247,24 @@ export default function ColorPicker({
                 borderRadius: 0,
                 cursor: "crosshair",
                 display: "block",
+                touchAction: "none",
               }}
-              onMouseDown={(e) => {
-                dragging.current = "canvas";
+              tabIndex={0}
+              role="slider"
+              aria-label="Saturation and lightness"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={hsl.s}
+              aria-valuetext={`Saturation ${hsl.s}%, lightness ${hsl.l}%`}
+              onKeyDown={onCanvasKey}
+              onPointerDown={(e) => {
+                // Capture routes every later move to this element, even when
+                // the pointer leaves it — no window listeners needed.
+                e.currentTarget.setPointerCapture(e.pointerId);
                 updateFromCanvas(e.clientX, e.clientY);
+              }}
+              onPointerMove={(e) => {
+                if (e.currentTarget.hasPointerCapture(e.pointerId)) updateFromCanvas(e.clientX, e.clientY);
               }}
             />
             {/* Picker dot */}
@@ -258,7 +286,13 @@ export default function ColorPicker({
 
           {/* Hue slider */}
           <div
-            id="hue-track"
+            tabIndex={0}
+            role="slider"
+            aria-label="Hue"
+            aria-valuemin={0}
+            aria-valuemax={360}
+            aria-valuenow={hsl.h}
+            onKeyDown={onHueKey}
             style={{
               position: "relative",
               height: 14,
@@ -267,10 +301,14 @@ export default function ColorPicker({
                 "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
               cursor: "pointer",
               marginBottom: 12,
+              touchAction: "none",
             }}
-            onMouseDown={(e) => {
-              dragging.current = "hue";
+            onPointerDown={(e) => {
+              e.currentTarget.setPointerCapture(e.pointerId);
               updateFromHue(e.clientX, e.currentTarget);
+            }}
+            onPointerMove={(e) => {
+              if (e.currentTarget.hasPointerCapture(e.pointerId)) updateFromHue(e.clientX, e.currentTarget);
             }}
           >
             <div
@@ -297,6 +335,8 @@ export default function ColorPicker({
             onChange={(e) => handleHexChange(e.target.value)}
             onBlur={() => setHexEditing(null)}
             maxLength={7}
+            aria-label="Hex value"
+            spellCheck={false}
             style={{
               width: "100%",
               padding: "6px 10px",

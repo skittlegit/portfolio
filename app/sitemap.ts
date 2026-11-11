@@ -1,22 +1,7 @@
 import type { MetadataRoute } from "next";
 import { PROJECTS } from "./lib/projects";
-
-const SITE = "https://bydeepak.com";
-
-const TOOL_SLUGS = [
-  "qr-code",
-  "palette-generator",
-  "gradient-generator",
-  "ascii-art",
-  "halftone",
-  "image-compressor",
-  "images-to-pdf",
-  "pattern-library",
-  "generative-art",
-  "vector-art",
-  "color-converter",
-  "logo-maker",
-];
+import { TOOLS } from "./lib/tools";
+import { SITE } from "./lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -33,7 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly",
     priority: 0.6,
   }));
-  const tools: MetadataRoute.Sitemap = TOOL_SLUGS.map((slug) => ({
+  const tools: MetadataRoute.Sitemap = TOOLS.map(({ slug }) => ({
     url: `${SITE}/tools/${slug}`,
     lastModified: now,
     changeFrequency: "yearly",

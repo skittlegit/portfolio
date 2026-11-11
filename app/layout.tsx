@@ -9,6 +9,7 @@ import Cursor from "./components/Cursor";
 import Preloader from "./components/Preloader";
 import Background from "./components/Background";
 import Hud from "./components/Hud";
+import { SITE } from "./lib/seo";
 import "./globals.css";
 
 // One variable family does all the talking: Archivo's width axis spans
@@ -26,8 +27,6 @@ const mono = Fragment_Mono({
   weight: "400",
   display: "swap",
 });
-
-const SITE = "https://bydeepak.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
@@ -48,7 +47,6 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Deepak Aeleni" }],
   creator: "Deepak Aeleni",
-  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     url: SITE,
@@ -75,9 +73,14 @@ export const viewport: Viewport = {
   colorScheme: "dark light",
 };
 
-// Set theme before paint to avoid a flash of the wrong palette. Ink (dark) is
-// the art-directed default; paper is the alternate.
-const themeScript = `(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark')t='dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
+// Runs before first paint.
+// 1. Theme — avoids a flash of the wrong palette. Ink (dark) is the
+//    art-directed default; paper is the alternate.
+// 2. Boot cover — on a first visit (no "booted" flag, motion allowed) it sets
+//    data-boot, which paints a plain cover (see globals.css) until the
+//    Preloader component hydrates and takes over. Without it the finished
+//    page shows for a moment before the preloader appears.
+const themeScript = `(function(){var d=document.documentElement;try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark')t='dark';d.setAttribute('data-theme',t);}catch(e){}try{if(sessionStorage.getItem('booted')!=='1'&&!matchMedia('(prefers-reduced-motion: reduce)').matches)d.setAttribute('data-boot','1');}catch(e){}})();`;
 
 export default function RootLayout({
   children,

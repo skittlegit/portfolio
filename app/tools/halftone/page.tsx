@@ -110,12 +110,15 @@ export default function HalftonePage() {
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const url = URL.createObjectURL(file);
     const img = new window.Image();
+    img.onerror = () => URL.revokeObjectURL(url);
     img.onload = () => {
+      URL.revokeObjectURL(url);
       imgRef.current = img;
       setHasImage(true);
     };
-    img.src = URL.createObjectURL(file);
+    img.src = url;
   };
 
   const download = () => {

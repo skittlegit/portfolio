@@ -19,21 +19,26 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import ToolLayout from "../components/ToolLayout";
+import { TOOLS } from "../lib/tools";
 
-const tools: { slug: string; name: string; description: string; icon: LucideIcon }[] = [
-  { slug: "qr-code", name: "QR Code Generator", description: "Generate QR codes with custom size, colors, and format.", icon: QrCode },
-  { slug: "palette-generator", name: "Color Palette Generator", description: "Generate color palettes — press space or generate.", icon: Paintbrush },
-  { slug: "gradient-generator", name: "CSS Gradient Generator", description: "Create CSS gradients or extract them from photos.", icon: Layers },
-  { slug: "ascii-art", name: "ASCII Art Generator", description: "Convert text or images into ASCII art.", icon: Terminal },
-  { slug: "halftone", name: "Halftone Dots Effect", description: "Transform images into halftone dot patterns.", icon: CircleDot },
-  { slug: "image-compressor", name: "Image Compressor", description: "Compress images right in your browser — no uploads.", icon: FileArchive },
-  { slug: "images-to-pdf", name: "Images to PDF", description: "Combine multiple images into a single PDF.", icon: FileImage },
-  { slug: "pattern-library", name: "Pattern Library", description: "Generate repeating SVG patterns for backgrounds.", icon: LayoutGrid },
-  { slug: "generative-art", name: "Generative Bio Art", description: "Create organic, biology-inspired generative art.", icon: Dna },
-  { slug: "vector-art", name: "Vector Art Generator", description: "Generate vector illustrations in various styles.", icon: Shapes },
-  { slug: "color-converter", name: "Color Converter", description: "Convert between HEX, RGB, and HSL color formats.", icon: Pipette },
-  { slug: "logo-maker", name: "Shape Maker", description: "Create unique shape compositions with blended colors.", icon: Hexagon },
-];
+// Icons are the only per-tool data that lives here; names, slugs and
+// descriptions come from the shared list in lib/tools.
+const ICONS: Record<string, LucideIcon> = {
+  "qr-code": QrCode,
+  "palette-generator": Paintbrush,
+  "gradient-generator": Layers,
+  "ascii-art": Terminal,
+  halftone: CircleDot,
+  "image-compressor": FileArchive,
+  "images-to-pdf": FileImage,
+  "pattern-library": LayoutGrid,
+  "generative-art": Dna,
+  "vector-art": Shapes,
+  "color-converter": Pipette,
+  "logo-maker": Hexagon,
+};
+
+const tools = TOOLS.map((t) => ({ ...t, icon: ICONS[t.slug] ?? Shapes }));
 
 export default function ToolsPage() {
   const [hov, setHov] = useState<string | null>(null);

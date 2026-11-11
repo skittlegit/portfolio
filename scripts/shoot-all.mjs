@@ -1,16 +1,12 @@
 // Screenshot every redesigned page against the running prod server.
 // 1280×800 @ dsf 1 keeps reads safely under the image-size limits.
 // Usage: node scripts/shoot-all.mjs
-import puppeteer from "puppeteer-core";
+import { launch, BASE } from "./browser.mjs";
 import { mkdirSync } from "node:fs";
 
 mkdirSync("scripts/shots", { recursive: true });
-const BASE = "http://localhost:3199";
 
-const browser = await puppeteer.launch({
-  executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
-  headless: "new",
-});
+const browser = await launch();
 
 async function open(path, { width = 1280, height = 800, theme } = {}) {
   const page = await browser.newPage();

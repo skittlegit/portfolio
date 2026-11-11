@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Download, ArrowUpRight, ArrowLeft } from "lucide-react";
 import Nav from "../components/Nav";
+import { pageMeta } from "../lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Résumé",
   description: "Résumé of Deepak Aeleni — UI/UX-focused full-stack & app developer.",
-  alternates: { canonical: "/resume" },
-};
+  path: "/resume",
+});
 
 const PAD = "px-5 sm:px-8 md:px-12 lg:px-16";
 

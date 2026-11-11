@@ -28,36 +28,46 @@ export default function ImagesToPdfPage() {
   const [margin, setMargin] = useState(0);
   const [quality, setQuality] = useState<"high" | "medium">("high");
   const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const dragItem = useRef<number | null>(null);
   const dragOver = useRef<number | null>(null);
 
-  const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files;
-    if (!selected) return;
-
-    Array.from(selected).forEach((file) => {
-      if (!file.type.startsWith("image/")) return;
+  // Read one file into a data URL + dimensions; null if it can't be decoded.
+  const readImage = (file: File): Promise<ImageItem | null> =>
+    new Promise((resolve) => {
+      if (!file.type.startsWith("image/")) return resolve(null);
       const reader = new FileReader();
+      reader.onerror = () => resolve(null);
       reader.onload = () => {
+        const url = reader.result as string;
         const img = new window.Image();
-        img.onload = () => {
-          setImages((prev) => [
-            ...prev,
-            {
-              id: Math.random().toString(36).slice(2),
-              name: file.name,
-              url: reader.result as string,
-              width: img.width,
-              height: img.height,
-            },
-          ]);
-        };
-        img.src = reader.result as string;
+        img.onerror = () => resolve(null);
+        img.onload = () =>
+          resolve({
+            id: Math.random().toString(36).slice(2),
+            name: file.name,
+            url,
+            width: img.width,
+            height: img.height,
+          });
+        img.src = url;
       };
       reader.readAsDataURL(file);
     });
+
+  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files ?? []);
     if (fileRef.current) fileRef.current.value = "";
+    if (selected.length === 0) return;
+
+    // Promise.all keeps the selection order regardless of which file
+    // finishes decoding first.
+    const read = await Promise.all(selected.map(readImage));
+    const ok = read.filter((r): r is ImageItem => r !== null);
+    const badCount = read.length - ok.length;
+    setError(badCount > 0 ? `Couldn't read ${badCount} file${badCount === 1 ? "" : "s"} — try JPEG, PNG or WebP.` : null);
+    setImages((prev) => [...prev, ...ok]);
   };
 
   const removeImage = (id: string) => {
@@ -88,7 +98,9 @@ export default function ImagesToPdfPage() {
   const generatePdf = async () => {
     if (images.length === 0) return;
     setGenerating(true);
+    setError(null);
 
+    try {
     const { jsPDF } = await import("jspdf");
 
     let pdf: InstanceType<typeof jsPDF> | null = null;
@@ -98,8 +110,10 @@ export default function ImagesToPdfPage() {
       const img = new window.Image();
       img.crossOrigin = "anonymous";
 
-      await new Promise<void>((resolve) => {
+      await new Promise<void>((resolve, reject) => {
+        img.onerror = () => reject(new Error(`Could not load ${item.name}`));
         img.onload = () => {
+          try {
           const canvas = document.createElement("canvas");
           canvas.width = img.width;
           canvas.height = img.height;
@@ -141,6 +155,9 @@ export default function ImagesToPdfPage() {
             pdf.addImage(dataUrl, format, x, y, iW, iH);
           }
           resolve();
+          } catch (err) {
+            reject(err);
+          }
         };
         img.src = item.url;
       });
@@ -149,7 +166,11 @@ export default function ImagesToPdfPage() {
     if (pdf) {
       (pdf as InstanceType<typeof jsPDF>).save("images.pdf");
     }
-    setGenerating(false);
+    } catch {
+      setError("Couldn't build the PDF — one of the images may be too large or unreadable.");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -231,6 +252,12 @@ export default function ImagesToPdfPage() {
           <p className="text-sm">Click to add images</p>
         </div>
 
+        {error && (
+          <p role="alert" className="text-sm" style={{ color: "var(--accent)", marginBottom: 24 }}>
+            {error}
+          </p>
+        )}
+
         {/* Image list */}
         {images.length > 0 && (
           <>
@@ -275,6 +302,7 @@ export default function ImagesToPdfPage() {
                   </span>
                   <button
                     onClick={() => moveImage(i, i - 1)}
+                    aria-label={`Move ${item.name} up`}
                     disabled={i === 0}
                     style={{
                       background: "none",
@@ -288,6 +316,7 @@ export default function ImagesToPdfPage() {
                   </button>
                   <button
                     onClick={() => moveImage(i, i + 1)}
+                    aria-label={`Move ${item.name} down`}
                     disabled={i === images.length - 1}
                     style={{
                       background: "none",
@@ -302,6 +331,7 @@ export default function ImagesToPdfPage() {
                   </button>
                   <button
                     onClick={() => removeImage(item.id)}
+                    aria-label={`Remove ${item.name}`}
                     style={{
                       background: "none",
                       border: "none",

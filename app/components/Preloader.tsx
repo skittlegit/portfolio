@@ -11,12 +11,21 @@ export default function Preloader() {
   const [show, setShow] = useState(false);
   const [count, setCount] = useState(0);
 
+  // Hand-off from the pre-hydration boot cover (html[data-boot], set by the
+  // inline script in layout.tsx): drop it once our own overlay has committed.
   useEffect(() => {
-    if (reduce) return;
-    if (sessionStorage.getItem("booted") === "1") return;
+    if (show) document.documentElement.removeAttribute("data-boot");
+  }, [show]);
+
+  useEffect(() => {
+    if (reduce || sessionStorage.getItem("booted") === "1") {
+      document.documentElement.removeAttribute("data-boot");
+      return;
+    }
 
     const DURATION = 650;
     let raf = 0;
+    let done: ReturnType<typeof setTimeout> | undefined;
 
     // Defer the boot sequence to the next frame so state updates run from a
     // rAF callback rather than synchronously in the effect body.
@@ -31,7 +40,7 @@ export default function Preloader() {
         if (p < 1) raf = requestAnimationFrame(tick);
         else {
           sessionStorage.setItem("booted", "1");
-          setTimeout(() => {
+          done = setTimeout(() => {
             setShow(false);
             document.body.style.overflow = "";
           }, 150);
@@ -42,6 +51,8 @@ export default function Preloader() {
 
     return () => {
       cancelAnimationFrame(raf);
+      clearTimeout(done);
+      document.documentElement.removeAttribute("data-boot");
       document.body.style.overflow = "";
     };
   }, [reduce]);

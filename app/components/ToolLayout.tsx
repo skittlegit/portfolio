@@ -37,6 +37,7 @@ export default function ToolLayout({
     >
       <Nav />
 
+      <main id="main" className="flex-1 flex flex-col">
       {/* editorial title block — top padding clears the fixed nav; gutters match the page grid */}
       <div className="px-5 sm:px-8 md:px-12 lg:px-16" style={{ paddingTop: "calc(62px + clamp(26px,5vw,52px))", paddingBottom: "clamp(18px,3vw,28px)" }}>
         {showBack && (
@@ -64,9 +65,10 @@ export default function ToolLayout({
       </div>
 
       {/* content */}
-      <div id="main" className="flex-1 px-5 sm:px-8 md:px-12 lg:px-16" style={{ paddingBottom: 80 }}>
+      <div className="flex-1 px-5 sm:px-8 md:px-12 lg:px-16" style={{ paddingBottom: 80 }}>
         {children}
       </div>
+      </main>
 
       {/* footer */}
       <footer

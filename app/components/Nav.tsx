@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sun, Moon, Menu, X, ArrowUpRight } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import Magnetic from "./Magnetic";
+import { EMAIL } from "../lib/projects";
 
 type Lenis = { scrollTo: (t: string | number | HTMLElement, o?: object) => void };
 
@@ -22,6 +23,8 @@ export default function Nav() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const openBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -33,6 +36,43 @@ export default function Nav() {
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  // While the mobile menu is open it behaves as a modal dialog: focus moves
+  // in, Tab cycles inside it, Escape closes it, and focus returns to the
+  // button that opened it.
+  useEffect(() => {
+    if (!open) return;
+    const menu = menuRef.current;
+    const opener = openBtnRef.current;
+    const focusables = () =>
+      Array.from(menu?.querySelectorAll<HTMLElement>("a[href],button:not([disabled])") ?? []);
+    focusables()[0]?.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const els = focusables();
+      if (els.length === 0) return;
+      const first = els[0];
+      const last = els[els.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !menu?.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !menu?.contains(active))) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      opener?.focus();
+    };
   }, [open]);
 
   // Contact scrolls to the shared footer when the current page has one;
@@ -68,7 +108,7 @@ export default function Nav() {
           {/* wordmark */}
           <Link href="/" data-cursor="home" className="flex items-baseline" style={{ gap: 10, textDecoration: "none", color: "var(--fg)" }}>
             <span className="giant" style={{ fontSize: 19, letterSpacing: "0.01em" }}>Deepak Aeleni</span>
-            <span className="mono hidden sm:inline" style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--fg-faint)" }}>©2026</span>
+            <span className="mono hidden sm:inline" style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--fg-faint)" }}>©{new Date().getFullYear()}</span>
           </Link>
 
           {/* desktop right */}
@@ -105,7 +145,7 @@ export default function Nav() {
             <button onClick={toggle} aria-label="Toggle theme" style={{ background: "transparent", border: "none", color: "var(--fg-muted)", lineHeight: 0, padding: 8 }}>
               {isDark ? <Sun size={16} strokeWidth={1.5} /> : <Moon size={16} strokeWidth={1.5} />}
             </button>
-            <button onClick={() => setOpen(true)} aria-label="Open menu" style={{ background: "transparent", border: "none", color: "var(--fg)", lineHeight: 0, padding: 8 }}>
+            <button ref={openBtnRef} onClick={() => setOpen(true)} aria-label="Open menu" aria-haspopup="dialog" aria-expanded={open} style={{ background: "transparent", border: "none", color: "var(--fg)", lineHeight: 0, padding: 8 }}>
               <Menu size={20} strokeWidth={1.5} />
             </button>
           </div>
@@ -116,6 +156,10 @@ export default function Nav() {
       <AnimatePresence>
         {open && (
           <motion.div
+            ref={menuRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Site menu"
             initial={{ clipPath: "inset(0 0 100% 0)" }}
             animate={{ clipPath: "inset(0 0 0% 0)" }}
             exit={{ clipPath: "inset(0 0 100% 0)" }}
@@ -152,7 +196,7 @@ export default function Nav() {
                 Contact
               </Link>
             </div>
-            <span className="mono" style={{ fontSize: 11, color: "var(--fg-muted)" }}>deepakrdy7@gmail.com</span>
+            <span className="mono" style={{ fontSize: 11, color: "var(--fg-muted)" }}>{EMAIL}</span>
           </motion.div>
         )}
       </AnimatePresence>

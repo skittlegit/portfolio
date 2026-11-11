@@ -5,7 +5,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 // OG card in the INDEX system — warm black field, cream condensed type,
-// one signal-orange accent.
+// one electric-violet accent.
 export default function OG() {
   return new ImageResponse(
     (

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
@@ -7,16 +8,17 @@ import MaskReveal from "./components/MaskReveal";
 import Reveal from "./components/Reveal";
 import Magnetic from "./components/Magnetic";
 import { PROJECTS, type Project } from "./lib/projects";
+import { TOOLS } from "./lib/tools";
+
+// The canonical lives here, not in the root layout: metadata set in a layout
+// is inherited by every page beneath it that doesn't override the field.
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const PAD = "px-5 sm:px-8 md:px-12 lg:px-16";
 
 const FEATURED = PROJECTS.filter((p) => p.featured);
 
-const TOOLNAMES = [
-  "QR Code", "Color Palette", "CSS Gradient", "ASCII Art", "Halftone",
-  "Image Compressor", "Images → PDF", "Pattern Library", "Generative Art", "Vector Art",
-  "Color Converter", "Shape Maker",
-];
+const TOOLNAMES = TOOLS.map((t) => t.short);
 
 /* numbered hairline section header */
 function SectionHead({ n, title, meta }: { n: string; title: string; meta?: string }) {
@@ -185,7 +187,7 @@ export default function Home() {
               Toolbox
             </span>
             <span className="mono row-meta flex items-center" style={{ gap: 12, fontSize: 12, letterSpacing: "0.12em" }}>
-              (12) <ArrowUpRight size={18} strokeWidth={1.75} />
+              ({String(TOOLS.length).padStart(2, "0")}) <ArrowUpRight size={18} strokeWidth={1.75} />
             </span>
           </span>
         </Link>

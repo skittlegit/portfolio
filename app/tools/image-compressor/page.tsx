@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Upload, Download, X, FileArchive } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
 import { useTheme } from "../../context/ThemeContext";
@@ -25,38 +25,61 @@ export default function CompressorPage() {
   const [maxWidth, setMaxWidth] = useState(1920);
   const [files, setFiles] = useState<CompressedFile[]>([]);
   const [processing, setProcessing] = useState(false);
+  const [failed, setFailed] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const compressImage = (file: File): Promise<CompressedFile> => {
+  // Resolves null when the browser can't decode the file (HEIC, corrupt, …)
+  // so one bad image never stalls the rest of the batch.
+  const compressImage = (file: File): Promise<CompressedFile | null> => {
     return new Promise((resolve) => {
+      const srcUrl = URL.createObjectURL(file);
       const img = new window.Image();
+      img.onerror = () => {
+        URL.revokeObjectURL(srcUrl);
+        resolve(null);
+      };
       img.onload = () => {
+        URL.revokeObjectURL(srcUrl);
         const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
+        const ctx = canvas?.getContext("2d");
+        if (!canvas || !ctx || !img.width || !img.height) return resolve(null);
 
         let w = img.width;
         let h = img.height;
-        if (w > maxWidth) {
+        const resized = w > maxWidth;
+        if (resized) {
           h = Math.round((h * maxWidth) / w);
           w = maxWidth;
         }
 
         canvas.width = w;
         canvas.height = h;
+        // JPEG has no alpha — flatten onto white so transparent areas don't
+        // come out black.
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
 
         canvas.toBlob(
           (blob) => {
-            if (!blob) return;
-            const url = URL.createObjectURL(blob);
+            if (!blob) return resolve(null);
+            // Re-encoding an already-small file can make it bigger; in that
+            // case hand back the original untouched.
+            if (!resized && blob.size >= file.size) {
+              return resolve({
+                name: file.name,
+                originalSize: file.size,
+                compressedSize: file.size,
+                url: URL.createObjectURL(file),
+                type: file.type,
+              });
+            }
             resolve({
               name: file.name.replace(/\.[^.]+$/, "") + "_compressed.jpg",
               originalSize: file.size,
               compressedSize: blob.size,
-              url,
+              url: URL.createObjectURL(blob),
               type: "image/jpeg",
             });
           },
@@ -64,7 +87,7 @@ export default function CompressorPage() {
           quality
         );
       };
-      img.src = URL.createObjectURL(file);
+      img.src = srcUrl;
     });
   };
 
@@ -72,19 +95,30 @@ export default function CompressorPage() {
     const selected = e.target.files;
     if (!selected) return;
     setProcessing(true);
+    setFailed([]);
 
     const results: CompressedFile[] = [];
-    for (const file of Array.from(selected)) {
-      if (file.type.startsWith("image/")) {
-        const compressed = await compressImage(file);
-        results.push(compressed);
+    const bad: string[] = [];
+    try {
+      for (const file of Array.from(selected)) {
+        const compressed = file.type.startsWith("image/") ? await compressImage(file) : null;
+        if (compressed) results.push(compressed);
+        else bad.push(file.name);
       }
+    } finally {
+      setFiles((prev) => [...prev, ...results]);
+      setFailed(bad);
+      setProcessing(false);
+      if (fileRef.current) fileRef.current.value = "";
     }
-
-    setFiles((prev) => [...prev, ...results]);
-    setProcessing(false);
-    if (fileRef.current) fileRef.current.value = "";
   };
+
+  // Release every result's object URL when leaving the page.
+  const filesRef = useRef(files);
+  useEffect(() => {
+    filesRef.current = files;
+  }, [files]);
+  useEffect(() => () => filesRef.current.forEach((f) => URL.revokeObjectURL(f.url)), []);
 
   const downloadFile = (f: CompressedFile) => {
     const a = document.createElement("a");
@@ -161,6 +195,12 @@ export default function CompressorPage() {
           <p className="text-sm">{processing ? "Compressing..." : "Click to select images"}</p>
         </div>
 
+        {failed.length > 0 && (
+          <p role="alert" className="text-sm" style={{ color: "var(--accent)", marginBottom: 24 }}>
+            Couldn&apos;t read {failed.length === 1 ? "this file" : `${failed.length} files`}: {failed.join(", ")}. Try JPEG, PNG or WebP.
+          </p>
+        )}
+
         {/* Results */}
         {files.length > 0 && (
           <>
@@ -195,10 +235,10 @@ export default function CompressorPage() {
                         {formatSize(f.originalSize)} → {formatSize(f.compressedSize)} ({saved}% saved)
                       </p>
                     </div>
-                    <button onClick={() => downloadFile(f)} className="tool-icon-btn">
+                    <button onClick={() => downloadFile(f)} className="tool-icon-btn" aria-label={`Download ${f.name}`}>
                       <Download size={14} />
                     </button>
-                    <button onClick={() => removeFile(i)} className="tool-icon-btn">
+                    <button onClick={() => removeFile(i)} className="tool-icon-btn" aria-label={`Remove ${f.name}`}>
                       <X size={14} />
                     </button>
                   </div>

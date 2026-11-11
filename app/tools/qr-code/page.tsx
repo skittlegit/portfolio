@@ -16,9 +16,11 @@ export default function QrCodePage() {
   const [text, setText] = useState("https://example.com");
   const [size, setSize] = useState(300);
   const [errorLevel, setErrorLevel] = useState<ErrorLevel>("M");
-  const [fgColor, setFgColor] = useState(isDark ? "#ffffff" : "#000000");
-  const [bgColor, setBgColor] = useState(isDark ? "#000000" : "#ffffff");
-  const [transparent, setTransparent] = useState(true);
+  // Dark-on-light with a solid background, whatever the site theme: it's the
+  // only combination every scanner reads, and it stays visible on paper.
+  const [fgColor, setFgColor] = useState("#000000");
+  const [bgColor, setBgColor] = useState("#ffffff");
+  const [transparent, setTransparent] = useState(false);
   const [margin, setMargin] = useState(2);
   const [format, setFormat] = useState<ImageFormat>("png");
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -71,12 +73,15 @@ export default function QrCodePage() {
     const a = document.createElement("a");
     if (format === "svg" && svgString) {
       const blob = new Blob([svgString], { type: "image/svg+xml" });
-      a.href = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
+      a.href = url;
       a.download = "qrcode.svg";
-    } else {
-      a.href = qrDataUrl;
-      a.download = "qrcode.png";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      return;
     }
+    a.href = qrDataUrl;
+    a.download = "qrcode.png";
     a.click();
   };
 

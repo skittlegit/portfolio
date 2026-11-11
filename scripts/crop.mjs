@@ -1,15 +1,12 @@
 // Section-level screenshots — captures specific elements at full resolution.
 // Usage: node scripts/crop.mjs [url]
-import puppeteer from "puppeteer-core";
+import { launch, BASE } from "./browser.mjs";
 import { mkdirSync } from "node:fs";
 
-const URL = process.argv[2] ?? "http://localhost:3199/";
+const URL = process.argv[2] ?? BASE + "/";
 mkdirSync("scripts/shots", { recursive: true });
 
-const browser = await puppeteer.launch({
-  executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
-  headless: "new",
-});
+const browser = await launch();
 const page = await browser.newPage();
 await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
 await page.evaluateOnNewDocument(() => sessionStorage.setItem("booted", "1"));
@@ -25,7 +22,7 @@ await page.evaluate(async () => {
 await new Promise((r) => setTimeout(r, 1200));
 
 const targets = [
-  ["#work .work-feature", "crop-feature"],
+  ["#work .work-tile", "crop-feature"],
   ["#tools-teaser", "crop-teaser"],
   ["#contact", "crop-contact"],
 ];

@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Copy, Check, Upload, Type } from "lucide-react";
 import ToolLayout from "../../components/ToolLayout";
+import { copyText } from "../../lib/clipboard";
 import { useTheme } from "../../context/ThemeContext";
 
 const ASCII_CHARS_DENSE = "@%#*+=-:. ";
@@ -86,12 +87,13 @@ export default function AsciiArtPage() {
   const [copied, setCopied] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const currentFileRef = useRef<File | null>(null);
+  // The decoded image is kept so width / charset changes re-render from it
+  // instead of re-reading the file (and leaking an object URL) every time.
+  const currentImgRef = useRef<HTMLImageElement | null>(null);
 
   const processImage = useCallback(
-    (file: File, w: number, cs: CharSet) => {
-      const img = new window.Image();
-      img.onload = () => {
+    (img: HTMLImageElement, w: number, cs: CharSet) => {
+      {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
@@ -117,33 +119,43 @@ export default function AsciiArtPage() {
           result += "\n";
         }
         setImageAscii(result);
-      };
-      img.src = URL.createObjectURL(file);
+      }
     },
     []
   );
 
   // Re-process image when width or charSet changes
   useEffect(() => {
-    if (mode === "image" && currentFileRef.current) {
-      processImage(currentFileRef.current, width, charSet);
+    if (mode === "image" && currentImgRef.current) {
+      processImage(currentImgRef.current, width, charSet);
     }
   }, [width, charSet, mode, processImage]);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      currentFileRef.current = file;
-      processImage(file, width, charSet);
-    }
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const img = new window.Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      currentImgRef.current = img;
+      processImage(img, width, charSet);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      setImageAscii("Couldn't read that image — try JPEG, PNG or WebP.");
+    };
+    img.src = url;
   };
 
   const asciiOutput = mode === "text" ? textToAscii(text) : imageAscii;
 
   const copy = () => {
-    navigator.clipboard.writeText(asciiOutput);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    copyText(asciiOutput).then((ok) => {
+      if (!ok) return;
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
   };
 
   return (
